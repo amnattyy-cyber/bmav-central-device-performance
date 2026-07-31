@@ -3,6 +3,7 @@
 แดชบอร์ดสาธารณะสำหรับติดตามยอดขาย Device แยกตามแบรนด์ของพื้นที่ BMAV-Central โดยใช้ข้อมูล Run Rate (RR NET AMOUNT / RR QTY) เพื่อวัด `%Ach` และ `MOM`
 
 - Live dashboard: https://bmav-central-device-jul26.amnattyy.chatgpt.site
+- GitHub Pages: https://amnattyy-cyber.github.io/bmav-central-device-performance/
 - ข้อมูลปัจจุบัน: As of 30 July 2026
 - ขอบเขต: 15 สาขาที่มี Target
 
@@ -30,4 +31,5 @@ npm run dev
 
 ```bash
 npm run build
+npm run build:pages
 ```
