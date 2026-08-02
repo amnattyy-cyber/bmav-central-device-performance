@@ -1,223 +1,190 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import data from "./sales-analysis.json";
+import data from "./sales-product-data.json";
 
-type BrandRow = {
-  brand: string;
-  target: number;
-  rr: number;
-  ach: number | null;
-  prev: number;
-  mom: number | null;
-  targetQty: number;
-  rrQty: number;
-  achQty: number | null;
-  prevQty: number;
-  momQty: number | null;
-};
-
+type ProductName = "Device" | "GIA" | "Postpay" | "TrueOnline";
+type ProductValue = { target: number; daily: number[] };
 type Branch = {
-  shop: string;
-  type: string;
-  target: number;
-  rr: number;
-  ach: number | null;
-  prev: number;
-  mom: number | null;
-  targetQty: number;
-  rrQty: number;
-  achQty: number | null;
-  prevQty: number;
-  momQty: number | null;
-  brands: BrandRow[];
+  name: string;
+  tds: number | null;
+  ww: number | null;
+  products: Record<ProductName, ProductValue>;
 };
 
-const branches = (data.branchBrands as Branch[]).filter((branch) => branch.target > 0);
-const types = ["ทั้งหมด", ...Array.from(new Set(branches.map((b) => b.type)))];
-const brands = ["ทุกแบรนด์", ...Array.from(new Set(branches.flatMap((b) => b.brands.map((x) => x.brand))))];
+const productNames = data.products as ProductName[];
+const branches = data.branches as Branch[];
+const ALL_BRANCHES = "ทุกสาขา";
+const productMeta: Record<ProductName, { color: string; accent: string; short: string }> = {
+  Device: { color: "#2563eb", accent: "#dbeafe", short: "DEV" },
+  GIA: { color: "#8e44ad", accent: "#f3e8ff", short: "GIA" },
+  Postpay: { color: "#f59e0b", accent: "#fef3c7", short: "POST" },
+  TrueOnline: { color: "#00a8e8", accent: "#cffafe", short: "TOL" },
+};
 
-const fmtMoney = (value: number) =>
-  new Intl.NumberFormat("th-TH", { notation: "compact", maximumFractionDigits: 1 }).format(value);
-const fmtNumber = (value: number) => new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 }).format(value);
-const fmtPct = (value: number | null, digits = 1) => value == null ? "—" : `${(value * 100).toFixed(digits)}%`;
+const money = (value: number) => new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 }).format(value);
+const compact = (value: number) => new Intl.NumberFormat("th-TH", { notation: "compact", maximumFractionDigits: 1 }).format(value);
+const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
 const shortShop = (name: string) => name
-  .replace("True Shop ", "")
-  .replace("True Kiosk ", "Kiosk ")
+  .replace("True Shop Station ", "Station ")
   .replace("True Shop at ", "")
-  .replace("True Shop Station ", "Station ");
+  .replace("True Shop ", "")
+  .replace("True Kiosk ", "Kiosk ");
 
-function sum(rows: BrandRow[]) {
-  const target = rows.reduce((a, b) => a + b.target, 0);
-  const rr = rows.reduce((a, b) => a + b.rr, 0);
-  const prev = rows.reduce((a, b) => a + b.prev, 0);
-  const targetQty = rows.reduce((a, b) => a + b.targetQty, 0);
-  const rrQty = rows.reduce((a, b) => a + b.rrQty, 0);
-  const prevQty = rows.reduce((a, b) => a + b.prevQty, 0);
-  return {
-    target, rr, prev,
-    ach: target > 0 ? rr / target : null,
-    mom: prev > 0 ? rr / prev - 1 : null,
-    targetQty, rrQty, prevQty,
-    achQty: targetQty > 0 ? rrQty / targetQty : null,
-    momQty: prevQty > 0 ? rrQty / prevQty - 1 : null,
-  };
-}
-
-function status(ach: number | null, mom: number | null) {
-  if (ach == null) return "zero";
-  if (ach >= 0.9) return "good";
-  if (ach < 0.5 || (mom != null && mom <= -0.2)) return "watch";
-  return "push";
+function status(pace: number) {
+  if (pace >= 1) return { key: "ontrack", label: "On Track" };
+  if (pace >= 0.85) return { key: "watch", label: "Watch" };
+  return { key: "atrisk", label: "At Risk" };
 }
 
 export default function Home() {
-  const [typeFilter, setTypeFilter] = useState("ทั้งหมด");
-  const [shopFilter, setShopFilter] = useState("ทุกสาขา");
-  const [brandFilter, setBrandFilter] = useState("ทุกแบรนด์");
+  const [product, setProduct] = useState<ProductName>("Device");
+  const [branchName, setBranchName] = useState(ALL_BRANCHES);
+  const [day, setDay] = useState(2);
+  const theme = productMeta[product];
 
-  const availableBranches = useMemo(() =>
-    branches.filter((b) => typeFilter === "ทั้งหมด" || b.type === typeFilter), [typeFilter]);
+  const selectedBranches = useMemo(
+    () => branchName === ALL_BRANCHES ? branches : branches.filter((branch) => branch.name === branchName),
+    [branchName],
+  );
 
-  const selectedBranches = useMemo(() =>
-    availableBranches.filter((b) => shopFilter === "ทุกสาขา" || b.shop === shopFilter),
-    [availableBranches, shopFilter]);
+  const metrics = useMemo(() => {
+    const target = selectedBranches.reduce((sum, branch) => sum + branch.products[product].target, 0);
+    const daily = Array.from({ length: data.meta.daysInMonth }, (_, index) =>
+      selectedBranches.reduce((sum, branch) => sum + (branch.products[product].daily[index] ?? 0), 0));
+    const mtd = daily.slice(0, day).reduce((sum, value) => sum + value, 0);
+    const today = daily[day - 1] ?? 0;
+    const targetMtd = target * day / data.meta.daysInMonth;
+    const pace = targetMtd > 0 ? mtd / targetMtd : 0;
+    const forecast = day > 0 ? mtd / day * data.meta.daysInMonth : 0;
+    const achievement = target > 0 ? mtd / target : 0;
+    return { target, daily, mtd, today, targetMtd, pace, forecast, achievement, dailyTarget: target / data.meta.daysInMonth };
+  }, [selectedBranches, product, day]);
 
-  const branchPerformance = useMemo(() => selectedBranches.map((b) => {
-    const rows = brandFilter === "ทุกแบรนด์" ? b.brands : b.brands.filter((x) => x.brand === brandFilter);
-    return { ...b, ...sum(rows), rows };
-  }).sort((a, b) => (b.ach ?? -1) - (a.ach ?? -1)), [selectedBranches, brandFilter]);
+  const branchPerformance = useMemo(() => branches.map((branch) => {
+    const item = branch.products[product];
+    const mtd = item.daily.slice(0, day).reduce((sum, value) => sum + value, 0);
+    const targetMtd = item.target * day / data.meta.daysInMonth;
+    const pace = targetMtd > 0 ? mtd / targetMtd : 0;
+    const forecast = day > 0 ? mtd / day * data.meta.daysInMonth : 0;
+    return { ...branch, target: item.target, mtd, targetMtd, pace, forecast, today: item.daily[day - 1] ?? 0 };
+  }).filter((branch) => branchName === ALL_BRANCHES || branch.name === branchName)
+    .sort((a, b) => b.pace - a.pace), [product, branchName, day]);
 
-  const metrics = useMemo(() => sum(branchPerformance.flatMap((b) => b.rows)), [branchPerformance]);
+  const activeBranches = branchPerformance.filter((branch) => branch.target > 0);
+  const onTrack = activeBranches.filter((branch) => branch.pace >= 1);
+  const atRisk = activeBranches.filter((branch) => branch.pace < .85);
+  const leader = activeBranches[0];
+  const maxPace = Math.max(1, ...activeBranches.map((branch) => branch.pace));
+  const maxDaily = Math.max(metrics.dailyTarget, ...metrics.daily.slice(0, day), 1);
+  const targetLevel = Math.min(96, (metrics.dailyTarget / maxDaily) * 100);
 
-  const brandPerformance = useMemo(() => brands.slice(1).map((brand) => {
-    const rows = selectedBranches.flatMap((b) => b.brands.filter((x) => x.brand === brand));
-    const zero = selectedBranches.filter((b) => {
-      const row = b.brands.find((x) => x.brand === brand);
-      return row && row.target > 0 && row.rr === 0;
-    }).map((b) => b.shop);
-    return { brand, ...sum(rows), zero, active: rows.filter((x) => x.rr > 0).length };
-  }).filter((b) => b.target > 0).sort((a, b) => (b.ach ?? -1) - (a.ach ?? -1)), [selectedBranches]);
-
-  const typePerformance = useMemo(() => types.slice(1).map((type) => {
-    const rows = branchPerformance.filter((b) => b.type === type).flatMap((b) => b.rows);
-    return { type, shops: branchPerformance.filter((b) => b.type === type).length, ...sum(rows) };
-  }).filter((x) => x.shops > 0).sort((a, b) => (b.ach ?? -1) - (a.ach ?? -1)), [branchPerformance]);
-
-  const topBrand = brandPerformance[0];
-  const bottomBrand = [...brandPerformance].filter((x) => x.target > 0).sort((a, b) => (a.ach ?? 99) - (b.ach ?? 99))[0];
-  const goodBranches = branchPerformance.filter((b) => status(b.ach, b.mom) === "good");
-  const pushBranches = branchPerformance.filter((b) => status(b.ach, b.mom) === "push");
-  const watchBranches = branchPerformance.filter((b) => status(b.ach, b.mom) === "watch" || status(b.ach, b.mom) === "zero");
-  const gap = Math.max(0, metrics.target - metrics.rr);
-  const maxAch = Math.max(1, ...branchPerformance.map((b) => b.ach ?? 0));
-  const scopeLabel = [typeFilter, shopFilter, brandFilter].filter((x) => !["ทั้งหมด", "ทุกสาขา", "ทุกแบรนด์"].includes(x)).join(" · ") || "ภาพรวมพื้นที่";
-
-  const resetFilters = () => {
-    setTypeFilter("ทั้งหมด");
-    setShopFilter("ทุกสาขา");
-    setBrandFilter("ทุกแบรนด์");
+  const reset = () => {
+    setProduct("Device");
+    setBranchName(ALL_BRANCHES);
+    setDay(2);
   };
 
   return (
-    <main>
+    <main style={{ "--product": theme.color, "--product-soft": theme.accent } as React.CSSProperties}>
       <header className="hero">
         <div className="hero-copy">
-          <div className="eyebrow"><span className="pulse" /> DEVICE PERFORMANCE • BMAV–CENTRAL</div>
-          <h1>Focus Device By Brand</h1>
-          <p>วิเคราะห์ยอดขายรายสาขาและรายแบรนด์ • As of 30 July 2026</p>
+          <div className="eyebrow"><span className="live-dot" /> BMAV-CENTRAL • DAILY SALES</div>
+          <h1>Product<br />Performance <em>Monitor</em></h1>
+          <p>ติดตามยอดรายวันแบบแยก Product และแยกรายสาขา — ไม่รวมยอดข้าม Product</p>
         </div>
-        <div className="hero-badge">
-          <span>WW · Wire &amp; Wireless</span>
-          <strong>15</strong>
-          <small>สาขาที่มี Target</small>
+        <div className="hero-focus">
+          <span>PRODUCT IN FOCUS</span>
+          <strong>{product}</strong>
+          <small>{branchName === ALL_BRANCHES ? `${branches.length} จุดขาย` : shortShop(branchName)}</small>
         </div>
       </header>
 
-      <section className="filter-panel" aria-label="ตัวกรองแดชบอร์ด">
-        <label><span>ประเภทสาขา</span><select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setShopFilter("ทุกสาขา"); }}>{types.map((x) => <option key={x}>{x}</option>)}</select></label>
-        <label><span>สาขา</span><select value={shopFilter} onChange={(e) => setShopFilter(e.target.value)}><option>ทุกสาขา</option>{availableBranches.map((x) => <option key={x.shop}>{x.shop}</option>)}</select></label>
-        <label><span>แบรนด์</span><select value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)}>{brands.map((x) => <option key={x}>{x}</option>)}</select></label>
-        <button className="reset" onClick={resetFilters}>ล้างตัวกรอง</button>
-        <div className="scope"><span>มุมมองปัจจุบัน</span><strong>{scopeLabel}</strong></div>
+      <section className="control-deck" aria-label="ตัวกรอง Dashboard">
+        <div className="product-switch" role="group" aria-label="เลือก Product">
+          {productNames.map((name) => <button key={name} className={product === name ? "active" : ""} onClick={() => setProduct(name)}>
+            <i style={{ background: productMeta[name].color }}>{productMeta[name].short}</i><span>{name}</span>
+          </button>)}
+        </div>
+        <label><span>สาขา</span><select value={branchName} onChange={(event) => setBranchName(event.target.value)}><option>{ALL_BRANCHES}</option>{branches.map((branch) => <option key={branch.name}>{branch.name}</option>)}</select></label>
+        <label><span>ยอดถึงวันที่</span><select value={day} onChange={(event) => setDay(Number(event.target.value))}>{Array.from({ length: 2 }, (_, index) => <option key={index + 1} value={index + 1}>{String(index + 1).padStart(2, "0")} Aug 2026</option>)}</select></label>
+        <button className="reset" onClick={reset}>ล้างตัวกรอง</button>
       </section>
 
-      <section className="kpi-grid" aria-label="KPI ภาพรวม">
-        <article className="kpi primary"><span>ยอดขาย RR</span><strong>฿{fmtMoney(metrics.rr)}</strong><small>Target ฿{fmtMoney(metrics.target)}</small></article>
-        <article className="kpi"><span>%Ach มูลค่า</span><strong>{fmtPct(metrics.ach)}</strong><div className="mini-track"><i style={{ width: `${Math.min(100, (metrics.ach ?? 0) * 100)}%` }} /></div></article>
-        <article className={`kpi ${metrics.mom != null && metrics.mom >= 0 ? "positive" : "negative"}`}><span>MOM มูลค่า</span><strong>{metrics.mom != null && metrics.mom >= 0 ? "+" : ""}{fmtPct(metrics.mom)}</strong><small>เทียบเดือนก่อน ฿{fmtMoney(metrics.prev)}</small></article>
-        <article className="kpi"><span>%Ach จำนวนเครื่อง</span><strong>{fmtPct(metrics.achQty)}</strong><small>RR {fmtNumber(metrics.rrQty)} / TG {fmtNumber(metrics.targetQty)}</small></article>
-        <article className="kpi alert"><span>Gap to Target</span><strong>฿{fmtMoney(gap)}</strong><small>{gap === 0 ? "เกินเป้าแล้ว" : "มูลค่าที่ต้องเร่งปิด"}</small></article>
+      <section className="scope-strip">
+        <div><span>มุมมองปัจจุบัน</span><strong>{product} • {branchName}</strong></div>
+        <div><span>ข้อมูลล่าสุด</span><strong>{String(day).padStart(2, "0")} August 2026</strong></div>
+        <div><span>หลักการคำนวณ</span><strong>เฉพาะ {product} เท่านั้น</strong></div>
+      </section>
+
+      <section className="kpi-grid" aria-label="KPI ของ Product ที่เลือก">
+        <article className="kpi hero-kpi"><span>ยอดสะสม MTD</span><strong>฿{compact(metrics.mtd)}</strong><small>ยอดวันนี้ ฿{money(metrics.today)}</small></article>
+        <article className="kpi"><span>เป้ารวมเดือน</span><strong>฿{compact(metrics.target)}</strong><small>เฉลี่ย ฿{money(metrics.dailyTarget)} / วัน</small></article>
+        <article className="kpi"><span>% เป้าเดือน</span><strong>{percent(metrics.achievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, metrics.achievement * 100)}%` }} /></div></article>
+        <article className={`kpi pace ${status(metrics.pace).key}`}><span>Pace MTD</span><strong>{percent(metrics.pace)}</strong><small>{status(metrics.pace).label}</small></article>
+        <article className="kpi"><span>Forecast สิ้นเดือน</span><strong>฿{compact(metrics.forecast)}</strong><small>{percent(metrics.target ? metrics.forecast / metrics.target : 0)} ของเป้า</small></article>
+        <article className="kpi"><span>Gap ถึงเป้าเดือน</span><strong>฿{compact(Math.max(0, metrics.target - metrics.mtd))}</strong><small>ยอดที่ยังต้องปิด</small></article>
       </section>
 
       <section className="executive-grid">
-        <article className="insight-card">
-          <div className="section-title"><div><span>AUTO EXECUTIVE INSIGHT</span><h2>ข้อมูลเชิงลึกสำหรับผู้บริหาร</h2></div><b>อัปเดตตามตัวกรอง</b></div>
-          <div className="insight-list">
-            <div className="insight-item overview"><i>01</i><div><h3>ภาพรวม</h3><p>ทำได้ <strong>{fmtPct(metrics.ach)}</strong> ของเป้า และ MOM <strong className={metrics.mom != null && metrics.mom >= 0 ? "up" : "down"}>{metrics.mom != null && metrics.mom >= 0 ? "+" : ""}{fmtPct(metrics.mom)}</strong>{gap > 0 ? ` ยังมี Gap ฿${fmtMoney(gap)}` : " ปิดเป้าได้แล้ว"}</p></div></div>
-            <div className="insight-item good"><i>02</i><div><h3>สาขาที่ทำผลงานได้ดี</h3><p>{goodBranches.length ? goodBranches.slice(0, 3).map((b) => `${shortShop(b.shop)} ${fmtPct(b.ach)}`).join(" • ") : "ยังไม่มีสาขาที่แตะระดับ 90% ในมุมมองนี้"}</p></div></div>
-            <div className="insight-item push"><i>03</i><div><h3>สาขาที่ควรเร่งติดตาม</h3><p>{pushBranches.length ? pushBranches.slice(0, 3).map((b) => `${shortShop(b.shop)} ${fmtPct(b.ach)}`).join(" • ") : "ไม่มีสาขาในช่วงเร่งติดตาม"}</p></div></div>
-            <div className="insight-item watch"><i>04</i><div><h3>สาขาเฝ้าระวัง</h3><p>{watchBranches.length ? watchBranches.slice(0, 3).map((b) => `${shortShop(b.shop)} ${fmtPct(b.ach)}`).join(" • ") : "ไม่พบสาขาเฝ้าระวังในมุมมองนี้"}</p></div></div>
-            <div className="insight-item trend"><i>05</i><div><h3>แนวโน้มที่น่าสนใจ</h3><p>{topBrand ? `${topBrand.brand} นำที่ ${fmtPct(topBrand.ach)} / MOM ${topBrand.mom != null && topBrand.mom >= 0 ? "+" : ""}${fmtPct(topBrand.mom)}` : "ไม่มีข้อมูลแบรนด์"}{bottomBrand ? ` ขณะที่ ${bottomBrand.brand} อยู่ที่ ${fmtPct(bottomBrand.ach)}` : ""}</p></div></div>
+        <article className="panel insight-panel">
+          <div className="section-head"><div><span>PRODUCT INTELLIGENCE</span><h2>Executive Infographic</h2></div><b>{product} • Day {day}</b></div>
+          <div className="insight-grid">
+            <div className="insight major"><i>01</i><div><span>ภาพรวม Product</span><strong>{percent(metrics.pace)} pace</strong><p>ทำได้ ฿{money(metrics.mtd)} จากเป้าที่ควรได้ ฿{money(metrics.targetMtd)}</p></div></div>
+            <div className="insight"><i>02</i><div><span>สาขานำ</span><strong>{leader ? shortShop(leader.name) : "—"}</strong><p>{leader ? `${percent(leader.pace)} pace • ฿${money(leader.mtd)}` : "ยังไม่มีเป้าหมาย"}</p></div></div>
+            <div className="insight"><i>03</i><div><span>On Track</span><strong>{onTrack.length} สาขา</strong><p>{activeBranches.length ? `${Math.round(onTrack.length / activeBranches.length * 100)}% ของสาขาที่มีเป้า` : "ไม่มีสาขาที่มีเป้า"}</p></div></div>
+            <div className="insight"><i>04</i><div><span>ต้องเร่ง</span><strong>{atRisk.length} สาขา</strong><p>Pace ต่ำกว่า 85% ของเป้าตามวัน</p></div></div>
           </div>
         </article>
 
-        <aside className="action-card">
-          <span className="action-label">NEXT BEST ACTIONS</span>
-          <h2>ข้อเสนอแนะเชิงปฏิบัติการ</h2>
-          <ol>
-            <li><b>ปิด Gap จากสาขาหลัก</b><span>{watchBranches[0] ? `โฟกัส ${shortShop(watchBranches[0].shop)} ก่อน โดยติดตามยอดรายวันเทียบเป้า` : "รักษา run rate ของสาขานำและเพิ่ม cross-sell"}</span></li>
-            <li><b>แก้ Brand Gap ที่กระทบสูง</b><span>{bottomBrand ? `ทำ action plan ${bottomBrand.brand}: stock, display, lead list และ conversion รายคน` : "ทบทวนแบรนด์ที่ต่ำกว่าเป้ารายสาขา"}</span></li>
-            <li><b>ถอดสูตรจากจุดแข็ง</b><span>{topBrand ? `นำ playbook ${topBrand.brand} จากสาขา %Ach สูง ไปทดลองในกลุ่มเร่งติดตาม` : "แชร์แนวทางจากสาขาผลงานดี"}</span></li>
-          </ol>
-          <div className="daily-callout"><span>เป้าหมายบริหาร</span><strong>{gap > 0 ? `เร่งปิด ฿${fmtMoney(gap)}` : "รักษาระดับเหนือเป้า"}</strong><small>จากมุมมองปัจจุบัน</small></div>
+        <aside className="mission-card">
+          <span>DAILY MISSION</span>
+          <h2>{metrics.pace >= 1 ? "รักษาจังหวะเหนือเป้า" : "เร่งปิด Gap รายวัน"}</h2>
+          <div className="mission-number"><small>เป้าต่อวัน</small><strong>฿{money(metrics.dailyTarget)}</strong></div>
+          <ul>
+            <li><b>วันนี้</b><span>฿{money(metrics.today)} • {percent(metrics.dailyTarget ? metrics.today / metrics.dailyTarget : 0)}</span></li>
+            <li><b>Forecast</b><span>฿{money(metrics.forecast)}</span></li>
+            <li><b>Priority</b><span>{atRisk[0] ? shortShop(atRisk[0].name) : "รักษาทุกสาขา"}</span></li>
+          </ul>
         </aside>
       </section>
 
       <section className="two-col">
-        <article className="panel">
-          <div className="section-title"><div><span>BRANCH RANKING</span><h2>Performance By สาขา</h2></div><b>เรียงตาม %Ach Brand</b></div>
-          <div className="branch-bars">
-            {branchPerformance.map((b, index) => <div className="bar-row" key={b.shop}>
-              <div className="rank">{String(index + 1).padStart(2, "0")}</div>
-              <div className="bar-main"><div className="bar-label"><strong>{shortShop(b.shop)}</strong><span>{b.type}</span></div><div className="track"><i className={status(b.ach, b.mom)} style={{ width: `${Math.min(100, ((b.ach ?? 0) / maxAch) * 100)}%` }} /></div></div>
-              <div className="bar-value"><strong>{fmtPct(b.ach)}</strong><span className={b.mom != null && b.mom >= 0 ? "up" : "down"}>{b.mom != null && b.mom >= 0 ? "+" : ""}{fmtPct(b.mom)} MOM</span></div>
+        <article className="panel trend-panel">
+          <div className="section-head"><div><span>DAILY TREND</span><h2>ยอดรายวัน • {product}</h2></div><b>เส้นประ = เป้าเฉลี่ย/วัน</b></div>
+          <div className="daily-chart" style={{ "--target-level": `${100 - targetLevel}%` } as React.CSSProperties}>
+            <div className="target-line"><span>฿{compact(metrics.dailyTarget)}</span></div>
+            {metrics.daily.map((value, index) => <div className={`day-bar ${index + 1 > day ? "future" : ""}`} key={index} title={`วันที่ ${index + 1}: ฿${money(value)}`}>
+              <i style={{ height: `${Math.max(value > 0 ? 4 : 0, value / maxDaily * 100)}%` }} /><span>{index + 1}</span>
             </div>)}
           </div>
         </article>
 
-        <article className="panel brands-panel">
-          <div className="section-title"><div><span>BRAND SCORECARD</span><h2>Top / Bottom Brand</h2></div><b>{selectedBranches.length} สาขาในมุมมอง</b></div>
-          {topBrand && <div className="brand-hero top"><span>TOP BRAND</span><div><strong>{topBrand.brand}</strong><b>{fmtPct(topBrand.ach)}</b></div><small>MOM {topBrand.mom != null && topBrand.mom >= 0 ? "+" : ""}{fmtPct(topBrand.mom)} · RR ฿{fmtMoney(topBrand.rr)}</small></div>}
-          {bottomBrand && <div className="brand-hero bottom"><span>BOTTOM BRAND</span><div><strong>{bottomBrand.brand}</strong><b>{fmtPct(bottomBrand.ach)}</b></div><small>MOM {bottomBrand.mom != null && bottomBrand.mom >= 0 ? "+" : ""}{fmtPct(bottomBrand.mom)} · ขายไม่ได้ {bottomBrand.zero.length} สาขา</small></div>}
-          <div className="brand-list">{brandPerformance.map((b) => <div key={b.brand}><strong>{b.brand}</strong><span>{fmtPct(b.ach)}</span><i><em style={{ width: `${Math.min(100, (b.ach ?? 0) * 100)}%` }} /></i><small className={b.mom != null && b.mom >= 0 ? "up" : "down"}>{b.mom != null && b.mom >= 0 ? "+" : ""}{fmtPct(b.mom)} MOM</small></div>)}</div>
+        <article className="panel ranking-panel">
+          <div className="section-head"><div><span>BRANCH PACE</span><h2>อันดับรายสาขา</h2></div><b>{activeBranches.length} สาขาที่มีเป้า</b></div>
+          <div className="rank-list">{activeBranches.map((branch, index) => {
+            const currentStatus = status(branch.pace);
+            return <div className="rank-row" key={branch.name}>
+              <span className="rank-no">{String(index + 1).padStart(2, "0")}</span>
+              <div><div className="rank-label"><strong>{shortShop(branch.name)}</strong><span>{currentStatus.label}</span></div><div className="rank-track"><i className={currentStatus.key} style={{ width: `${Math.min(100, branch.pace / maxPace * 100)}%` }} /></div></div>
+              <b>{percent(branch.pace)}</b>
+            </div>;
+          })}</div>
         </article>
       </section>
 
-      <section className="panel area-panel">
-        <div className="section-title"><div><span>SHOP TYPE VIEW</span><h2>ผลงานรายพื้นที่ / ประเภทสาขา</h2></div><b>มูลค่า RR เทียบ Target</b></div>
-        <div className="type-grid">{typePerformance.map((x) => <article key={x.type}><span>{x.type}</span><strong>{fmtPct(x.ach)}</strong><div><i style={{ width: `${Math.min(100, (x.ach ?? 0) * 100)}%` }} /></div><p><b>RR ฿{fmtMoney(x.rr)}</b><small>{x.shops} สาขา · MOM {x.mom != null && x.mom >= 0 ? "+" : ""}{fmtPct(x.mom)}</small></p></article>)}</div>
-      </section>
-
-      <section className="panel branch-table-panel">
-        <div className="section-title"><div><span>BRANCH × BRAND DIAGNOSTIC</span><h2>วิเคราะห์รายสาขา By Brand</h2></div><b>จุดแข็ง · จุดตก · No Sales</b></div>
-        <div className="table-wrap"><table><thead><tr><th>สาขา</th><th>%Ach</th><th>MOM</th><th>Brand ทำได้ดี</th><th>MOM ตกมากสุด</th><th>ขายไม่ได้ (มี Target)</th><th>สถานะ</th></tr></thead>
-          <tbody>{branchPerformance.map((b) => {
-            const targeted = b.rows.filter((x) => x.target > 0);
-            const best = [...targeted].filter((x) => x.rr > 0).sort((a, c) => (c.ach ?? -1) - (a.ach ?? -1))[0];
-            const fall = [...targeted].filter((x) => x.mom != null).sort((a, c) => (a.mom ?? 99) - (c.mom ?? 99))[0];
-            const noSales = targeted.filter((x) => x.rr === 0).map((x) => x.brand);
-            const s = status(b.ach, b.mom);
-            return <tr key={b.shop}><td><strong>{shortShop(b.shop)}</strong><small>{b.type}</small></td><td><b>{fmtPct(b.ach)}</b></td><td className={b.mom != null && b.mom >= 0 ? "up" : "down"}>{b.mom != null && b.mom >= 0 ? "+" : ""}{fmtPct(b.mom)}</td><td>{best ? <><b>{best.brand}</b><small>{fmtPct(best.ach)}</small></> : "—"}</td><td>{fall ? <><b>{fall.brand}</b><small className="down">{fmtPct(fall.mom)}</small></> : "—"}</td><td><div className="chips">{noSales.length ? noSales.map((x) => <span key={x}>{x}</span>) : <em>ไม่มี</em>}</div></td><td><span className={`status ${s}`}>{s === "good" ? "ทำได้ดี" : s === "push" ? "เร่งติดตาม" : s === "watch" ? "เฝ้าระวัง" : "ไม่มีเป้า"}</span></td></tr>;
+      <section className="panel table-panel">
+        <div className="section-head"><div><span>BRANCH MONITOR</span><h2>{product} Performance by Branch</h2></div><b>แสดงเฉพาะ Product ที่เลือก</b></div>
+        <div className="table-wrap"><table><thead><tr><th>สาขา</th><th>ยอด MTD</th><th>เป้าเดือน</th><th>% เป้าเดือน</th><th>เป้า MTD</th><th>Pace MTD</th><th>Forecast</th><th>สถานะ</th></tr></thead>
+          <tbody>{branchPerformance.map((branch) => {
+            const currentStatus = status(branch.pace);
+            return <tr key={branch.name}><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "รอรหัสสาขา"}</small></td><td><b>฿{money(branch.mtd)}</b><small>วันนี้ ฿{money(branch.today)}</small></td><td>฿{money(branch.target)}</td><td>{percent(branch.target ? branch.mtd / branch.target : 0)}</td><td>฿{money(branch.targetMtd)}</td><td><strong>{percent(branch.pace)}</strong></td><td>฿{money(branch.forecast)}</td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
           })}</tbody></table></div>
       </section>
 
-      <section className="data-note">
-        <div><strong>นิยามและขอบเขตที่ยืนยันแล้ว</strong><p>วิเคราะห์เฉพาะ 15 สาขาที่มี Target • RR NET AMOUNT / RR QTY คือ Run Rate ที่ใช้วัด %Ach และ MOM • ตัด The Eight Thonglor ซึ่ง Target = 0 ออกจาก KPI และการจัดอันดับ</p></div>
-        <div><strong>เกณฑ์สถานะ</strong><p>ทำผลงานดี ≥ 90% • ควรเร่งติดตาม 50–89.9% • เฝ้าระวัง &lt; 50% หรือ MOM ลดลงตั้งแต่ 20% • ขายไม่ได้ = มี Target แต่ RR เท่ากับ 0</p></div>
-      </section>
-
-      <footer><span>BMAV–Central Device Performance</span><b>Source: data - 2026-07-31T171528.459.xlsx</b></footer>
+      <section className="method-note"><div><strong>หลักการแยก Product</strong><p>ทุก KPI, กราฟ, อันดับ และตารางคำนวณจาก Product ที่เลือกเพียงรายการเดียว ไม่มีการนำ Device, GIA, Postpay และ TrueOnline มารวมกัน</p></div><div><strong>เกณฑ์สถานะ</strong><p>On Track ≥ 100% ของเป้าตามวัน • Watch 85–99.9% • At Risk ต่ำกว่า 85%</p></div></section>
+      <footer><span>BMAV-Central Product Performance Monitor</span><b>Source: 8778 Aug 2026 V1.xlsx • As of 02 Aug 2026</b></footer>
     </main>
   );
 }
+

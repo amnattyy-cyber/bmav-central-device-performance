@@ -1,35 +1,25 @@
-# Focus Device By Brand
+# BMAV-Central Product Performance Monitor
 
-แดชบอร์ดสาธารณะสำหรับติดตามยอดขาย Device แยกตามแบรนด์ของพื้นที่ BMAV-Central โดยใช้ข้อมูล Run Rate (RR NET AMOUNT / RR QTY) เพื่อวัด `%Ach` และ `MOM`
+Online infographic dashboard สำหรับติดตามยอดขายรายวันของพื้นที่ BMAV-Central แบบแยก Product และรายสาขา
 
-- Live dashboard: https://bmav-central-device-jul26.amnattyy.chatgpt.site
+- Products: Device, GIA, Postpay และ TrueOnline
+- เลือกดูทุกสาขาหรือสาขาเดียวได้
+- KPI, กราฟ, อันดับ และ Forecast คำนวณเฉพาะ Product ที่เลือก
+- ไม่มีการรวมยอดข้าม Product
+- ข้อมูลเริ่มต้น: 1–2 August 2026 จากไฟล์ `8778 Aug 2026 V1.xlsx`
+
+## Online dashboard
+
 - GitHub Pages: https://amnattyy-cyber.github.io/bmav-central-device-performance/
-- ข้อมูลปัจจุบัน: As of 30 July 2026
-- ขอบเขต: 15 สาขาที่มี Target
 
-## เกณฑ์จัดกลุ่มสาขา
+## Update ข้อมูลรายวัน
 
-- ทำผลงานดี: `%Ach >= 90%`
-- ควรเร่งติดตาม: `%Ach 50-89.9%`
-- เฝ้าระวัง: `%Ach < 50%` หรือ `MOM ลดลงตั้งแต่ 20%`
-- ขายไม่ได้: มี Target แต่ `RR = 0`
+แก้ไขไฟล์ `app/sales-product-data.json` โดยเพิ่มยอดรายวันใน `daily` ของแต่ละ Product และสาขา จากนั้น push เข้า branch `main` ระบบ GitHub Pages จะ build และเผยแพร่เวอร์ชันใหม่อัตโนมัติ
 
-## การอัปเดตรายวัน
-
-ไฟล์ต้นทางแต่ละวันจัดเก็บไว้ในโฟลเดอร์ `data/` โดยใช้ชื่อวันที่ของข้อมูล จากนั้นอัปเดตข้อมูลที่ผ่านการตรวจสอบใน `app/sales-analysis.json`, ทดสอบ Dashboard และเผยแพร่เวอร์ชันใหม่ทั้งบน GitHub และเว็บไซต์สาธารณะ
-
-## เริ่มใช้งานในเครื่อง
-
-ต้องใช้ Node.js เวอร์ชัน `22.13.0` ขึ้นไป
-
-```bash
-npm install
-npm run dev
-```
-
-ตรวจสอบก่อนเผยแพร่ด้วยคำสั่ง:
+## ตรวจสอบก่อนเผยแพร่
 
 ```bash
 npm run build
 npm run build:pages
 ```
+
