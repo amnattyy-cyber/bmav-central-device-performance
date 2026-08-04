@@ -16,7 +16,14 @@ test("provides four independent product datasets", async () => {
   ]));
   assert.ok(Math.abs(targetTotals.Postpay - 1732466.883730832) < 0.001);
   assert.ok(Math.abs(targetTotals.GIA - 7140200) < 0.001);
-  assert.ok(Math.abs(targetTotals.TrueOnline - 340696.9083916353) < 0.001);
+  assert.ok(Math.abs(targetTotals.TrueOnline - 512.7655456351704) < 0.001);
+  assert.equal(
+    data.branches.reduce((sum, branch) => sum + branch.products.TrueOnline.daily.reduce((dailySum, value) => dailySum + value, 0), 0),
+    42,
+  );
+  assert.ok(Math.abs(
+    data.branches.reduce((sum, branch) => sum + branch.products.TrueOnline.runrate, 0) - 434,
+  ) < 0.001);
   assert.deepEqual(
     Object.fromEntries(data.products.map((product) => [
       product,
@@ -39,7 +46,7 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   const page = await readFile(new URL("app/page.tsx", root), "utf8");
   const css = await readFile(new URL("app/globals.css", root), "utf8");
   assert.match(page, /Product Performance Monitor/);
-  assert.match(page, /ไม่รวมยอดข้าม Product/);
+  assert.match(page, /Dashboard ยอดขายรายวัน \(Device\/GIA : Data TSM, Post\/TOL : Data Link Daily Sales\)/);
   assert.match(page, /setProduct/);
   assert.match(page, /setBranchName/);
   assert.match(page, /targetedBranches/);
@@ -51,6 +58,9 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(page, /Ranking Shop/);
   assert.match(page, /Shop Top Ranking/);
   assert.match(page, /%Achieve \{percent\(metrics\.pace\)\}/);
+  assert.match(page, /name === "TrueOnline" \? " \(QTY\)"/);
+  assert.match(page, /isQtyProduct \? " QTY"/);
+  assert.match(page, /isQtyProduct \? "RR QTY" : "RR Net Amount"/);
   assert.doesNotMatch(page, /notation:\s*"compact"/);
   assert.doesNotMatch(page, /\{compact\(/);
   assert.match(page, /ดูครบทุกสาขา \/ Copy รูป/);
