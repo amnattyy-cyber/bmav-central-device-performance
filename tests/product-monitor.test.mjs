@@ -53,6 +53,8 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(page, /<th>Target<\/th><th>%ACH<\/th>/);
   assert.match(page, /"Target MTD"/);
   assert.match(page, /"ACH MTD"/);
+  assert.match(page, /rr-percent/);
+  assert.match(page, /status\(branch\.runrateAchievement\)\.key/);
   assert.doesNotMatch(page, /อันดับรายสาขา/);
   assert.match(page, /Runrate %/);
   assert.doesNotMatch(page, /฿/);
@@ -61,4 +63,7 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(css, /th \{[^}]*font-size:\s*12px/);
   assert.match(css, /\.rank-list \{[^}]*grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\)/);
   assert.doesNotMatch(css, /\.rank-list \{[^}]*max-height/);
+  assert.match(css, /\.rr-percent\.ontrack/);
+  assert.match(css, /\.rr-percent\.watch/);
+  assert.match(css, /\.rr-percent\.atrisk/);
 });
