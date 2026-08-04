@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const protocol = requestHeaders.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   const image = `${protocol}://${host}/og-product-monitor.png`;
   const title = "BMAV-Central Product Performance Monitor";
-  const description = "Dashboard ยอดขายรายวันแบบแยก Device, GIA, Postpay และ TrueOnline พร้อมมุมมองรายสาขา";
+  const description = "Dashboard ยอดขายรายวันและ Runrate แยก Device, GIA, Postpay และ TrueOnline พร้อมมุมมองรายสาขา";
   return {
     title,
     description,
@@ -24,4 +24,3 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="th"><body>{children}</body></html>;
 }
-

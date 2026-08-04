@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import data from "./sales-product-data.json";
 
 type ProductName = "Device" | "GIA" | "Postpay" | "TrueOnline";
-type ProductValue = { target: number; daily: number[] };
+type ProductValue = { target: number; daily: number[]; runrate: number };
 type Branch = {
   name: string;
   tds: number | null;
@@ -40,7 +40,7 @@ function status(pace: number) {
 export default function Home() {
   const [product, setProduct] = useState<ProductName>("Device");
   const [branchName, setBranchName] = useState(ALL_BRANCHES);
-  const [day, setDay] = useState(2);
+  const [day, setDay] = useState(3);
   const theme = productMeta[product];
 
   const selectedBranches = useMemo(
@@ -58,7 +58,9 @@ export default function Home() {
     const pace = targetMtd > 0 ? mtd / targetMtd : 0;
     const forecast = day > 0 ? mtd / day * data.meta.daysInMonth : 0;
     const achievement = target > 0 ? mtd / target : 0;
-    return { target, daily, mtd, today, targetMtd, pace, forecast, achievement, dailyTarget: target / data.meta.daysInMonth };
+    const runrate = selectedBranches.reduce((sum, branch) => sum + branch.products[product].runrate, 0);
+    const runrateAchievement = target > 0 ? runrate / target : 0;
+    return { target, daily, mtd, today, targetMtd, pace, forecast, achievement, runrate, runrateAchievement, dailyTarget: target / data.meta.daysInMonth };
   }, [selectedBranches, product, day]);
 
   const branchPerformance = useMemo(() => branches.map((branch) => {
@@ -67,7 +69,8 @@ export default function Home() {
     const targetMtd = item.target * day / data.meta.daysInMonth;
     const pace = targetMtd > 0 ? mtd / targetMtd : 0;
     const forecast = day > 0 ? mtd / day * data.meta.daysInMonth : 0;
-    return { ...branch, target: item.target, mtd, targetMtd, pace, forecast, today: item.daily[day - 1] ?? 0 };
+    const runrateAchievement = item.target > 0 ? item.runrate / item.target : 0;
+    return { ...branch, target: item.target, mtd, targetMtd, pace, forecast, runrate: item.runrate, runrateAchievement, today: item.daily[day - 1] ?? 0 };
   }).filter((branch) => branchName === ALL_BRANCHES || branch.name === branchName)
     .sort((a, b) => b.pace - a.pace), [product, branchName, day]);
 
@@ -82,7 +85,7 @@ export default function Home() {
   const reset = () => {
     setProduct("Device");
     setBranchName(ALL_BRANCHES);
-    setDay(2);
+    setDay(3);
   };
 
   return (
@@ -107,7 +110,7 @@ export default function Home() {
           </button>)}
         </div>
         <label><span>สาขา</span><select value={branchName} onChange={(event) => setBranchName(event.target.value)}><option>{ALL_BRANCHES}</option>{branches.map((branch) => <option key={branch.name}>{branch.name}</option>)}</select></label>
-        <label><span>ยอดถึงวันที่</span><select value={day} onChange={(event) => setDay(Number(event.target.value))}>{Array.from({ length: 2 }, (_, index) => <option key={index + 1} value={index + 1}>{String(index + 1).padStart(2, "0")} Aug 2026</option>)}</select></label>
+        <label><span>ยอดถึงวันที่</span><select value={day} onChange={(event) => setDay(Number(event.target.value))}>{Array.from({ length: 3 }, (_, index) => <option key={index + 1} value={index + 1}>{String(index + 1).padStart(2, "0")} Aug 2026</option>)}</select></label>
         <button className="reset" onClick={reset}>ล้างตัวกรอง</button>
       </section>
 
@@ -122,6 +125,8 @@ export default function Home() {
         <article className="kpi"><span>เป้ารวมเดือน</span><strong>฿{compact(metrics.target)}</strong><small>เฉลี่ย ฿{money(metrics.dailyTarget)} / วัน</small></article>
         <article className="kpi"><span>% เป้าเดือน</span><strong>{percent(metrics.achievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, metrics.achievement * 100)}%` }} /></div></article>
         <article className={`kpi pace ${status(metrics.pace).key}`}><span>Pace MTD</span><strong>{percent(metrics.pace)}</strong><small>{status(metrics.pace).label}</small></article>
+        <article className="kpi runrate-kpi"><span>Runrate</span><strong>฿{compact(metrics.runrate)}</strong><small>จาก RR Net Amount ในไฟล์ต้นฉบับ</small></article>
+        <article className="kpi"><span>Runrate % เทียบเป้า</span><strong>{percent(metrics.runrateAchievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, metrics.runrateAchievement * 100)}%` }} /></div></article>
         <article className="kpi"><span>Forecast สิ้นเดือน</span><strong>฿{compact(metrics.forecast)}</strong><small>{percent(metrics.target ? metrics.forecast / metrics.target : 0)} ของเป้า</small></article>
         <article className="kpi"><span>Gap ถึงเป้าเดือน</span><strong>฿{compact(Math.max(0, metrics.target - metrics.mtd))}</strong><small>ยอดที่ยังต้องปิด</small></article>
       </section>
@@ -143,6 +148,7 @@ export default function Home() {
           <div className="mission-number"><small>เป้าต่อวัน</small><strong>฿{money(metrics.dailyTarget)}</strong></div>
           <ul>
             <li><b>วันนี้</b><span>฿{money(metrics.today)} • {percent(metrics.dailyTarget ? metrics.today / metrics.dailyTarget : 0)}</span></li>
+            <li><b>Runrate</b><span>฿{money(metrics.runrate)} • {percent(metrics.runrateAchievement)}</span></li>
             <li><b>Forecast</b><span>฿{money(metrics.forecast)}</span></li>
             <li><b>Priority</b><span>{atRisk[0] ? shortShop(atRisk[0].name) : "รักษาทุกสาขา"}</span></li>
           </ul>
@@ -175,16 +181,15 @@ export default function Home() {
 
       <section className="panel table-panel">
         <div className="section-head"><div><span>BRANCH MONITOR</span><h2>{product} Performance by Branch</h2></div><b>แสดงเฉพาะ Product ที่เลือก</b></div>
-        <div className="table-wrap"><table><thead><tr><th>สาขา</th><th>ยอด MTD</th><th>เป้าเดือน</th><th>% เป้าเดือน</th><th>เป้า MTD</th><th>Pace MTD</th><th>Forecast</th><th>สถานะ</th></tr></thead>
+        <div className="table-wrap"><table><thead><tr><th>สาขา</th><th>ยอด MTD</th><th>เป้าเดือน</th><th>% เป้าเดือน</th><th>เป้า MTD</th><th>Pace MTD</th><th>Runrate</th><th>Runrate %</th><th>Forecast</th><th>สถานะ</th></tr></thead>
           <tbody>{branchPerformance.map((branch) => {
             const currentStatus = status(branch.pace);
-            return <tr key={branch.name}><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "รอรหัสสาขา"}</small></td><td><b>฿{money(branch.mtd)}</b><small>วันนี้ ฿{money(branch.today)}</small></td><td>฿{money(branch.target)}</td><td>{percent(branch.target ? branch.mtd / branch.target : 0)}</td><td>฿{money(branch.targetMtd)}</td><td><strong>{percent(branch.pace)}</strong></td><td>฿{money(branch.forecast)}</td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
+            return <tr key={branch.name}><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "รอรหัสสาขา"}</small></td><td><b>฿{money(branch.mtd)}</b><small>วันนี้ ฿{money(branch.today)}</small></td><td>฿{money(branch.target)}</td><td>{percent(branch.target ? branch.mtd / branch.target : 0)}</td><td>฿{money(branch.targetMtd)}</td><td><strong>{percent(branch.pace)}</strong></td><td><b className="rr-value">฿{money(branch.runrate)}</b></td><td><strong>{percent(branch.runrateAchievement)}</strong></td><td>฿{money(branch.forecast)}</td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
           })}</tbody></table></div>
       </section>
 
-      <section className="method-note"><div><strong>หลักการแยก Product</strong><p>ทุก KPI, กราฟ, อันดับ และตารางคำนวณจาก Product ที่เลือกเพียงรายการเดียว ไม่มีการนำ Device, GIA, Postpay และ TrueOnline มารวมกัน</p></div><div><strong>เกณฑ์สถานะ</strong><p>On Track ≥ 100% ของเป้าตามวัน • Watch 85–99.9% • At Risk ต่ำกว่า 85%</p></div></section>
-      <footer><span>BMAV-Central Product Performance Monitor</span><b>Source: 8778 Aug 2026 V1.xlsx • As of 02 Aug 2026</b></footer>
+      <section className="method-note"><div><strong>หลักการแยก Product</strong><p>ทุก KPI, กราฟ, อันดับ และตารางคำนวณจาก Product ที่เลือกเพียงรายการเดียว ไม่มีการนำ Device, GIA, Postpay และ TrueOnline มารวมกัน</p></div><div><strong>Runrate จากไฟล์ต้นฉบับ</strong><p>ใช้ค่า RR Net Amount แยกตาม Product และสาขา • Runrate % = Runrate ÷ เป้ารายเดือน</p></div></section>
+      <footer><span>BMAV-Central Product Performance Monitor</span><b>Source: 8778 Aug 2026 V1.xlsx • As of 03 Aug 2026</b></footer>
     </main>
   );
 }
-

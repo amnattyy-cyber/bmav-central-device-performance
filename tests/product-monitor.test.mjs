@@ -8,11 +8,14 @@ test("provides four independent product datasets", async () => {
   const data = JSON.parse(await readFile(new URL("app/sales-product-data.json", root), "utf8"));
   assert.deepEqual(data.products, ["Device", "GIA", "Postpay", "TrueOnline"]);
   assert.equal(data.branches.length, 17);
+  assert.equal(data.meta.asOf, "2026-08-03");
   for (const branch of data.branches) {
     for (const product of data.products) {
       assert.ok(branch.products[product]);
       assert.equal(typeof branch.products[product].target, "number");
+      assert.equal(typeof branch.products[product].runrate, "number");
       assert.ok(Array.isArray(branch.products[product].daily));
+      assert.equal(branch.products[product].daily.length, 3);
     }
   }
 });
@@ -23,5 +26,5 @@ test("dashboard exposes product and branch filters", async () => {
   assert.match(page, /ไม่รวมยอดข้าม Product/);
   assert.match(page, /setProduct/);
   assert.match(page, /setBranchName/);
+  assert.match(page, /Runrate %/);
 });
-

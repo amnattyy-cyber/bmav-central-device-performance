@@ -4,9 +4,10 @@ Online infographic dashboard สำหรับติดตามยอดขา
 
 - Products: Device, GIA, Postpay และ TrueOnline
 - เลือกดูทุกสาขาหรือสาขาเดียวได้
-- KPI, กราฟ, อันดับ และ Forecast คำนวณเฉพาะ Product ที่เลือก
+- KPI, กราฟ, อันดับ, Runrate และ Forecast คำนวณเฉพาะ Product ที่เลือก
 - ไม่มีการรวมยอดข้าม Product
-- ข้อมูลเริ่มต้น: 1–2 August 2026 จากไฟล์ `8778 Aug 2026 V1.xlsx`
+- ข้อมูลล่าสุด: 1–3 August 2026 จากไฟล์ `8778 Aug 2026 V1.xlsx`
+- Runrate ใช้ข้อมูล `RR Net Amount` แยกตาม Product และสาขา
 
 ## Online dashboard
 
@@ -22,4 +23,3 @@ Online infographic dashboard สำหรับติดตามยอดขา
 npm run build
 npm run build:pages
 ```
-
