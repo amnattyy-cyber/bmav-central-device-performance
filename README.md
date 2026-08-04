@@ -15,7 +15,13 @@ Online infographic dashboard สำหรับติดตามยอดขา
 
 ## Update ข้อมูลรายวัน
 
-แก้ไขไฟล์ `app/sales-product-data.json` โดยเพิ่มยอดรายวันใน `daily` ของแต่ละ Product และสาขา จากนั้น push เข้า branch `main` ระบบ GitHub Pages จะ build และเผยแพร่เวอร์ชันใหม่อัตโนมัติ
+Dashboard ดึงข้อมูลจาก Google Sheet `BMAV-Central Dashboard Auto Sync` เมื่อเปิดหน้าเว็บ และตรวจข้อมูลใหม่ทุก 5 นาที
+
+- แท็บที่ใช้: `Dashboard_Data`
+- กรอกยอดในคอลัมน์ `Day01`–`Day31`
+- อัปเดต `AsOf` ให้เป็นวันที่ข้อมูลล่าสุด
+- ห้ามเปลี่ยนชื่อแท็บหรือชื่อหัวคอลัมน์
+- หาก Google Sheet ใช้งานไม่ได้ Dashboard จะใช้ `app/sales-product-data.json` เป็นข้อมูลสำรอง
 
 ## ตรวจสอบก่อนเผยแพร่
 

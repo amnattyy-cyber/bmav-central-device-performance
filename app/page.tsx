@@ -1,22 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import data from "./sales-product-data.json";
+import fallbackData from "./sales-product-data.json";
+import { type Branch, type DashboardData, loadGoogleSheetData, type ProductName } from "./google-sheet-data";
 
-type ProductName = "Device" | "GIA" | "Postpay" | "TrueOnline";
-type ProductValue = { target: number; daily: number[]; runrate: number };
-type Branch = {
-  name: string;
-  tds: number | null;
-  ww: number | null;
-  products: Record<ProductName, ProductValue>;
-};
-
-const productNames = data.products as ProductName[];
-const branches = data.branches as Branch[];
 const ALL_BRANCHES = "à¸—à¸¸à¸à¸ªà¸²à¸‚à¸²";
 const ALL_DAYS = "all";
-const asOfDay = Number(data.meta.asOf.slice(-2));
 const productMeta: Record<ProductName, { color: string; accent: string; short: string }> = {
   Device: { color: "#2563eb", accent: "#dbeafe", short: "DEV" },
   GIA: { color: "#8e44ad", accent: "#f3e8ff", short: "GIA" },
@@ -39,10 +28,18 @@ function status(pace: number) {
 }
 
 export default function Home() {
+  const [data, setData] = useState<DashboardData>(fallbackData as DashboardData);
+  const [syncSource, setSyncSource] = useState<"sheet" | "fallback">("fallback");
   const [product, setProduct] = useState<ProductName>("Device");
   const [branchName, setBranchName] = useState(ALL_BRANCHES);
   const [dateFilter, setDateFilter] = useState(ALL_DAYS);
   const [captureMode, setCaptureMode] = useState(false);
+  const productNames = data.products;
+  const branches = data.branches as Branch[];
+  const asOfDay = Number(data.meta.asOf.slice(-2));
+  const asOfDate = new Date(`${data.meta.asOf}T00:00:00+07:00`);
+  const shortMonth = asOfDate.toLocaleDateString("en-GB", { month: "short" });
+  const monthYear = data.meta.month;
   const selectedDay = dateFilter === ALL_DAYS ? null : Number(dateFilter);
   const periodDay = selectedDay ?? asOfDay;
   const periodDays = selectedDay === null ? asOfDay : 1;
@@ -55,6 +52,39 @@ export default function Home() {
     () => branches.filter((branch) => branch.products[product].target > 0),
     [product],
   );
+
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+
+    const sync = async () => {
+      try {
+        const nextData = await loadGoogleSheetData(controller.signal);
+        if (active) {
+          setData(nextData);
+          setSyncSource("sheet");
+        }
+      } catch (error) {
+        if (active && !(error instanceof DOMException && error.name === "AbortError")) {
+          console.warn("Google Sheet sync unavailable; using bundled dashboard data.", error);
+          setSyncSource("fallback");
+        }
+      }
+    };
+
+    void sync();
+    const interval = window.setInterval(sync, 5 * 60 * 1000);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void sync();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      active = false;
+      controller.abort();
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, []);
 
   useEffect(() => {
     if (branchName !== ALL_BRANCHES && !targetedBranches.some((branch) => branch.name === branchName)) {
@@ -119,7 +149,7 @@ export default function Home() {
 
   return (
     <main className={captureMode ? "capture-mode" : ""} style={{ "--product": theme.color, "--product-soft": theme.accent } as React.CSSProperties}>
-      <header className="hero">
+      <header className="hero" data-sync-source={syncSource}>
         <div className="hero-copy">
           <div className="eyebrow"><span className="live-dot" /> BMAV-CENTRAL â€¢ DAILY SALES</div>
           <h1>Product<br />Performance <em>Monitor</em></h1>
@@ -128,7 +158,7 @@ export default function Home() {
         <div className="hero-focus">
           <span>PRODUCT IN FOCUS</span>
           <strong>{product}</strong>
-          <small>{branchName === ALL_BRANCHES ? `${targetedBranches.length} à¸ªà¸²à¸‚à¸²à¸—à¸µà¹ˆà¸¡à¸µ Target` : shortShop(branchName)}</small>
+          <small>{branchName === ALL_BRANCHES ? `${targetedBranches.length} à¸ªà¸²à¸‚à¸²à¸—à¸µà¹ˆà¸¡à¸µ Target` : shortShop(branchName)} â€¢ {syncSource === "sheet" ? "Google Sheet Live" : "à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ªà¸³à¸£à¸­à¸‡"}</small>
         </div>
       </header>
 
@@ -139,18 +169,18 @@ export default function Home() {
           </button>)}
         </div>
         <label><span>à¸ªà¸²à¸‚à¸²</span><select value={branchName} onChange={(event) => setBranchName(event.target.value)}><option>{ALL_BRANCHES}</option>{targetedBranches.map((branch) => <option key={branch.name}>{branch.name}</option>)}</select></label>
-        <label><span>à¹€à¸¥à¸·à¸­à¸à¸§à¸±à¸™à¸—à¸µà¹ˆ</span><select value={dateFilter} onChange={(event) => setDateFilter(event.target.value)}><option value={ALL_DAYS}>à¸—à¸¸à¸à¸§à¸±à¸™ (à¸¢à¸­à¸”à¸ªà¸°à¸ªà¸¡à¸–à¸¶à¸‡ 03 Aug)</option>{Array.from({ length: asOfDay }, (_, index) => <option key={index + 1} value={String(index + 1)}>à¹€à¸‰à¸žà¸²à¸°à¸§à¸±à¸™à¸—à¸µà¹ˆ {String(index + 1).padStart(2, "0")} Aug 2026</option>)}</select></label>
+        <label><span>à¹€à¸¥à¸·à¸­à¸à¸§à¸±à¸™à¸—à¸µà¹ˆ</span><select value={dateFilter} onChange={(event) => setDateFilter(event.target.value)}><option value={ALL_DAYS}>à¸—à¸¸à¸à¸§à¸±à¸™ (à¸¢à¸­à¸”à¸ªà¸°à¸ªà¸¡à¸–à¸¶à¸‡ {String(asOfDay).padStart(2, "0")} {shortMonth})</option>{Array.from({ length: asOfDay }, (_, index) => <option key={index + 1} value={String(index + 1)}>à¹€à¸‰à¸žà¸²à¸°à¸§à¸±à¸™à¸—à¸µà¹ˆ {String(index + 1).padStart(2, "0")} {shortMonth} {asOfDate.getFullYear()}</option>)}</select></label>
         <button className="reset" onClick={reset}>à¸¥à¹‰à¸²à¸‡à¸•à¸±à¸§à¸à¸£à¸­à¸‡</button>
       </section>
 
       <section className="scope-strip">
         <div><span>à¸¡à¸¸à¸¡à¸¡à¸­à¸‡à¸›à¸±à¸ˆà¸ˆà¸¸à¸šà¸±à¸™</span><strong>{product} â€¢ {branchName}</strong></div>
-        <div><span>à¸Šà¹ˆà¸§à¸‡à¸§à¸±à¸™à¸—à¸µà¹ˆ</span><strong>{isDailyView ? `à¹€à¸‰à¸žà¸²à¸°à¸§à¸±à¸™à¸—à¸µà¹ˆ ${String(periodDay).padStart(2, "0")} August 2026` : `à¸—à¸¸à¸à¸§à¸±à¸™ â€¢ à¸ªà¸°à¸ªà¸¡à¸–à¸¶à¸‡ ${String(asOfDay).padStart(2, "0")} August 2026`}</strong></div>
+        <div><span>à¸Šà¹ˆà¸§à¸‡à¸§à¸±à¸™à¸—à¸µà¹ˆ</span><strong>{isDailyView ? `à¹€à¸‰à¸žà¸²à¸°à¸§à¸±à¸™à¸—à¸µà¹ˆ ${String(periodDay).padStart(2, "0")} ${monthYear}` : `à¸—à¸¸à¸à¸§à¸±à¸™ â€¢ à¸ªà¸°à¸ªà¸¡à¸–à¸¶à¸‡ ${String(asOfDay).padStart(2, "0")} ${monthYear}`}</strong></div>
         <div><span>à¸«à¸¥à¸±à¸à¸à¸²à¸£à¸„à¸³à¸™à¸§à¸“</span><strong>à¹€à¸‰à¸žà¸²à¸° {product} à¹€à¸—à¹ˆà¸²à¸™à¸±à¹‰à¸™{isQtyProduct ? " â€¢ à¸¡à¸¸à¸¡ QTY" : ""}</strong></div>
       </section>
 
       <section className="kpi-grid" aria-label="KPI à¸‚à¸­à¸‡ Product à¸—à¸µà¹ˆà¹€à¸¥à¸·à¸­à¸">
-        <article className="kpi hero-kpi"><span>{isDailyView ? `à¸¢à¸­à¸”à¸§à¸±à¸™à¸—à¸µà¹ˆ ${String(periodDay).padStart(2, "0")} Aug` : "à¸¢à¸­à¸”à¸ªà¸°à¸ªà¸¡ MTD"}</span><strong>{displayValue(metrics.mtd)}</strong><small>{isDailyView ? "à¸¢à¸­à¸”à¹€à¸‰à¸žà¸²à¸°à¸§à¸±à¸™à¸—à¸µà¹ˆà¹€à¸¥à¸·à¸­à¸" : `à¸¢à¸­à¸”à¸§à¸±à¸™à¸—à¸µà¹ˆ ${String(asOfDay).padStart(2, "0")} Aug ${displayValue(metrics.today)}`}</small></article>
+        <article className="kpi hero-kpi"><span>{isDailyView ? `à¸¢à¸­à¸”à¸§à¸±à¸™à¸—à¸µà¹ˆ ${String(periodDay).padStart(2, "0")} ${shortMonth}` : "à¸¢à¸­à¸”à¸ªà¸°à¸ªà¸¡ MTD"}</span><strong>{displayValue(metrics.mtd)}</strong><small>{isDailyView ? "à¸¢à¸­à¸”à¹€à¸‰à¸žà¸²à¸°à¸§à¸±à¸™à¸—à¸µà¹ˆà¹€à¸¥à¸·à¸­à¸" : `à¸¢à¸­à¸”à¸§à¸±à¸™à¸—à¸µà¹ˆ ${String(asOfDay).padStart(2, "0")} ${shortMonth} ${displayValue(metrics.today)}`}</small></article>
         <article className="kpi"><span>Target</span><strong>{displayValue(metrics.target)}</strong><small>à¹€à¸‰à¸¥à¸µà¹ˆà¸¢ {displayValue(metrics.dailyTarget)} / à¸§à¸±à¸™</small></article>
         <article className="kpi"><span>%ACH</span><strong>{percent(metrics.achievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, metrics.achievement * 100)}%` }} /></div></article>
         <article className={`kpi pace ${status(metrics.pace).key}`}><span>{isDailyView ? "ACH Daily" : "ACH MTD"}</span><strong>{percent(metrics.pace)}</strong><small>{status(metrics.pace).label}</small></article>
@@ -166,59 +196,4 @@ export default function Home() {
           <div className="insight-grid">
             <div className="insight major"><i>01</i><div><span>à¸ à¸²à¸žà¸£à¸§à¸¡ Product</span><strong>%Achieve {percent(metrics.pace)}</strong><p>à¸—à¸³à¹„à¸”à¹‰ {displayValue(metrics.mtd)} à¸ˆà¸²à¸à¹€à¸›à¹‰à¸²à¸—à¸µà¹ˆà¸„à¸§à¸£à¹„à¸”à¹‰ {displayValue(metrics.targetMtd)}</p></div></div>
             <div className="insight"><i>02</i><div><span>Shop Top Ranking</span><strong>{leader ? shortShop(leader.name) : "â€”"}</strong><p>{leader ? `%Achieve ${percent(leader.pace)} â€¢ ${displayValue(leader.mtd)}` : "à¸¢à¸±à¸‡à¹„à¸¡à¹ˆà¸¡à¸µà¹€à¸›à¹‰à¸²à¸«à¸¡à¸²à¸¢"}</p></div></div>
-            <div className="insight"><i>03</i><div><span>On Track</span><strong>{onTrack.length} à¸ªà¸²à¸‚à¸²</strong><p>{activeBranches.length ? `${Math.round(onTrack.length / activeBranches.length * 100)}% à¸‚à¸­à¸‡à¸ªà¸²à¸‚à¸²à¸—à¸µà¹ˆà¸¡à¸µà¹€à¸›à¹‰à¸²` : "à¹„à¸¡à¹ˆà¸¡à¸µà¸ªà¸²à¸‚à¸²à¸—à¸µà¹ˆà¸¡à¸µà¹€à¸›à¹‰à¸²"}</p></div></div>
-            <div className="insight"><i>04</i><div><span>à¸•à¹‰à¸­à¸‡à¹€à¸£à¹ˆà¸‡</span><strong>{atRisk.length} à¸ªà¸²à¸‚à¸²</strong><p>%Achieve à¸•à¹ˆà¸³à¸à¸§à¹ˆà¸² 85% à¸‚à¸­à¸‡à¹€à¸›à¹‰à¸²à¸•à¸²à¸¡à¸§à¸±à¸™</p></div></div>
-          </div>
-        </article>
-
-        <aside className="mission-card">
-          <span>DAILY MISSION</span>
-          <h2>{metrics.pace >= 1 ? "à¸£à¸±à¸à¸©à¸²à¸ˆà¸±à¸‡à¸«à¸§à¸°à¹€à¸«à¸™à¸·à¸­à¹€à¸›à¹‰à¸²" : "à¹€à¸£à¹ˆà¸‡à¸›à¸´à¸” Gap à¸£à¸²à¸¢à¸§à¸±à¸™"}</h2>
-          <div className="mission-number"><small>à¹€à¸›à¹‰à¸²à¸•à¹ˆà¸­à¸§à¸±à¸™</small><strong>{displayValue(metrics.dailyTarget)}</strong></div>
-          <ul>
-            <li><b>à¸§à¸±à¸™à¸™à¸µà¹‰</b><span>{displayValue(metrics.today)} â€¢ {percent(metrics.dailyTarget ? metrics.today / metrics.dailyTarget : 0)}</span></li>
-            <li><b>Runrate</b><span>{displayValue(metrics.runrate)} â€¢ {percent(metrics.runrateAchievement)}</span></li>
-            <li><b>Forecast</b><span>{displayValue(metrics.forecast)}</span></li>
-            <li><b>Priority</b><span>{atRisk[0] ? shortShop(atRisk[0].name) : "à¸£à¸±à¸à¸©à¸²à¸—à¸¸à¸à¸ªà¸²à¸‚à¸²"}</span></li>
-          </ul>
-        </aside>
-      </section>
-
-      <section className="two-col">
-        <article className="panel trend-panel">
-          <div className="section-head"><div><span>DAILY TREND</span><h2>à¸¢à¸­à¸”à¸£à¸²à¸¢à¸§à¸±à¸™ â€¢ {product}</h2></div><b>à¹€à¸ªà¹‰à¸™à¸›à¸£à¸° = à¹€à¸›à¹‰à¸²à¹€à¸‰à¸¥à¸µà¹ˆà¸¢/à¸§à¸±à¸™</b></div>
-          <div className="daily-chart" style={{ "--target-level": `${100 - targetLevel}%` } as React.CSSProperties}>
-            <div className="target-line"><span>{displayValue(metrics.dailyTarget)}</span></div>
-            {metrics.daily.map((value, index) => <div className={`day-bar ${index + 1 > asOfDay ? "future" : ""} ${isDailyView && index + 1 !== selectedDay ? "not-selected" : ""} ${isDailyView && index + 1 === selectedDay ? "selected" : ""}`} key={index} title={`à¸§à¸±à¸™à¸—à¸µà¹ˆ ${index + 1}: ${displayValue(value)}`}>
-              <i style={{ height: `${Math.max(value > 0 ? 4 : 0, value / maxDaily * 100)}%` }} /><span>{index + 1}</span>
-            </div>)}
-          </div>
-        </article>
-
-        <article className="panel ranking-panel">
-          <div className="section-head"><div><span>SHOP RANKING</span><h2>Ranking Shop</h2></div><b>{activeBranches.length} à¸ªà¸²à¸‚à¸²à¸—à¸µà¹ˆà¸¡à¸µ Target</b></div>
-          <div className="rank-list">{activeBranches.map((branch, index) => {
-            const currentStatus = status(branch.pace);
-            return <div className="rank-row" key={branch.name}>
-              <span className="rank-no">{String(index + 1).padStart(2, "0")}</span>
-              <div><div className="rank-label"><strong>{shortShop(branch.name)}</strong><span>{currentStatus.label}</span></div><div className="rank-track"><i className={currentStatus.key} style={{ width: `${Math.min(100, branch.pace / maxPace * 100)}%` }} /></div></div>
-              <b>{percent(branch.pace)}</b>
-            </div>;
-          })}</div>
-        </article>
-      </section>
-
-      <section className="panel table-panel">
-        <div className="section-head"><div><span>BRANCH MONITOR</span><h2>{product} Performance by Branch</h2></div><div className="table-actions"><b>à¸«à¸™à¹ˆà¸§à¸¢: à¸šà¸²à¸— â€¢ {isDailyView ? `à¹€à¸‰à¸žà¸²à¸°à¸§à¸±à¸™à¸—à¸µà¹ˆ ${String(periodDay).padStart(2, "0")} Aug` : "à¸¢à¸­à¸”à¸ªà¸°à¸ªà¸¡à¸—à¸¸à¸à¸§à¸±à¸™"}</b><button className="capture-toggle" onClick={toggleCaptureMode}>{captureMode ? "à¸à¸¥à¸±à¸š Dashboard" : "à¸”à¸¹à¸„à¸£à¸šà¸—à¸¸à¸à¸ªà¸²à¸‚à¸² / Copy à¸£à¸¹à¸›"}</button></div></div>
-        <div className="table-wrap"><table><thead><tr><th>à¸ªà¸²à¸‚à¸²</th><th>{isDailyView ? `à¸¢à¸­à¸”à¸§à¸±à¸™à¸—à¸µà¹ˆ ${String(periodDay).padStart(2, "0")}` : "à¸¢à¸­à¸” MTD"}</th><th>Target</th><th>%ACH</th><th>{isDailyView ? "Target Daily" : "Target MTD"}</th><th>{isDailyView ? "ACH Daily" : "ACH MTD"}</th><th>Runrate</th><th>Runrate %</th><th>Forecast</th><th>à¸ªà¸–à¸²à¸™à¸°</th></tr></thead>
-          <tbody>{branchPerformance.map((branch) => {
-            const currentStatus = status(branch.pace);
-            return <tr key={branch.name}><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "à¸£à¸­à¸£à¸«à¸±à¸ªà¸ªà¸²à¸‚à¸²"}</small></td><td><b>{displayValue(branch.mtd)}</b><small>{isDailyView ? "à¹€à¸‰à¸žà¸²à¸°à¸§à¸±à¸™à¸—à¸µà¹ˆà¹€à¸¥à¸·à¸­à¸" : `à¸§à¸±à¸™à¸—à¸µà¹ˆ ${String(asOfDay).padStart(2, "0")} ${displayValue(branch.today)}`}</small></td><td>{displayValue(branch.target)}</td><td>{percent(branch.target ? branch.mtd / branch.target : 0)}</td><td>{displayValue(branch.targetMtd)}</td><td><strong>{percent(branch.pace)}</strong></td><td><b className="rr-value">{displayValue(branch.runrate)}</b></td><td><strong className={`rr-percent ${status(branch.runrateAchievement).key}`}>{percent(branch.runrateAchievement)}</strong></td><td>{displayValue(branch.forecast)}</td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
-          })}</tbody></table></div>
-      </section>
-
-      <section className="method-note"><div><strong>à¸«à¸¥à¸±à¸à¸à¸²à¸£à¹à¸¢à¸ Product</strong><p>à¸—à¸¸à¸ KPI, à¸à¸£à¸²à¸Ÿ, à¸­à¸±à¸™à¸”à¸±à¸š à¹à¸¥à¸°à¸•à¸²à¸£à¸²à¸‡à¸„à¸³à¸™à¸§à¸“à¸ˆà¸²à¸ Product à¸—à¸µà¹ˆà¹€à¸¥à¸·à¸­à¸à¹€à¸žà¸µà¸¢à¸‡à¸£à¸²à¸¢à¸à¸²à¸£à¹€à¸”à¸µà¸¢à¸§ à¸žà¸£à¹‰à¸­à¸¡à¸‹à¹ˆà¸­à¸™à¸ªà¸²à¸‚à¸²à¸—à¸µà¹ˆà¹„à¸¡à¹ˆà¸¡à¸µ Target à¸‚à¸­à¸‡ Product à¸™à¸±à¹‰à¸™</p></div><div><strong>Runrate à¸ˆà¸²à¸à¹„à¸Ÿà¸¥à¹Œà¸•à¹‰à¸™à¸‰à¸šà¸±à¸š</strong><p>à¹ƒà¸Šà¹‰à¸„à¹ˆà¸² {isQtyProduct ? "RR QTY à¸ªà¸³à¸«à¸£à¸±à¸š TOL" : "RR Net Amount"} à¹à¸¢à¸à¸•à¸²à¸¡ Product à¹à¸¥à¸°à¸ªà¸²à¸‚à¸² â€¢ Runrate % = Runrate Ã· Target à¸£à¸²à¸¢à¹€à¸”à¸·à¸­à¸™</p></div></section>
-      <footer><span>BMAV-Central Product Performance Monitor</span><b>Source: 8778 Aug 2026 V1.xlsx â€¢ As of 03 Aug 2026</b></footer>
-    </main>
-  );
-}
+            <div className="insight"><i>03</i><div><span>On Track</span><strong>{onTrack.length} à¸ªà¸²à¸‚à¸²</strong><p>{activeBranches.leçž{¶‰žËkºwµçLØÌ°(€€€€€€‰ÁÉ½‘ÕÑÌˆèì(€€€€€€€€‰•Ù¥”ˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€ÄÌÀÈÀÄä¸ÔÀäääääääà°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€ÈÈÜÀÀ°(€€€€€€€€€€€€äÐä°(€€€€€€€€€€€€ÔÜØÜÀ°(€€€€€€€€€€€€À(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€ØÌÀÈÈÈ¸ÈÔ(€€€€€€€ô°(€€€€€€€€‰%ˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€ÄÐäÈÐÄ°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€À°(€€€€€€€€€€€€ÄääÀ°(€€€€€€€€€€€€ÌäØà°(€€€€€€€€€€€€À(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€ÐØÄÜÐ¸Ô(€€€€€€€ô°(€€€€€€€€‰A½ÍÑÁ…äˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€àÌäàä¸ÄÈàÀÐÐØÔàÐ°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€ÌÌÌÄ°(€€€€€€€€€€€€ÄÔäÜ°(€€€€€€€€€€€€Ìää°(€€€€€€€€€€€€Üäà(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€ÐÜÐØà¸ÜÔ(€€€€€€€ô°(€€€€€€€€‰QÉÕ•=¹±¥¹”ˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€Äà¸ÜàÔØÌÄÜÐÈÈÀäÌÌ°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€Ä°(€€€€€€€€€€€€Ä°(€€€€€€€€€€€€À°(€€€€€€€€€€€€È(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€ÌÄ(€€€€€€€ô(€€€€€ô(€€€ô°(€€€ì(€€€€€€‰¹…µ”ˆè€‰QÉÕ”M¡½ÀMÑ…Ñ¥½¸1½ÑÕÌÌI…µ„€Ðˆ°(€€€€€€‰Ñ‘Ìˆè€àÀÀÀÀÈÐÜ°(€€€€€€‰ÝÜˆè€àÀÄÀÀÜÈä°(€€€€€€‰ÁÉ½‘ÕÑÌˆèì(€€€€€€€€‰•Ù¥”ˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€ÐÜäàÀÔ¸ÄÜääääääää°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€ÜÜÄÐÀ°(€€€€€€€€€€€€ÄØÐÀÀ°(€€€€€€€€€€€€ÈØÌÀÀ°(€€€€€€€€€€€€ÈÀÌÈÜ(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€ÄÀàØÈäÐ¸ÈÔ(€€€€€€€ô°(€€€€€€€€‰%ˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€ÜØÔÌÀ°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€À(€€€€€€€ô°(€€€€€€€€‰A½ÍÑÁ…äˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€äàØä¸ØäÀÄØÄäÈääÀÐ°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€Øää°(€€€€€€€€€€€€À°(€€€€€€€€€€€€ÌÀÀ°(€€€€€€€€€€€€À(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€ÜÜÐÈ¸ÈÔ(€€€€€€€ô°(€€€€€€€€‰QÉÕ•=¹±¥¹”ˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€È¸ØÔÀÜÌÌÌÄÌÌÄÜààÀà°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€À(€€€€€€€ô(€€€€€ô(€€€ô°(€€€ì(€€€€€€‰¹…µ”ˆè€‰QÉÕ”-¥½Í¬Q¡”¥¡ÐQ¡½¹±½Èˆ°(€€€€€€‰Ñ‘Ìˆè€àÀÀÀÀÄÐÔ°(€€€€€€‰ÝÜˆè€àÀÄÀÄÈÀÄ°(€€€€€€‰ÁÉ½‘ÕÑÌˆèì(€€€€€€€€‰•Ù¥”ˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€À°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€À(€€€€€€€ô°(€€€€€€€€‰%ˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€À°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€À(€€€€€€€ô°(€€€€€€€€‰A½ÍÑÁ…äˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€À°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€À(€€€€€€€ô°(€€€€€€€€‰QÉÕ•=¹±¥¹”ˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€À°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€À(€€€€€€€ô(€€€€€ô(€€€ô°(€€€ì(€€€€€€‰¹…µ”ˆè€‰QÉÕ”M¡½ÀT¡Ô1¥…¹œ	Õ¥±‘¥¹œˆ°(€€€€€€‰Ñ‘Ìˆè€àÀÀÀÀÀÄÄ°(€€€€€€‰ÝÜˆè€àÀÄÀÄÌÐÜ°(€€€€€€‰ÁÉ½‘ÕÑÌˆèì(€€€€€€€€‰•Ù¥”ˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€ÈäØÀÄÈ¸Àà°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€À(€€€€€€€ô°(€€€€€€€€‰%ˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€ÐÐàØÈ°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€À(€€€€€€€ô°(€€€€€€€€‰A½ÍÑÁ…äˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€À°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€À(€€€€€€€ô°(€€€€€€€€‰QÉÕ•=¹±¥¹”ˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€À°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€À(€€€€€€€ô(€€€€€ô(€€€ô°(€€€ì(€€€€€€‰¹…µ”ˆè€‰-¥½Í¬1½ÑÕÌÌI…µ¥¹‘É„ˆ°(€€€€€€‰Ñ‘Ìˆè€àÀÄÀÄØÌÀ°(€€€€€€‰ÝÜˆè€àÀÄÀÄØÌÀ°(€€€€€€‰ÁÉ½‘ÕÑÌˆèì(€€€€€€€€‰•Ù¥”ˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€ØÄÄØÀÈ¸ÀÀääääääää°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€À°(€€€€€€€€€€€€ÈÐàÀÀ°(€€€€€€€€€€€€Èää°(€€€€€€€€€€€€ÈÄÈäà(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€ÌÔäÔÜØ¸ÜÔ(€€€€€€€ô°(€€€€€€€€‰%ˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€ÄÌÔÜØÔ°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€ÌÈä°(€€€€€€€€€€€€ÄÌØä°(€€€€€€€€€€€€À°(€€€€€€€€€€€€àÈÜ(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€ÄäÔØà¸ÜÔ(€€€€€€€ô°(€€€€€€€€‰A½ÍÑÁ…äˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€ÄÀÐÔÀ¸ÈØÀÄÜÄÐÔÔÄäÄ°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€Äää°(€€€€€€€€€€€€Ðää(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€ÔÐÀä¸Ô(€€€€€€€ô°(€€€€€€€€‰QÉÕ•=¹±¥¹”ˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€È¸ÐÈÀÈÌÐÜØÐÌÌÌÜÄÜÐ°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€À(€€€€€€€ô(€€€€€ô(€€€ô°(€€€ì(€€€€€€‰¹…µ”ˆè€‰QÉÕ”M¡½ÀMÕÁÉ•µ”½µÁ±•à€¡¤ˆ°(€€€€€€‰Ñ‘Ìˆè€àÀÄÀÄØØÜ°(€€€€€€‰ÝÜˆè€àÀÄÀÄØØÜ°(€€€€€€‰ÁÉ½‘ÕÑÌˆèì(€€€€€€€€‰•Ù¥”ˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€ÄÐÐÀÐØÜ¸àÀØÐÐÜÀÔàÔ°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€ÔÄäØ°(€€€€€€€€€€€€ÈÐÜÀÀ°(€€€€€€€€€€€€Üää°(€€€€€€€€€€€€Üää(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€ÈÐÐÀÜà¸Ô(€€€€€€€ô°(€€€€€€€€‰%ˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€ÈÀàÌÀ°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€ØÜÀ°(€€€€€€€€€€€€ÔÄØÀ°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€ÐÔÄàÈ¸Ô(€€€€€€€ô°(€€€€€€€€‰A½ÍÑÁ…äˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€ÐÌÜàÈ¸ÈÐäÌÔàÈÜØÌÀÔ°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€À°(€€€€€€€€€€€€Ìää°(€€€€€€€€€€€€Ôää°(€€€€€€€€€€€€äÐà(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€ÄÔÀàÄ¸Ô(€€€€€€€ô°(€€€€€€€€‰QÉÕ•=¹±¥¹”ˆèì(€€€€€€€€€€‰Ñ…É•Ðˆè€ÈÈ¸äÔØÄÈäÀÐÌàÈÈààÐ°(€€€€€€€€€€‰‘…¥±äˆèl(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€À°(€€€€€€€€€€€€Ä(€€€€€€€€€t°(€€€€€€€€€€‰ÉÕ¹É…Ñ”ˆè€Ü¸ÜÔ(€€€€€€€ô(€€€€€ô(€€€ô(€t)ô
