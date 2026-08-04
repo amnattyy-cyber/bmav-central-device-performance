@@ -15,6 +15,8 @@ type Branch = {
 const productNames = data.products as ProductName[];
 const branches = data.branches as Branch[];
 const ALL_BRANCHES = "ทุกสาขา";
+const ALL_DAYS = "all";
+const asOfDay = Number(data.meta.asOf.slice(-2));
 const productMeta: Record<ProductName, { color: string; accent: string; short: string }> = {
   Device: { color: "#2563eb", accent: "#dbeafe", short: "DEV" },
   GIA: { color: "#8e44ad", accent: "#f3e8ff", short: "GIA" },
@@ -40,7 +42,11 @@ function status(pace: number) {
 export default function Home() {
   const [product, setProduct] = useState<ProductName>("Device");
   const [branchName, setBranchName] = useState(ALL_BRANCHES);
-  const [day, setDay] = useState(3);
+  const [dateFilter, setDateFilter] = useState(ALL_DAYS);
+  const selectedDay = dateFilter === ALL_DAYS ? null : Number(dateFilter);
+  const periodDay = selectedDay ?? asOfDay;
+  const periodDays = selectedDay === null ? asOfDay : 1;
+  const isDailyView = selectedDay !== null;
   const theme = productMeta[product];
 
   const selectedBranches = useMemo(
@@ -52,40 +58,44 @@ export default function Home() {
     const target = selectedBranches.reduce((sum, branch) => sum + branch.products[product].target, 0);
     const daily = Array.from({ length: data.meta.daysInMonth }, (_, index) =>
       selectedBranches.reduce((sum, branch) => sum + (branch.products[product].daily[index] ?? 0), 0));
-    const mtd = daily.slice(0, day).reduce((sum, value) => sum + value, 0);
-    const today = daily[day - 1] ?? 0;
-    const targetMtd = target * day / data.meta.daysInMonth;
+    const mtd = isDailyView
+      ? daily[periodDay - 1] ?? 0
+      : daily.slice(0, asOfDay).reduce((sum, value) => sum + value, 0);
+    const today = daily[periodDay - 1] ?? 0;
+    const targetMtd = target * periodDays / data.meta.daysInMonth;
     const pace = targetMtd > 0 ? mtd / targetMtd : 0;
-    const forecast = day > 0 ? mtd / day * data.meta.daysInMonth : 0;
+    const forecast = periodDays > 0 ? mtd / periodDays * data.meta.daysInMonth : 0;
     const achievement = target > 0 ? mtd / target : 0;
     const runrate = selectedBranches.reduce((sum, branch) => sum + branch.products[product].runrate, 0);
     const runrateAchievement = target > 0 ? runrate / target : 0;
     return { target, daily, mtd, today, targetMtd, pace, forecast, achievement, runrate, runrateAchievement, dailyTarget: target / data.meta.daysInMonth };
-  }, [selectedBranches, product, day]);
+  }, [selectedBranches, product, isDailyView, periodDay, periodDays]);
 
   const branchPerformance = useMemo(() => branches.map((branch) => {
     const item = branch.products[product];
-    const mtd = item.daily.slice(0, day).reduce((sum, value) => sum + value, 0);
-    const targetMtd = item.target * day / data.meta.daysInMonth;
+    const mtd = isDailyView
+      ? item.daily[periodDay - 1] ?? 0
+      : item.daily.slice(0, asOfDay).reduce((sum, value) => sum + value, 0);
+    const targetMtd = item.target * periodDays / data.meta.daysInMonth;
     const pace = targetMtd > 0 ? mtd / targetMtd : 0;
-    const forecast = day > 0 ? mtd / day * data.meta.daysInMonth : 0;
+    const forecast = periodDays > 0 ? mtd / periodDays * data.meta.daysInMonth : 0;
     const runrateAchievement = item.target > 0 ? item.runrate / item.target : 0;
-    return { ...branch, target: item.target, mtd, targetMtd, pace, forecast, runrate: item.runrate, runrateAchievement, today: item.daily[day - 1] ?? 0 };
+    return { ...branch, target: item.target, mtd, targetMtd, pace, forecast, runrate: item.runrate, runrateAchievement, today: item.daily[periodDay - 1] ?? 0 };
   }).filter((branch) => branchName === ALL_BRANCHES || branch.name === branchName)
-    .sort((a, b) => b.pace - a.pace), [product, branchName, day]);
+    .sort((a, b) => b.pace - a.pace), [product, branchName, isDailyView, periodDay, periodDays]);
 
   const activeBranches = branchPerformance.filter((branch) => branch.target > 0);
   const onTrack = activeBranches.filter((branch) => branch.pace >= 1);
   const atRisk = activeBranches.filter((branch) => branch.pace < .85);
   const leader = activeBranches[0];
   const maxPace = Math.max(1, ...activeBranches.map((branch) => branch.pace));
-  const maxDaily = Math.max(metrics.dailyTarget, ...metrics.daily.slice(0, day), 1);
+  const maxDaily = Math.max(metrics.dailyTarget, ...metrics.daily.slice(0, asOfDay), 1);
   const targetLevel = Math.min(96, (metrics.dailyTarget / maxDaily) * 100);
 
   const reset = () => {
     setProduct("Device");
     setBranchName(ALL_BRANCHES);
-    setDay(3);
+    setDateFilter(ALL_DAYS);
   };
 
   return (
@@ -110,21 +120,21 @@ export default function Home() {
           </button>)}
         </div>
         <label><span>สาขา</span><select value={branchName} onChange={(event) => setBranchName(event.target.value)}><option>{ALL_BRANCHES}</option>{branches.map((branch) => <option key={branch.name}>{branch.name}</option>)}</select></label>
-        <label><span>ยอดถึงวันที่</span><select value={day} onChange={(event) => setDay(Number(event.target.value))}>{Array.from({ length: 3 }, (_, index) => <option key={index + 1} value={index + 1}>{String(index + 1).padStart(2, "0")} Aug 2026</option>)}</select></label>
+        <label><span>เลือกวันที่</span><select value={dateFilter} onChange={(event) => setDateFilter(event.target.value)}><option value={ALL_DAYS}>ทุกวัน (ยอดสะสมถึง 03 Aug)</option>{Array.from({ length: asOfDay }, (_, index) => <option key={index + 1} value={String(index + 1)}>เฉพาะวันที่ {String(index + 1).padStart(2, "0")} Aug 2026</option>)}</select></label>
         <button className="reset" onClick={reset}>ล้างตัวกรอง</button>
       </section>
 
       <section className="scope-strip">
         <div><span>มุมมองปัจจุบัน</span><strong>{product} • {branchName}</strong></div>
-        <div><span>ข้อมูลล่าสุด</span><strong>{String(day).padStart(2, "0")} August 2026</strong></div>
+        <div><span>ช่วงวันที่</span><strong>{isDailyView ? `เฉพาะวันที่ ${String(periodDay).padStart(2, "0")} August 2026` : `ทุกวัน • สะสมถึง ${String(asOfDay).padStart(2, "0")} August 2026`}</strong></div>
         <div><span>หลักการคำนวณ</span><strong>เฉพาะ {product} เท่านั้น</strong></div>
       </section>
 
       <section className="kpi-grid" aria-label="KPI ของ Product ที่เลือก">
-        <article className="kpi hero-kpi"><span>ยอดสะสม MTD</span><strong>{compact(metrics.mtd)}</strong><small>ยอดวันนี้ {money(metrics.today)}</small></article>
+        <article className="kpi hero-kpi"><span>{isDailyView ? `ยอดวันที่ ${String(periodDay).padStart(2, "0")} Aug` : "ยอดสะสม MTD"}</span><strong>{compact(metrics.mtd)}</strong><small>{isDailyView ? "ยอดเฉพาะวันที่เลือก" : `ยอดวันที่ ${String(asOfDay).padStart(2, "0")} Aug ${money(metrics.today)}`}</small></article>
         <article className="kpi"><span>เป้ารวมเดือน</span><strong>{compact(metrics.target)}</strong><small>เฉลี่ย {money(metrics.dailyTarget)} / วัน</small></article>
         <article className="kpi"><span>% เป้าเดือน</span><strong>{percent(metrics.achievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, metrics.achievement * 100)}%` }} /></div></article>
-        <article className={`kpi pace ${status(metrics.pace).key}`}><span>Pace MTD</span><strong>{percent(metrics.pace)}</strong><small>{status(metrics.pace).label}</small></article>
+        <article className={`kpi pace ${status(metrics.pace).key}`}><span>{isDailyView ? "Pace รายวัน" : "Pace MTD"}</span><strong>{percent(metrics.pace)}</strong><small>{status(metrics.pace).label}</small></article>
         <article className="kpi runrate-kpi"><span>Runrate</span><strong>{compact(metrics.runrate)}</strong><small>จาก RR Net Amount ในไฟล์ต้นฉบับ</small></article>
         <article className="kpi"><span>Runrate % เทียบเป้า</span><strong>{percent(metrics.runrateAchievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, metrics.runrateAchievement * 100)}%` }} /></div></article>
         <article className="kpi"><span>Forecast สิ้นเดือน</span><strong>{compact(metrics.forecast)}</strong><small>{percent(metrics.target ? metrics.forecast / metrics.target : 0)} ของเป้า</small></article>
@@ -133,7 +143,7 @@ export default function Home() {
 
       <section className="executive-grid">
         <article className="panel insight-panel">
-          <div className="section-head"><div><span>PRODUCT INTELLIGENCE</span><h2>Executive Infographic</h2></div><b>{product} • Day {day}</b></div>
+          <div className="section-head"><div><span>PRODUCT INTELLIGENCE</span><h2>Executive Infographic</h2></div><b>{product} • {isDailyView ? `วันที่ ${periodDay}` : `สะสม ${asOfDay} วัน`}</b></div>
           <div className="insight-grid">
             <div className="insight major"><i>01</i><div><span>ภาพรวม Product</span><strong>{percent(metrics.pace)} pace</strong><p>ทำได้ {money(metrics.mtd)} จากเป้าที่ควรได้ {money(metrics.targetMtd)}</p></div></div>
             <div className="insight"><i>02</i><div><span>สาขานำ</span><strong>{leader ? shortShop(leader.name) : "—"}</strong><p>{leader ? `${percent(leader.pace)} pace • ${money(leader.mtd)}` : "ยังไม่มีเป้าหมาย"}</p></div></div>
@@ -160,7 +170,7 @@ export default function Home() {
           <div className="section-head"><div><span>DAILY TREND</span><h2>ยอดรายวัน • {product}</h2></div><b>เส้นประ = เป้าเฉลี่ย/วัน</b></div>
           <div className="daily-chart" style={{ "--target-level": `${100 - targetLevel}%` } as React.CSSProperties}>
             <div className="target-line"><span>{compact(metrics.dailyTarget)}</span></div>
-            {metrics.daily.map((value, index) => <div className={`day-bar ${index + 1 > day ? "future" : ""}`} key={index} title={`วันที่ ${index + 1}: ${money(value)}`}>
+            {metrics.daily.map((value, index) => <div className={`day-bar ${index + 1 > asOfDay ? "future" : ""} ${isDailyView && index + 1 !== selectedDay ? "not-selected" : ""} ${isDailyView && index + 1 === selectedDay ? "selected" : ""}`} key={index} title={`วันที่ ${index + 1}: ${money(value)}`}>
               <i style={{ height: `${Math.max(value > 0 ? 4 : 0, value / maxDaily * 100)}%` }} /><span>{index + 1}</span>
             </div>)}
           </div>
@@ -180,11 +190,11 @@ export default function Home() {
       </section>
 
       <section className="panel table-panel">
-        <div className="section-head"><div><span>BRANCH MONITOR</span><h2>{product} Performance by Branch</h2></div><b>หน่วย: บาท • แสดงเฉพาะ Product ที่เลือก</b></div>
-        <div className="table-wrap"><table><thead><tr><th>สาขา</th><th>ยอด MTD</th><th>เป้าเดือน</th><th>% เป้าเดือน</th><th>เป้า MTD</th><th>Pace MTD</th><th>Runrate</th><th>Runrate %</th><th>Forecast</th><th>สถานะ</th></tr></thead>
+        <div className="section-head"><div><span>BRANCH MONITOR</span><h2>{product} Performance by Branch</h2></div><b>หน่วย: บาท • {isDailyView ? `เฉพาะวันที่ ${String(periodDay).padStart(2, "0")} Aug` : "ยอดสะสมทุกวัน"}</b></div>
+        <div className="table-wrap"><table><thead><tr><th>สาขา</th><th>{isDailyView ? `ยอดวันที่ ${String(periodDay).padStart(2, "0")}` : "ยอด MTD"}</th><th>เป้าเดือน</th><th>% เป้าเดือน</th><th>{isDailyView ? "เป้ารายวัน" : "เป้า MTD"}</th><th>{isDailyView ? "Pace รายวัน" : "Pace MTD"}</th><th>Runrate</th><th>Runrate %</th><th>Forecast</th><th>สถานะ</th></tr></thead>
           <tbody>{branchPerformance.map((branch) => {
             const currentStatus = status(branch.pace);
-            return <tr key={branch.name}><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "รอรหัสสาขา"}</small></td><td><b>{money(branch.mtd)}</b><small>วันนี้ {money(branch.today)}</small></td><td>{money(branch.target)}</td><td>{percent(branch.target ? branch.mtd / branch.target : 0)}</td><td>{money(branch.targetMtd)}</td><td><strong>{percent(branch.pace)}</strong></td><td><b className="rr-value">{money(branch.runrate)}</b></td><td><strong>{percent(branch.runrateAchievement)}</strong></td><td>{money(branch.forecast)}</td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
+            return <tr key={branch.name}><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "รอรหัสสาขา"}</small></td><td><b>{money(branch.mtd)}</b><small>{isDailyView ? "เฉพาะวันที่เลือก" : `วันที่ ${String(asOfDay).padStart(2, "0")} ${money(branch.today)}`}</small></td><td>{money(branch.target)}</td><td>{percent(branch.target ? branch.mtd / branch.target : 0)}</td><td>{money(branch.targetMtd)}</td><td><strong>{percent(branch.pace)}</strong></td><td><b className="rr-value">{money(branch.runrate)}</b></td><td><strong>{percent(branch.runrateAchievement)}</strong></td><td>{money(branch.forecast)}</td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
           })}</tbody></table></div>
       </section>
 

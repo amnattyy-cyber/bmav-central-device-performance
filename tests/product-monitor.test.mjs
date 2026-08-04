@@ -20,13 +20,16 @@ test("provides four independent product datasets", async () => {
   }
 });
 
-test("dashboard exposes product and branch filters", async () => {
+test("dashboard exposes product, branch, and optional date filters", async () => {
   const page = await readFile(new URL("app/page.tsx", root), "utf8");
   const css = await readFile(new URL("app/globals.css", root), "utf8");
   assert.match(page, /Product Performance Monitor/);
   assert.match(page, /ไม่รวมยอดข้าม Product/);
   assert.match(page, /setProduct/);
   assert.match(page, /setBranchName/);
+  assert.match(page, /setDateFilter/);
+  assert.match(page, /ทุกวัน \(ยอดสะสมถึง 03 Aug\)/);
+  assert.match(page, /เฉพาะวันที่/);
   assert.match(page, /Runrate %/);
   assert.doesNotMatch(page, /฿/);
   assert.match(page, /หน่วย: บาท/);
