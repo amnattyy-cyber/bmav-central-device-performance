@@ -248,7 +248,7 @@ export default function Home() {
       </section>
 
       <section className="method-note"><div><strong>หลักการแยก Product</strong><p>ทุก KPI, กราฟ, อันดับ และตารางคำนวณจาก Product ที่เลือกเพียงรายการเดียว พร้อมซ่อนสาขาที่ไม่มี Target ของ Product นั้น</p></div><div><strong>Runrate จากไฟล์ต้นฉบับ</strong><p>ใช้ค่า {isQtyProduct ? "RR QTY สำหรับ TOL" : "RR Net Amount"} แยกตาม Product และสาขา • Runrate % = Runrate ÷ Target รายเดือน</p></div></section>
-      <footer><span>BMAV-Central Product Performance Monitor</span><b>Source: 8778 Aug 2026 V1.xlsx • As of 03 Aug 2026</b></footer>
+      <footer><span>BMAV-Central Product Performance Monitor</span><b>Source: 8778 Aug 2026 V1.xlsx • As of {String(asOfDay).padStart(2, "0")} {shortMonth} {asOfDate.getFullYear()}</b></footer>
     </main>
   );
 }
