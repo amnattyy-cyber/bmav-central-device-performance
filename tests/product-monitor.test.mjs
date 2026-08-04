@@ -9,6 +9,14 @@ test("provides four independent product datasets", async () => {
   assert.deepEqual(data.products, ["Device", "GIA", "Postpay", "TrueOnline"]);
   assert.equal(data.branches.length, 17);
   assert.equal(data.meta.asOf, "2026-08-03");
+  assert.equal(data.meta.targetUpdated, "2026-08-04");
+  const targetTotals = Object.fromEntries(data.products.map((product) => [
+    product,
+    data.branches.reduce((sum, branch) => sum + branch.products[product].target, 0),
+  ]));
+  assert.ok(Math.abs(targetTotals.Postpay - 1732466.883730832) < 0.001);
+  assert.ok(Math.abs(targetTotals.GIA - 7140200) < 0.001);
+  assert.ok(Math.abs(targetTotals.TrueOnline - 340696.9083916353) < 0.001);
   for (const branch of data.branches) {
     for (const product of data.products) {
       assert.ok(branch.products[product]);
