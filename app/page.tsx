@@ -43,6 +43,7 @@ export default function Home() {
   const [product, setProduct] = useState<ProductName>("Device");
   const [branchName, setBranchName] = useState(ALL_BRANCHES);
   const [dateFilter, setDateFilter] = useState(ALL_DAYS);
+  const [captureMode, setCaptureMode] = useState(false);
   const selectedDay = dateFilter === ALL_DAYS ? null : Number(dateFilter);
   const periodDay = selectedDay ?? asOfDay;
   const periodDays = selectedDay === null ? asOfDay : 1;
@@ -96,10 +97,16 @@ export default function Home() {
     setProduct("Device");
     setBranchName(ALL_BRANCHES);
     setDateFilter(ALL_DAYS);
+    setCaptureMode(false);
+  };
+
+  const toggleCaptureMode = () => {
+    if (!captureMode) setBranchName(ALL_BRANCHES);
+    setCaptureMode((current) => !current);
   };
 
   return (
-    <main style={{ "--product": theme.color, "--product-soft": theme.accent } as React.CSSProperties}>
+    <main className={captureMode ? "capture-mode" : ""} style={{ "--product": theme.color, "--product-soft": theme.accent } as React.CSSProperties}>
       <header className="hero">
         <div className="hero-copy">
           <div className="eyebrow"><span className="live-dot" /> BMAV-CENTRAL • DAILY SALES</div>
@@ -132,9 +139,9 @@ export default function Home() {
 
       <section className="kpi-grid" aria-label="KPI ของ Product ที่เลือก">
         <article className="kpi hero-kpi"><span>{isDailyView ? `ยอดวันที่ ${String(periodDay).padStart(2, "0")} Aug` : "ยอดสะสม MTD"}</span><strong>{compact(metrics.mtd)}</strong><small>{isDailyView ? "ยอดเฉพาะวันที่เลือก" : `ยอดวันที่ ${String(asOfDay).padStart(2, "0")} Aug ${money(metrics.today)}`}</small></article>
-        <article className="kpi"><span>เป้ารวมเดือน</span><strong>{compact(metrics.target)}</strong><small>เฉลี่ย {money(metrics.dailyTarget)} / วัน</small></article>
-        <article className="kpi"><span>% เป้าเดือน</span><strong>{percent(metrics.achievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, metrics.achievement * 100)}%` }} /></div></article>
-        <article className={`kpi pace ${status(metrics.pace).key}`}><span>{isDailyView ? "Pace รายวัน" : "Pace MTD"}</span><strong>{percent(metrics.pace)}</strong><small>{status(metrics.pace).label}</small></article>
+        <article className="kpi"><span>Target</span><strong>{compact(metrics.target)}</strong><small>เฉลี่ย {money(metrics.dailyTarget)} / วัน</small></article>
+        <article className="kpi"><span>%ACH</span><strong>{percent(metrics.achievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, metrics.achievement * 100)}%` }} /></div></article>
+        <article className={`kpi pace ${status(metrics.pace).key}`}><span>{isDailyView ? "ACH Daily" : "ACH MTD"}</span><strong>{percent(metrics.pace)}</strong><small>{status(metrics.pace).label}</small></article>
         <article className="kpi runrate-kpi"><span>Runrate</span><strong>{compact(metrics.runrate)}</strong><small>จาก RR Net Amount ในไฟล์ต้นฉบับ</small></article>
         <article className="kpi"><span>Runrate % เทียบเป้า</span><strong>{percent(metrics.runrateAchievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, metrics.runrateAchievement * 100)}%` }} /></div></article>
         <article className="kpi"><span>Forecast สิ้นเดือน</span><strong>{compact(metrics.forecast)}</strong><small>{percent(metrics.target ? metrics.forecast / metrics.target : 0)} ของเป้า</small></article>
@@ -177,7 +184,7 @@ export default function Home() {
         </article>
 
         <article className="panel ranking-panel">
-          <div className="section-head"><div><span>BRANCH PACE</span><h2>อันดับรายสาขา</h2></div><b>{activeBranches.length} สาขาที่มีเป้า</b></div>
+          <div className="section-head"><div><span>SHOP RANKING</span><h2>Ranking Shop</h2></div><b>{activeBranches.length} สาขาที่มี Target</b></div>
           <div className="rank-list">{activeBranches.map((branch, index) => {
             const currentStatus = status(branch.pace);
             return <div className="rank-row" key={branch.name}>
@@ -190,8 +197,8 @@ export default function Home() {
       </section>
 
       <section className="panel table-panel">
-        <div className="section-head"><div><span>BRANCH MONITOR</span><h2>{product} Performance by Branch</h2></div><b>หน่วย: บาท • {isDailyView ? `เฉพาะวันที่ ${String(periodDay).padStart(2, "0")} Aug` : "ยอดสะสมทุกวัน"}</b></div>
-        <div className="table-wrap"><table><thead><tr><th>สาขา</th><th>{isDailyView ? `ยอดวันที่ ${String(periodDay).padStart(2, "0")}` : "ยอด MTD"}</th><th>เป้าเดือน</th><th>% เป้าเดือน</th><th>{isDailyView ? "เป้ารายวัน" : "เป้า MTD"}</th><th>{isDailyView ? "Pace รายวัน" : "Pace MTD"}</th><th>Runrate</th><th>Runrate %</th><th>Forecast</th><th>สถานะ</th></tr></thead>
+        <div className="section-head"><div><span>BRANCH MONITOR</span><h2>{product} Performance by Branch</h2></div><div className="table-actions"><b>หน่วย: บาท • {isDailyView ? `เฉพาะวันที่ ${String(periodDay).padStart(2, "0")} Aug` : "ยอดสะสมทุกวัน"}</b><button className="capture-toggle" onClick={toggleCaptureMode}>{captureMode ? "กลับ Dashboard" : "ดูครบทุกสาขา / Copy รูป"}</button></div></div>
+        <div className="table-wrap"><table><thead><tr><th>สาขา</th><th>{isDailyView ? `ยอดวันที่ ${String(periodDay).padStart(2, "0")}` : "ยอด MTD"}</th><th>Target</th><th>%ACH</th><th>{isDailyView ? "Target Daily" : "Target MTD"}</th><th>{isDailyView ? "ACH Daily" : "ACH MTD"}</th><th>Runrate</th><th>Runrate %</th><th>Forecast</th><th>สถานะ</th></tr></thead>
           <tbody>{branchPerformance.map((branch) => {
             const currentStatus = status(branch.pace);
             return <tr key={branch.name}><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "รอรหัสสาขา"}</small></td><td><b>{money(branch.mtd)}</b><small>{isDailyView ? "เฉพาะวันที่เลือก" : `วันที่ ${String(asOfDay).padStart(2, "0")} ${money(branch.today)}`}</small></td><td>{money(branch.target)}</td><td>{percent(branch.target ? branch.mtd / branch.target : 0)}</td><td>{money(branch.targetMtd)}</td><td><strong>{percent(branch.pace)}</strong></td><td><b className="rr-value">{money(branch.runrate)}</b></td><td><strong>{percent(branch.runrateAchievement)}</strong></td><td>{money(branch.forecast)}</td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
