@@ -22,9 +22,14 @@ test("provides four independent product datasets", async () => {
 
 test("dashboard exposes product and branch filters", async () => {
   const page = await readFile(new URL("app/page.tsx", root), "utf8");
+  const css = await readFile(new URL("app/globals.css", root), "utf8");
   assert.match(page, /Product Performance Monitor/);
   assert.match(page, /ไม่รวมยอดข้าม Product/);
   assert.match(page, /setProduct/);
   assert.match(page, /setBranchName/);
   assert.match(page, /Runrate %/);
+  assert.doesNotMatch(page, /฿/);
+  assert.match(page, /หน่วย: บาท/);
+  assert.match(css, /td \{[^}]*font-size:\s*13px/);
+  assert.match(css, /th \{[^}]*font-size:\s*12px/);
 });

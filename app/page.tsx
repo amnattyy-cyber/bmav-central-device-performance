@@ -121,22 +121,22 @@ export default function Home() {
       </section>
 
       <section className="kpi-grid" aria-label="KPI ของ Product ที่เลือก">
-        <article className="kpi hero-kpi"><span>ยอดสะสม MTD</span><strong>฿{compact(metrics.mtd)}</strong><small>ยอดวันนี้ ฿{money(metrics.today)}</small></article>
-        <article className="kpi"><span>เป้ารวมเดือน</span><strong>฿{compact(metrics.target)}</strong><small>เฉลี่ย ฿{money(metrics.dailyTarget)} / วัน</small></article>
+        <article className="kpi hero-kpi"><span>ยอดสะสม MTD</span><strong>{compact(metrics.mtd)}</strong><small>ยอดวันนี้ {money(metrics.today)}</small></article>
+        <article className="kpi"><span>เป้ารวมเดือน</span><strong>{compact(metrics.target)}</strong><small>เฉลี่ย {money(metrics.dailyTarget)} / วัน</small></article>
         <article className="kpi"><span>% เป้าเดือน</span><strong>{percent(metrics.achievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, metrics.achievement * 100)}%` }} /></div></article>
         <article className={`kpi pace ${status(metrics.pace).key}`}><span>Pace MTD</span><strong>{percent(metrics.pace)}</strong><small>{status(metrics.pace).label}</small></article>
-        <article className="kpi runrate-kpi"><span>Runrate</span><strong>฿{compact(metrics.runrate)}</strong><small>จาก RR Net Amount ในไฟล์ต้นฉบับ</small></article>
+        <article className="kpi runrate-kpi"><span>Runrate</span><strong>{compact(metrics.runrate)}</strong><small>จาก RR Net Amount ในไฟล์ต้นฉบับ</small></article>
         <article className="kpi"><span>Runrate % เทียบเป้า</span><strong>{percent(metrics.runrateAchievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, metrics.runrateAchievement * 100)}%` }} /></div></article>
-        <article className="kpi"><span>Forecast สิ้นเดือน</span><strong>฿{compact(metrics.forecast)}</strong><small>{percent(metrics.target ? metrics.forecast / metrics.target : 0)} ของเป้า</small></article>
-        <article className="kpi"><span>Gap ถึงเป้าเดือน</span><strong>฿{compact(Math.max(0, metrics.target - metrics.mtd))}</strong><small>ยอดที่ยังต้องปิด</small></article>
+        <article className="kpi"><span>Forecast สิ้นเดือน</span><strong>{compact(metrics.forecast)}</strong><small>{percent(metrics.target ? metrics.forecast / metrics.target : 0)} ของเป้า</small></article>
+        <article className="kpi"><span>Gap ถึงเป้าเดือน</span><strong>{compact(Math.max(0, metrics.target - metrics.mtd))}</strong><small>ยอดที่ยังต้องปิด</small></article>
       </section>
 
       <section className="executive-grid">
         <article className="panel insight-panel">
           <div className="section-head"><div><span>PRODUCT INTELLIGENCE</span><h2>Executive Infographic</h2></div><b>{product} • Day {day}</b></div>
           <div className="insight-grid">
-            <div className="insight major"><i>01</i><div><span>ภาพรวม Product</span><strong>{percent(metrics.pace)} pace</strong><p>ทำได้ ฿{money(metrics.mtd)} จากเป้าที่ควรได้ ฿{money(metrics.targetMtd)}</p></div></div>
-            <div className="insight"><i>02</i><div><span>สาขานำ</span><strong>{leader ? shortShop(leader.name) : "—"}</strong><p>{leader ? `${percent(leader.pace)} pace • ฿${money(leader.mtd)}` : "ยังไม่มีเป้าหมาย"}</p></div></div>
+            <div className="insight major"><i>01</i><div><span>ภาพรวม Product</span><strong>{percent(metrics.pace)} pace</strong><p>ทำได้ {money(metrics.mtd)} จากเป้าที่ควรได้ {money(metrics.targetMtd)}</p></div></div>
+            <div className="insight"><i>02</i><div><span>สาขานำ</span><strong>{leader ? shortShop(leader.name) : "—"}</strong><p>{leader ? `${percent(leader.pace)} pace • ${money(leader.mtd)}` : "ยังไม่มีเป้าหมาย"}</p></div></div>
             <div className="insight"><i>03</i><div><span>On Track</span><strong>{onTrack.length} สาขา</strong><p>{activeBranches.length ? `${Math.round(onTrack.length / activeBranches.length * 100)}% ของสาขาที่มีเป้า` : "ไม่มีสาขาที่มีเป้า"}</p></div></div>
             <div className="insight"><i>04</i><div><span>ต้องเร่ง</span><strong>{atRisk.length} สาขา</strong><p>Pace ต่ำกว่า 85% ของเป้าตามวัน</p></div></div>
           </div>
@@ -145,11 +145,11 @@ export default function Home() {
         <aside className="mission-card">
           <span>DAILY MISSION</span>
           <h2>{metrics.pace >= 1 ? "รักษาจังหวะเหนือเป้า" : "เร่งปิด Gap รายวัน"}</h2>
-          <div className="mission-number"><small>เป้าต่อวัน</small><strong>฿{money(metrics.dailyTarget)}</strong></div>
+          <div className="mission-number"><small>เป้าต่อวัน</small><strong>{money(metrics.dailyTarget)}</strong></div>
           <ul>
-            <li><b>วันนี้</b><span>฿{money(metrics.today)} • {percent(metrics.dailyTarget ? metrics.today / metrics.dailyTarget : 0)}</span></li>
-            <li><b>Runrate</b><span>฿{money(metrics.runrate)} • {percent(metrics.runrateAchievement)}</span></li>
-            <li><b>Forecast</b><span>฿{money(metrics.forecast)}</span></li>
+            <li><b>วันนี้</b><span>{money(metrics.today)} • {percent(metrics.dailyTarget ? metrics.today / metrics.dailyTarget : 0)}</span></li>
+            <li><b>Runrate</b><span>{money(metrics.runrate)} • {percent(metrics.runrateAchievement)}</span></li>
+            <li><b>Forecast</b><span>{money(metrics.forecast)}</span></li>
             <li><b>Priority</b><span>{atRisk[0] ? shortShop(atRisk[0].name) : "รักษาทุกสาขา"}</span></li>
           </ul>
         </aside>
@@ -159,8 +159,8 @@ export default function Home() {
         <article className="panel trend-panel">
           <div className="section-head"><div><span>DAILY TREND</span><h2>ยอดรายวัน • {product}</h2></div><b>เส้นประ = เป้าเฉลี่ย/วัน</b></div>
           <div className="daily-chart" style={{ "--target-level": `${100 - targetLevel}%` } as React.CSSProperties}>
-            <div className="target-line"><span>฿{compact(metrics.dailyTarget)}</span></div>
-            {metrics.daily.map((value, index) => <div className={`day-bar ${index + 1 > day ? "future" : ""}`} key={index} title={`วันที่ ${index + 1}: ฿${money(value)}`}>
+            <div className="target-line"><span>{compact(metrics.dailyTarget)}</span></div>
+            {metrics.daily.map((value, index) => <div className={`day-bar ${index + 1 > day ? "future" : ""}`} key={index} title={`วันที่ ${index + 1}: ${money(value)}`}>
               <i style={{ height: `${Math.max(value > 0 ? 4 : 0, value / maxDaily * 100)}%` }} /><span>{index + 1}</span>
             </div>)}
           </div>
@@ -180,11 +180,11 @@ export default function Home() {
       </section>
 
       <section className="panel table-panel">
-        <div className="section-head"><div><span>BRANCH MONITOR</span><h2>{product} Performance by Branch</h2></div><b>แสดงเฉพาะ Product ที่เลือก</b></div>
+        <div className="section-head"><div><span>BRANCH MONITOR</span><h2>{product} Performance by Branch</h2></div><b>หน่วย: บาท • แสดงเฉพาะ Product ที่เลือก</b></div>
         <div className="table-wrap"><table><thead><tr><th>สาขา</th><th>ยอด MTD</th><th>เป้าเดือน</th><th>% เป้าเดือน</th><th>เป้า MTD</th><th>Pace MTD</th><th>Runrate</th><th>Runrate %</th><th>Forecast</th><th>สถานะ</th></tr></thead>
           <tbody>{branchPerformance.map((branch) => {
             const currentStatus = status(branch.pace);
-            return <tr key={branch.name}><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "รอรหัสสาขา"}</small></td><td><b>฿{money(branch.mtd)}</b><small>วันนี้ ฿{money(branch.today)}</small></td><td>฿{money(branch.target)}</td><td>{percent(branch.target ? branch.mtd / branch.target : 0)}</td><td>฿{money(branch.targetMtd)}</td><td><strong>{percent(branch.pace)}</strong></td><td><b className="rr-value">฿{money(branch.runrate)}</b></td><td><strong>{percent(branch.runrateAchievement)}</strong></td><td>฿{money(branch.forecast)}</td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
+            return <tr key={branch.name}><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "รอรหัสสาขา"}</small></td><td><b>{money(branch.mtd)}</b><small>วันนี้ {money(branch.today)}</small></td><td>{money(branch.target)}</td><td>{percent(branch.target ? branch.mtd / branch.target : 0)}</td><td>{money(branch.targetMtd)}</td><td><strong>{percent(branch.pace)}</strong></td><td><b className="rr-value">{money(branch.runrate)}</b></td><td><strong>{percent(branch.runrateAchievement)}</strong></td><td>{money(branch.forecast)}</td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
           })}</tbody></table></div>
       </section>
 
