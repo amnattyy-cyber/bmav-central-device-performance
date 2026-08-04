@@ -41,4 +41,6 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(page, /หน่วย: บาท/);
   assert.match(css, /td \{[^}]*font-size:\s*13px/);
   assert.match(css, /th \{[^}]*font-size:\s*12px/);
+  assert.match(css, /\.rank-list \{[^}]*grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\)/);
+  assert.doesNotMatch(css, /\.rank-list \{[^}]*max-height/);
 });
