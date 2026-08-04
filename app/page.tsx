@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import data from "./sales-product-data.json";
 
 type ProductName = "Device" | "GIA" | "Postpay" | "TrueOnline";
@@ -50,9 +50,20 @@ export default function Home() {
   const isDailyView = selectedDay !== null;
   const theme = productMeta[product];
 
+  const targetedBranches = useMemo(
+    () => branches.filter((branch) => branch.products[product].target > 0),
+    [product],
+  );
+
+  useEffect(() => {
+    if (branchName !== ALL_BRANCHES && !targetedBranches.some((branch) => branch.name === branchName)) {
+      setBranchName(ALL_BRANCHES);
+    }
+  }, [branchName, targetedBranches]);
+
   const selectedBranches = useMemo(
-    () => branchName === ALL_BRANCHES ? branches : branches.filter((branch) => branch.name === branchName),
-    [branchName],
+    () => branchName === ALL_BRANCHES ? targetedBranches : targetedBranches.filter((branch) => branch.name === branchName),
+    [branchName, targetedBranches],
   );
 
   const metrics = useMemo(() => {
@@ -72,7 +83,7 @@ export default function Home() {
     return { target, daily, mtd, today, targetMtd, pace, forecast, achievement, runrate, runrateAchievement, dailyTarget: target / data.meta.daysInMonth };
   }, [selectedBranches, product, isDailyView, periodDay, periodDays]);
 
-  const branchPerformance = useMemo(() => branches.map((branch) => {
+  const branchPerformance = useMemo(() => targetedBranches.map((branch) => {
     const item = branch.products[product];
     const mtd = isDailyView
       ? item.daily[periodDay - 1] ?? 0
@@ -83,7 +94,7 @@ export default function Home() {
     const runrateAchievement = item.target > 0 ? item.runrate / item.target : 0;
     return { ...branch, target: item.target, mtd, targetMtd, pace, forecast, runrate: item.runrate, runrateAchievement, today: item.daily[periodDay - 1] ?? 0 };
   }).filter((branch) => branchName === ALL_BRANCHES || branch.name === branchName)
-    .sort((a, b) => b.pace - a.pace), [product, branchName, isDailyView, periodDay, periodDays]);
+    .sort((a, b) => b.pace - a.pace), [targetedBranches, product, branchName, isDailyView, periodDay, periodDays]);
 
   const activeBranches = branchPerformance.filter((branch) => branch.target > 0);
   const onTrack = activeBranches.filter((branch) => branch.pace >= 1);
@@ -116,7 +127,7 @@ export default function Home() {
         <div className="hero-focus">
           <span>PRODUCT IN FOCUS</span>
           <strong>{product}</strong>
-          <small>{branchName === ALL_BRANCHES ? `${branches.length} จุดขาย` : shortShop(branchName)}</small>
+          <small>{branchName === ALL_BRANCHES ? `${targetedBranches.length} สาขาที่มี Target` : shortShop(branchName)}</small>
         </div>
       </header>
 
@@ -126,7 +137,7 @@ export default function Home() {
             <i style={{ background: productMeta[name].color }}>{productMeta[name].short}</i><span>{name}</span>
           </button>)}
         </div>
-        <label><span>สาขา</span><select value={branchName} onChange={(event) => setBranchName(event.target.value)}><option>{ALL_BRANCHES}</option>{branches.map((branch) => <option key={branch.name}>{branch.name}</option>)}</select></label>
+        <label><span>สาขา</span><select value={branchName} onChange={(event) => setBranchName(event.target.value)}><option>{ALL_BRANCHES}</option>{targetedBranches.map((branch) => <option key={branch.name}>{branch.name}</option>)}</select></label>
         <label><span>เลือกวันที่</span><select value={dateFilter} onChange={(event) => setDateFilter(event.target.value)}><option value={ALL_DAYS}>ทุกวัน (ยอดสะสมถึง 03 Aug)</option>{Array.from({ length: asOfDay }, (_, index) => <option key={index + 1} value={String(index + 1)}>เฉพาะวันที่ {String(index + 1).padStart(2, "0")} Aug 2026</option>)}</select></label>
         <button className="reset" onClick={reset}>ล้างตัวกรอง</button>
       </section>
@@ -205,7 +216,7 @@ export default function Home() {
           })}</tbody></table></div>
       </section>
 
-      <section className="method-note"><div><strong>หลักการแยก Product</strong><p>ทุก KPI, กราฟ, อันดับ และตารางคำนวณจาก Product ที่เลือกเพียงรายการเดียว ไม่มีการนำ Device, GIA, Postpay และ TrueOnline มารวมกัน</p></div><div><strong>Runrate จากไฟล์ต้นฉบับ</strong><p>ใช้ค่า RR Net Amount แยกตาม Product และสาขา • Runrate % = Runrate ÷ เป้ารายเดือน</p></div></section>
+      <section className="method-note"><div><strong>หลักการแยก Product</strong><p>ทุก KPI, กราฟ, อันดับ และตารางคำนวณจาก Product ที่เลือกเพียงรายการเดียว พร้อมซ่อนสาขาที่ไม่มี Target ของ Product นั้น</p></div><div><strong>Runrate จากไฟล์ต้นฉบับ</strong><p>ใช้ค่า RR Net Amount แยกตาม Product และสาขา • Runrate % = Runrate ÷ Target รายเดือน</p></div></section>
       <footer><span>BMAV-Central Product Performance Monitor</span><b>Source: 8778 Aug 2026 V1.xlsx • As of 03 Aug 2026</b></footer>
     </main>
   );

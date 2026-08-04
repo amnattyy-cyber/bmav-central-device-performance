@@ -17,6 +17,13 @@ test("provides four independent product datasets", async () => {
   assert.ok(Math.abs(targetTotals.Postpay - 1732466.883730832) < 0.001);
   assert.ok(Math.abs(targetTotals.GIA - 7140200) < 0.001);
   assert.ok(Math.abs(targetTotals.TrueOnline - 340696.9083916353) < 0.001);
+  assert.deepEqual(
+    Object.fromEntries(data.products.map((product) => [
+      product,
+      data.branches.filter((branch) => branch.products[product].target > 0).length,
+    ])),
+    { Device: 15, GIA: 15, Postpay: 14, TrueOnline: 14 },
+  );
   for (const branch of data.branches) {
     for (const product of data.products) {
       assert.ok(branch.products[product]);
@@ -35,6 +42,9 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(page, /ไม่รวมยอดข้าม Product/);
   assert.match(page, /setProduct/);
   assert.match(page, /setBranchName/);
+  assert.match(page, /targetedBranches/);
+  assert.match(page, /branch\.products\[product\]\.target > 0/);
+  assert.match(page, /ซ่อนสาขาที่ไม่มี Target/);
   assert.match(page, /setDateFilter/);
   assert.match(page, /ทุกวัน \(ยอดสะสมถึง 03 Aug\)/);
   assert.match(page, /เฉพาะวันที่/);
