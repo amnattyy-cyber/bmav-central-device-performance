@@ -49,6 +49,10 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(page, /ทุกวัน \(ยอดสะสมถึง 03 Aug\)/);
   assert.match(page, /เฉพาะวันที่/);
   assert.match(page, /Ranking Shop/);
+  assert.match(page, /Shop Top Ranking/);
+  assert.match(page, /%Achieve \{percent\(metrics\.pace\)\}/);
+  assert.doesNotMatch(page, /notation:\s*"compact"/);
+  assert.doesNotMatch(page, /\{compact\(/);
   assert.match(page, /ดูครบทุกสาขา \/ Copy รูป/);
   assert.match(page, /<th>Target<\/th><th>%ACH<\/th>/);
   assert.match(page, /"Target MTD"/);

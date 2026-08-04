@@ -25,7 +25,6 @@ const productMeta: Record<ProductName, { color: string; accent: string; short: s
 };
 
 const money = (value: number) => new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 }).format(value);
-const compact = (value: number) => new Intl.NumberFormat("th-TH", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
 const shortShop = (name: string) => name
   .replace("True Shop Station ", "Station ")
@@ -149,24 +148,24 @@ export default function Home() {
       </section>
 
       <section className="kpi-grid" aria-label="KPI ของ Product ที่เลือก">
-        <article className="kpi hero-kpi"><span>{isDailyView ? `ยอดวันที่ ${String(periodDay).padStart(2, "0")} Aug` : "ยอดสะสม MTD"}</span><strong>{compact(metrics.mtd)}</strong><small>{isDailyView ? "ยอดเฉพาะวันที่เลือก" : `ยอดวันที่ ${String(asOfDay).padStart(2, "0")} Aug ${money(metrics.today)}`}</small></article>
-        <article className="kpi"><span>Target</span><strong>{compact(metrics.target)}</strong><small>เฉลี่ย {money(metrics.dailyTarget)} / วัน</small></article>
+        <article className="kpi hero-kpi"><span>{isDailyView ? `ยอดวันที่ ${String(periodDay).padStart(2, "0")} Aug` : "ยอดสะสม MTD"}</span><strong>{money(metrics.mtd)}</strong><small>{isDailyView ? "ยอดเฉพาะวันที่เลือก" : `ยอดวันที่ ${String(asOfDay).padStart(2, "0")} Aug ${money(metrics.today)}`}</small></article>
+        <article className="kpi"><span>Target</span><strong>{money(metrics.target)}</strong><small>เฉลี่ย {money(metrics.dailyTarget)} / วัน</small></article>
         <article className="kpi"><span>%ACH</span><strong>{percent(metrics.achievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, metrics.achievement * 100)}%` }} /></div></article>
         <article className={`kpi pace ${status(metrics.pace).key}`}><span>{isDailyView ? "ACH Daily" : "ACH MTD"}</span><strong>{percent(metrics.pace)}</strong><small>{status(metrics.pace).label}</small></article>
-        <article className="kpi runrate-kpi"><span>Runrate</span><strong>{compact(metrics.runrate)}</strong><small>จาก RR Net Amount ในไฟล์ต้นฉบับ</small></article>
+        <article className="kpi runrate-kpi"><span>Runrate</span><strong>{money(metrics.runrate)}</strong><small>จาก RR Net Amount ในไฟล์ต้นฉบับ</small></article>
         <article className="kpi"><span>Runrate % เทียบเป้า</span><strong>{percent(metrics.runrateAchievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, metrics.runrateAchievement * 100)}%` }} /></div></article>
-        <article className="kpi"><span>Forecast สิ้นเดือน</span><strong>{compact(metrics.forecast)}</strong><small>{percent(metrics.target ? metrics.forecast / metrics.target : 0)} ของเป้า</small></article>
-        <article className="kpi"><span>Gap ถึงเป้าเดือน</span><strong>{compact(Math.max(0, metrics.target - metrics.mtd))}</strong><small>ยอดที่ยังต้องปิด</small></article>
+        <article className="kpi"><span>Forecast สิ้นเดือน</span><strong>{money(metrics.forecast)}</strong><small>{percent(metrics.target ? metrics.forecast / metrics.target : 0)} ของเป้า</small></article>
+        <article className="kpi"><span>Gap ถึงเป้าเดือน</span><strong>{money(Math.max(0, metrics.target - metrics.mtd))}</strong><small>ยอดที่ยังต้องปิด</small></article>
       </section>
 
       <section className="executive-grid">
         <article className="panel insight-panel">
           <div className="section-head"><div><span>PRODUCT INTELLIGENCE</span><h2>Executive Infographic</h2></div><b>{product} • {isDailyView ? `วันที่ ${periodDay}` : `สะสม ${asOfDay} วัน`}</b></div>
           <div className="insight-grid">
-            <div className="insight major"><i>01</i><div><span>ภาพรวม Product</span><strong>{percent(metrics.pace)} pace</strong><p>ทำได้ {money(metrics.mtd)} จากเป้าที่ควรได้ {money(metrics.targetMtd)}</p></div></div>
-            <div className="insight"><i>02</i><div><span>สาขานำ</span><strong>{leader ? shortShop(leader.name) : "—"}</strong><p>{leader ? `${percent(leader.pace)} pace • ${money(leader.mtd)}` : "ยังไม่มีเป้าหมาย"}</p></div></div>
+            <div className="insight major"><i>01</i><div><span>ภาพรวม Product</span><strong>%Achieve {percent(metrics.pace)}</strong><p>ทำได้ {money(metrics.mtd)} จากเป้าที่ควรได้ {money(metrics.targetMtd)}</p></div></div>
+            <div className="insight"><i>02</i><div><span>Shop Top Ranking</span><strong>{leader ? shortShop(leader.name) : "—"}</strong><p>{leader ? `%Achieve ${percent(leader.pace)} • ${money(leader.mtd)}` : "ยังไม่มีเป้าหมาย"}</p></div></div>
             <div className="insight"><i>03</i><div><span>On Track</span><strong>{onTrack.length} สาขา</strong><p>{activeBranches.length ? `${Math.round(onTrack.length / activeBranches.length * 100)}% ของสาขาที่มีเป้า` : "ไม่มีสาขาที่มีเป้า"}</p></div></div>
-            <div className="insight"><i>04</i><div><span>ต้องเร่ง</span><strong>{atRisk.length} สาขา</strong><p>Pace ต่ำกว่า 85% ของเป้าตามวัน</p></div></div>
+            <div className="insight"><i>04</i><div><span>ต้องเร่ง</span><strong>{atRisk.length} สาขา</strong><p>%Achieve ต่ำกว่า 85% ของเป้าตามวัน</p></div></div>
           </div>
         </article>
 
@@ -187,7 +186,7 @@ export default function Home() {
         <article className="panel trend-panel">
           <div className="section-head"><div><span>DAILY TREND</span><h2>ยอดรายวัน • {product}</h2></div><b>เส้นประ = เป้าเฉลี่ย/วัน</b></div>
           <div className="daily-chart" style={{ "--target-level": `${100 - targetLevel}%` } as React.CSSProperties}>
-            <div className="target-line"><span>{compact(metrics.dailyTarget)}</span></div>
+            <div className="target-line"><span>{money(metrics.dailyTarget)}</span></div>
             {metrics.daily.map((value, index) => <div className={`day-bar ${index + 1 > asOfDay ? "future" : ""} ${isDailyView && index + 1 !== selectedDay ? "not-selected" : ""} ${isDailyView && index + 1 === selectedDay ? "selected" : ""}`} key={index} title={`วันที่ ${index + 1}: ${money(value)}`}>
               <i style={{ height: `${Math.max(value > 0 ? 4 : 0, value / maxDaily * 100)}%` }} /><span>{index + 1}</span>
             </div>)}
