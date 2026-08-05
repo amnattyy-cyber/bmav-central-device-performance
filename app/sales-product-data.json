@@ -1,817 +1,817 @@
 {
-  "meta": {
-    "area": "BMAV-Central",
-    "month": "August 2026",
-    "asOf": "2026-08-04",
-    "targetUpdated": "2026-08-04",
-    "daysInMonth": 31,
-    "currency": "THB"
-  },
-  "products": [
-    "Device",
-    "GIA",
-    "Postpay",
-    "TrueOnline"
-  ],
-  "branches": [
-    {
-      "name": "True Shop Terminal 21",
-      "tds": 80000411,
-      "ww": 80100478,
-      "products": {
-        "Device": {
-          "target": 1967514.5000000002,
-          "daily": [
-            41524,
-            18200,
-            87239,
-            42669
-          ],
-          "runrate": 1469648
-        },
-        "GIA": {
-          "target": 246616,
-          "daily": [
-            0,
-            490,
-            11070,
-            2290
-          ],
-          "runrate": 107337.5
-        },
-        "Postpay": {
-          "target": 154431.6225337267,
-          "daily": [
-            4096,
-            2897,
-            13527,
-            7490
-          ],
-          "runrate": 217077.5
-        },
-        "TrueOnline": {
-          "target": 56.76026768735027,
-          "daily": [
-            1,
-            1,
-            3,
-            1
-          ],
-          "runrate": 46.5
-        }
-      }
-    },
-    {
-      "name": "True Shop Central Rama 9 4Fl.",
-      "tds": null,
-      "ww": null,
-      "products": {
-        "Device": {
-          "target": 0,
-          "daily": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "runrate": 0
-        },
-        "GIA": {
-          "target": 0,
-          "daily": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "runrate": 0
-        },
-        "Postpay": {
-          "target": 0,
-          "daily": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "runrate": 0
-        },
-        "TrueOnline": {
-          "target": 0,
-          "daily": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "runrate": 0
-        }
-      }
-    },
-    {
-      "name": "True Shop Central Rama 9",
-      "tds": 80000382,
-      "ww": 80100623,
-      "products": {
-        "Device": {
-          "target": 6318098.089999997,
-          "daily": [
-            212276,
-            244185,
-            203295,
-            105496
-          ],
-          "runrate": 5930703
-        },
-        "GIA": {
-          "target": 284313,
-          "daily": [
-            19619,
-            22589,
-            15806,
-            7970
-          ],
-          "runrate": 511376
-        },
-        "Postpay": {
-          "target": 157527.99591786158,
-          "daily": [
-            0,
-            3894,
-            9254,
-            5956
-          ],
-          "runrate": 148056
-        },
-        "TrueOnline": {
-          "target": 43.21847793453066,
-          "daily": [
-            0,
-            2,
-            2,
-            0
-          ],
-          "runrate": 31
-        }
-      }
-    },
-    {
-      "name": "True Shop Central World 4Fl.",
-      "tds": 80000400,
-      "ww": 80100836,
-      "products": {
-        "Device": {
-          "target": 12059845.310000002,
-          "daily": [
-            315093,
-            377853,
-            235238,
-            322085
-          ],
-          "runrate": 9689584.75
-        },
-        "GIA": {
-          "target": 2879015,
-          "daily": [
-            73001,
-            37284,
-            9620,
-            69831
-          ],
-          "runrate": 1470454
-        },
-        "Postpay": {
-          "target": 282931.11797532387,
-          "daily": [
-            9860,
-            16281,
-            5490,
-            4393
-          ],
-          "runrate": 279186
-        },
-        "TrueOnline": {
-          "target": 73.9900342239165,
-          "daily": [
-            1,
-            1,
-            3,
-            2
-          ],
-          "runrate": 54.25
-        }
-      }
-    },
-    {
-      "name": "True Shop Central Rama 3",
-      "tds": 80000112,
-      "ww": 80101068,
-      "products": {
-        "Device": {
-          "target": 7398713.580000002,
-          "daily": [
-            113676,
-            274562,
-            140264,
-            102194
-          ],
-          "runrate": 4887894
-        },
-        "GIA": {
-          "target": 1114080,
-          "daily": [
-            3980,
-            27809,
-            4518,
-            7080
-          ],
-          "runrate": 336249.25
-        },
-        "Postpay": {
-          "target": 226809.35038787933,
-          "daily": [
-            7389,
-            4644,
-            0,
-            2379
-          ],
-          "runrate": 142561.25
-        },
-        "TrueOnline": {
-          "target": 72.37654438102736,
-          "daily": [
-            5,
-            2,
-            0,
-            1
-          ],
-          "runrate": 69.75
-        }
-      }
-    },
-    {
-      "name": "True Shop Central Festival East Ville",
-      "tds": 80000583,
-      "ww": 80101186,
-      "products": {
-        "Device": {
-          "target": 6670014.029999999,
-          "daily": [
-            269736,
-            445352,
-            164007,
-            286624
-          ],
-          "runrate": 9034322.25
-        },
-        "GIA": {
-          "target": 984122,
-          "daily": [
-            3529,
-            27495,
-            9039,
-            9011
-          ],
-          "runrate": 380323.5
-        },
-        "Postpay": {
-          "target": 226809.35038787933,
-          "daily": [
-            0,
-            4194,
-            6275,
-            5350
-          ],
-          "runrate": 122597.25
-        },
-        "TrueOnline": {
-          "target": 68.74619223452677,
-          "daily": [
-            0,
-            1,
-            1,
-            6
-          ],
-          "runrate": 62
-        }
-      }
-    },
-    {
-      "name": "True Shop Emquartier",
-      "tds": 80000539,
-      "ww": 80101221,
-      "products": {
-        "Device": {
-          "target": 4266451.95,
-          "daily": [
-            114439,
-            101148,
-            73978,
-            94039
-          ],
-          "runrate": 2972931
-        },
-        "GIA": {
-          "target": 426034,
-          "daily": [
-            1970,
-            8489,
-            11390,
-            12719
-          ],
-          "runrate": 267902
-        },
-        "Postpay": {
-          "target": 238420.7505783851,
-          "daily": [
-            8938,
-            7985,
-            7885,
-            2895
-          ],
-          "runrate": 214698.25
-        },
-        "TrueOnline": {
-          "target": 81.02023996793349,
-          "daily": [
-            2,
-            5,
-            5,
-            4
-          ],
-          "runrate": 124
-        }
-      }
-    },
-    {
-      "name": "True Shop Makro Sri Ayutthaya",
-      "tds": 80002422,
-      "ww": 80101633,
-      "products": {
-        "Device": {
-          "target": 395538.43999999994,
-          "daily": [
-            1899,
-            35399,
-            29900,
-            0
-          ],
-          "runrate": 520784.5
-        },
-        "GIA": {
-          "target": 64486,
-          "daily": [
-            0,
-            179,
-            5117,
-            1659
-          ],
-          "runrate": 53901.25
-        },
-        "Postpay": {
-          "target": 7160.36345081189,
-          "daily": [
-            1078,
-            0,
-            0,
-            199
-          ],
-          "runrate": 9896.75
-        },
-        "TrueOnline": {
-          "target": 3.2846043230243307,
-          "daily": [
-            0,
-            0,
-            0,
-            1
-          ],
-          "runrate": 7.75
-        }
-      }
-    },
-    {
-      "name": "True Shop Fortune Town 1Fl.",
-      "tds": 80000016,
-      "ww": 80100715,
-      "products": {
-        "Device": {
-          "target": 880817.07,
-          "daily": [
-            0,
-            55200,
-            38370,
-            0
-          ],
-          "runrate": 725167.5
-        },
-        "GIA": {
-          "target": 152891,
-          "daily": [
-            0,
-            2107,
-            349,
-            0
-          ],
-          "runrate": 19034
-        },
-        "Postpay": {
-          "target": 27093.267111180125,
-          "daily": [
-            399,
-            998,
-            998,
-            798
-          ],
-          "runrate": 24745.75
-        },
-        "TrueOnline": {
-          "target": 14.579033223248343,
-          "daily": [
-            0,
-            0,
-            1,
-            1
-          ],
-          "runrate": 15.5
-        }
-      }
-    },
-    {
-      "name": "True Shop Mahboon Krong 4Fl.",
-      "tds": 80000441,
-      "ww": 80101269,
-      "products": {
-        "Device": {
-          "target": 2254886.380000001,
-          "daily": [
-            35998,
-            92546,
-            71370,
-            22198
-          ],
-          "runrate": 1721368
-        },
-        "GIA": {
-          "target": 198303,
-          "daily": [
-            699,
-            9600,
-            5579,
-            3810
-          ],
-          "runrate": 152582
-        },
-        "Postpay": {
-          "target": 137595.09225749335,
-          "daily": [
-            2896,
-            1896,
-            2041,
-            2629
-          ],
-          "runrate": 73330.5
-        },
-        "TrueOnline": {
-          "target": 20.91774332031284,
-          "daily": [
-            2,
-            0,
-            0,
-            0
-          ],
-          "runrate": 15.5
-        }
-      }
-    },
-    {
-      "name": "True Shop Silom Complex",
-      "tds": 80000584,
-      "ww": 80101349,
-      "products": {
-        "Device": {
-          "target": 1958592.51,
-          "daily": [
-            68129,
-            32370,
-            22999,
-            43397
-          ],
-          "runrate": 1293436.25
-        },
-        "GIA": {
-          "target": 363112,
-          "daily": [
-            1291,
-            1638,
-            789,
-            2670
-          ],
-          "runrate": 49507
-        },
-        "Postpay": {
-          "target": 125596.64539397073,
-          "daily": [
-            2081,
-            499,
-            2495,
-            1852
-          ],
-          "runrate": 53684.25
-        },
-        "TrueOnline": {
-          "target": 31.059679475616036,
-          "daily": [
-            1,
-            0,
-            1,
-            2
-          ],
-          "runrate": 31
-        }
-      }
-    },
-    {
-      "name": "True Shop at Chamchuri Square 1",
-      "tds": 80000167,
-      "ww": 80101363,
-      "products": {
-        "Device": {
-          "target": 1302019.5099999998,
-          "daily": [
-            22700,
-            949,
-            57670,
-            0
-          ],
-          "runrate": 630222.25
-        },
-        "GIA": {
-          "target": 149241,
-          "daily": [
-            0,
-            1990,
-            3968,
-            0
-          ],
-          "runrate": 46174.5
-        },
-        "Postpay": {
-          "target": 83989.1280446584,
-          "daily": [
-            3331,
-            1597,
-            399,
-            798
-          ],
-          "runrate": 47468.75
-        },
-        "TrueOnline": {
-          "target": 18.78563174220933,
-          "daily": [
-            1,
-            1,
-            0,
-            2
-          ],
-          "runrate": 31
-        }
-      }
-    },
-    {
-      "name": "True Shop Station Lotus's Rama 4",
-      "tds": 80000247,
-      "ww": 80100729,
-      "products": {
-        "Device": {
-          "target": 479805.1799999999,
-          "daily": [
-            77140,
-            16400,
-            26300,
-            20327
-          ],
-          "runrate": 1086294.25
-        },
-        "GIA": {
-          "target": 76530,
-          "daily": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "runrate": 0
-        },
-        "Postpay": {
-          "target": 9869.690161929904,
-          "daily": [
-            699,
-            0,
-            300,
-            0
-          ],
-          "runrate": 7742.25
-        },
-        "TrueOnline": {
-          "target": 2.6507333133178808,
-          "daily": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "runrate": 0
-        }
-      }
-    },
-    {
-      "name": "True Kiosk The Eight Thonglor",
-      "tds": 80000145,
-      "ww": 80101201,
-      "products": {
-        "Device": {
-          "target": 0,
-          "daily": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "runrate": 0
-        },
-        "GIA": {
-          "target": 0,
-          "daily": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "runrate": 0
-        },
-        "Postpay": {
-          "target": 0,
-          "daily": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "runrate": 0
-        },
-        "TrueOnline": {
-          "target": 0,
-          "daily": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "runrate": 0
-        }
-      }
-    },
-    {
-      "name": "True Shop U Chu Liang Building",
-      "tds": 80000011,
-      "ww": 80101347,
-      "products": {
-        "Device": {
-          "target": 296012.08,
-          "daily": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "runrate": 0
-        },
-        "GIA": {
-          "target": 44862,
-          "daily": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "runrate": 0
-        },
-        "Postpay": {
-          "target": 0,
-          "daily": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "runrate": 0
-        },
-        "TrueOnline": {
-          "target": 0,
-          "daily": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "runrate": 0
-        }
-      }
-    },
-    {
-      "name": "Kiosk Lotus's Ramindra",
-      "tds": 80101630,
-      "ww": 80101630,
-      "products": {
-        "Device": {
-          "target": 611602.0099999999,
-          "daily": [
-            0,
-            24800,
-            299,
-            21298
-          ],
-          "runrate": 359576.75
-        },
-        "GIA": {
-          "target": 135765,
-          "daily": [
-            329,
-            1369,
-            0,
-            827
-          ],
-          "runrate": 19568.75
-        },
-        "Postpay": {
-          "target": 10450.260171455191,
-          "daily": [
-            0,
-            0,
-            199,
-            499
-          ],
-          "runrate": 5409.5
-        },
-        "TrueOnline": {
-          "target": 2.4202347643337174,
-          "daily": [
-            0,
-            0,
-            0,
-            0
-          ],
-          "runrate": 0
-        }
-      }
-    },
-    {
-      "name": "True Shop Supreme Complex (D)",
-      "tds": 80101667,
-      "ww": 80101667,
-      "products": {
-        "Device": {
-          "target": 1440467.8064470585,
-          "daily": [
-            5196,
-            24700,
-            799,
-            799
-          ],
-          "runrate": 244078.5
-        },
-        "GIA": {
-          "target": 20830,
-          "daily": [
-            670,
-            5160,
-            0,
-            0
-          ],
-          "runrate": 45182.5
-        },
-        "Postpay": {
-          "target": 43782.249358276305,
-          "daily": [
-            0,
-            399,
-            599,
-            948
-          ],
-          "runrate": 15081.5
-        },
-        "TrueOnline": {
-          "target": 22.956129043822884,
-          "daily": [
-            0,
-            0,
-            0,
-            1
-          ],
-          "runrate": 7.75
-        }
-      }
-    }
-  ]
+"meta": {
+"area": "BMAV-Central",
+"month": "August 2026",
+"asOf": "2026-08-04",
+"targetUpdated": "2026-08-04",
+"daysInMonth": 31,
+"currency": "THB"
+},
+"products": [
+"Device",
+"GIA",
+"Postpay",
+"TrueOnline"
+],
+"branches": [
+{
+"name": "True Shop Terminal 21",
+"tds": 80000411,
+"ww": 80100478,
+"products": {
+"Device": {
+"target": 1885449,
+"daily": [
+41524,
+18200,
+87239,
+42669
+],
+"runrate": 1469648
+},
+"GIA": {
+"target": 350639,
+"daily": [
+0,
+490,
+11070,
+2290
+],
+"runrate": 107337.5
+},
+"Postpay": {
+"target": 154432,
+"daily": [
+4096,
+2897,
+13527,
+7490
+],
+"runrate": 217077.5
+},
+"TrueOnline": {
+"target": 57,
+"daily": [
+1,
+1,
+3,
+1
+],
+"runrate": 46.5
+}
+}
+},
+{
+"name": "True Shop Central Rama 9 4Fl.",
+"tds": null,
+"ww": 80100622,
+"products": {
+"Device": {
+"target": 7709880,
+"daily": [
+0,
+0,
+0,
+0
+],
+"runrate": 0
+},
+"GIA": {
+"target": 1388494,
+"daily": [
+0,
+0,
+0,
+0
+],
+"runrate": 0
+},
+"Postpay": {
+"target": 246549,
+"daily": [
+0,
+0,
+0,
+0
+],
+"runrate": 0
+},
+"TrueOnline": {
+"target": 86,
+"daily": [
+0,
+0,
+0,
+0
+],
+"runrate": 0
+}
+}
+},
+{
+"name": "True Shop Central Rama 9",
+"tds": 80000382,
+"ww": 80100623,
+"products": {
+"Device": {
+"target": 2008373,
+"daily": [
+212276,
+244185,
+203295,
+105496
+],
+"runrate": 5930703
+},
+"GIA": {
+"target": 856455,
+"daily": [
+19619,
+22589,
+15806,
+7970
+],
+"runrate": 511376
+},
+"Postpay": {
+"target": 157528,
+"daily": [
+0,
+3894,
+9254,
+5956
+],
+"runrate": 148056
+},
+"TrueOnline": {
+"target": 43,
+"daily": [
+0,
+2,
+2,
+0
+],
+"runrate": 31
+}
+}
+},
+{
+"name": "True Shop Central World 4Fl.",
+"tds": 80000400,
+"ww": 80100836,
+"products": {
+"Device": {
+"target": 11693814,
+"daily": [
+315093,
+377853,
+235238,
+322085
+],
+"runrate": 9689584.75
+},
+"GIA": {
+"target": 2042542,
+"daily": [
+73001,
+37284,
+9620,
+69831
+],
+"runrate": 1470454
+},
+"Postpay": {
+"target": 282931,
+"daily": [
+9860,
+16281,
+5490,
+4393
+],
+"runrate": 279186
+},
+"TrueOnline": {
+"target": 74,
+"daily": [
+1,
+1,
+3,
+2
+],
+"runrate": 54.25
+}
+}
+},
+{
+"name": "True Shop Central Rama 3",
+"tds": 80000112,
+"ww": 80101068,
+"products": {
+"Device": {
+"target": 7152494,
+"daily": [
+113676,
+274562,
+140264,
+102194
+],
+"runrate": 4887894
+},
+"GIA": {
+"target": 974788,
+"daily": [
+3980,
+27809,
+4518,
+7080
+],
+"runrate": 336249.25
+},
+"Postpay": {
+"target": 226809,
+"daily": [
+7389,
+4644,
+0,
+2379
+],
+"runrate": 142561.25
+},
+"TrueOnline": {
+"target": 72,
+"daily": [
+5,
+2,
+0,
+1
+],
+"runrate": 69.75
+}
+}
+},
+{
+"name": "True Shop Central Festival East Ville",
+"tds": 80000583,
+"ww": 80101186,
+"products": {
+"Device": {
+"target": 6819149,
+"daily": [
+269736,
+445352,
+164007,
+286624
+],
+"runrate": 9034322.25
+},
+"GIA": {
+"target": 843348,
+"daily": [
+3529,
+27495,
+9039,
+9011
+],
+"runrate": 380323.5
+},
+"Postpay": {
+"target": 226809,
+"daily": [
+0,
+4194,
+6275,
+5350
+],
+"runrate": 122597.25
+},
+"TrueOnline": {
+"target": 69,
+"daily": [
+0,
+1,
+1,
+6
+],
+"runrate": 62
+}
+}
+},
+{
+"name": "True Shop Emquartier",
+"tds": 80000539,
+"ww": 80101221,
+"products": {
+"Device": {
+"target": 4264904,
+"daily": [
+114439,
+101148,
+73978,
+94039
+],
+"runrate": 2972931
+},
+"GIA": {
+"target": 394697,
+"daily": [
+1970,
+8489,
+11390,
+12719
+],
+"runrate": 267902
+},
+"Postpay": {
+"target": 238421,
+"daily": [
+8938,
+7985,
+7885,
+2895
+],
+"runrate": 214698.25
+},
+"TrueOnline": {
+"target": 81,
+"daily": [
+2,
+5,
+5,
+4
+],
+"runrate": 124
+}
+}
+},
+{
+"name": "True Shop Makro Sri Ayutthaya",
+"tds": 80002422,
+"ww": 80101633,
+"products": {
+"Device": {
+"target": 428564,
+"daily": [
+1899,
+35399,
+29900,
+0
+],
+"runrate": 520784.5
+},
+"GIA": {
+"target": 104694,
+"daily": [
+0,
+179,
+5117,
+1659
+],
+"runrate": 53901.25
+},
+"Postpay": {
+"target": 7160,
+"daily": [
+1078,
+0,
+0,
+199
+],
+"runrate": 9896.75
+},
+"TrueOnline": {
+"target": 3,
+"daily": [
+0,
+0,
+0,
+1
+],
+"runrate": 7.75
+}
+}
+},
+{
+"name": "True Shop Fortune Town 1Fl.",
+"tds": 80000016,
+"ww": 80100715,
+"products": {
+"Device": {
+"target": 692119,
+"daily": [
+0,
+55200,
+38370,
+0
+],
+"runrate": 725167.5
+},
+"GIA": {
+"target": 175151,
+"daily": [
+0,
+2107,
+349,
+0
+],
+"runrate": 19034
+},
+"Postpay": {
+"target": 27093,
+"daily": [
+399,
+998,
+998,
+798
+],
+"runrate": 24745.75
+},
+"TrueOnline": {
+"target": 15,
+"daily": [
+0,
+0,
+1,
+1
+],
+"runrate": 15.5
+}
+}
+},
+{
+"name": "True Shop Mahboon Krong 4Fl.",
+"tds": 80000441,
+"ww": 80101269,
+"products": {
+"Device": {
+"target": 2181526,
+"daily": [
+35998,
+92546,
+71370,
+22198
+],
+"runrate": 1721368
+},
+"GIA": {
+"target": 384864,
+"daily": [
+699,
+9600,
+5579,
+3810
+],
+"runrate": 152582
+},
+"Postpay": {
+"target": 137595,
+"daily": [
+2896,
+1896,
+2041,
+2629
+],
+"runrate": 73330.5
+},
+"TrueOnline": {
+"target": 21,
+"daily": [
+2,
+0,
+0,
+0
+],
+"runrate": 15.5
+}
+}
+},
+{
+"name": "True Shop Silom Complex",
+"tds": 80000584,
+"ww": 80101349,
+"products": {
+"Device": {
+"target": 2292331,
+"daily": [
+68129,
+32370,
+22999,
+43397
+],
+"runrate": 1293436.25
+},
+"GIA": {
+"target": 348057,
+"daily": [
+1291,
+1638,
+789,
+2670
+],
+"runrate": 49507
+},
+"Postpay": {
+"target": 125597,
+"daily": [
+2081,
+499,
+2495,
+1852
+],
+"runrate": 53684.25
+},
+"TrueOnline": {
+"target": 31,
+"daily": [
+1,
+0,
+1,
+2
+],
+"runrate": 31
+}
+}
+},
+{
+"name": "True Shop at Chamchuri Square 1",
+"tds": 80000167,
+"ww": 80101363,
+"products": {
+"Device": {
+"target": 1512505,
+"daily": [
+22700,
+949,
+57670,
+0
+],
+"runrate": 630222.25
+},
+"GIA": {
+"target": 213847,
+"daily": [
+0,
+1990,
+3968,
+0
+],
+"runrate": 46174.5
+},
+"Postpay": {
+"target": 83989,
+"daily": [
+3331,
+1597,
+399,
+798
+],
+"runrate": 47468.75
+},
+"TrueOnline": {
+"target": 19,
+"daily": [
+1,
+1,
+0,
+2
+],
+"runrate": 31
+}
+}
+},
+{
+"name": "True Shop Station Lotus's Rama 4",
+"tds": 80000247,
+"ww": 80100729,
+"products": {
+"Device": {
+"target": 534711,
+"daily": [
+77140,
+16400,
+26300,
+20327
+],
+"runrate": 1086294.25
+},
+"GIA": {
+"target": 121263,
+"daily": [
+0,
+0,
+0,
+0
+],
+"runrate": 0
+},
+"Postpay": {
+"target": 9870,
+"daily": [
+699,
+0,
+300,
+0
+],
+"runrate": 7742.25
+},
+"TrueOnline": {
+"target": 3,
+"daily": [
+0,
+0,
+0,
+0
+],
+"runrate": 0
+}
+}
+},
+{
+"name": "True Kiosk The Eight Thonglor",
+"tds": 80000145,
+"ww": 80101201,
+"products": {
+"Device": {
+"target": 0,
+"daily": [
+0,
+0,
+0,
+0
+],
+"runrate": 0
+},
+"GIA": {
+"target": 0,
+"daily": [
+0,
+0,
+0,
+0
+],
+"runrate": 0
+},
+"Postpay": {
+"target": 0,
+"daily": [
+0,
+0,
+0,
+0
+],
+"runrate": 0
+},
+"TrueOnline": {
+"target": 0,
+"daily": [
+0,
+0,
+0,
+0
+],
+"runrate": 0
+}
+}
+},
+{
+"name": "True Shop U Chu Liang Building",
+"tds": 80000011,
+"ww": 80101347,
+"products": {
+"Device": {
+"target": 0,
+"daily": [
+0,
+0,
+0,
+0
+],
+"runrate": 0
+},
+"GIA": {
+"target": 0,
+"daily": [
+0,
+0,
+0,
+0
+],
+"runrate": 0
+},
+"Postpay": {
+"target": 0,
+"daily": [
+0,
+0,
+0,
+0
+],
+"runrate": 0
+},
+"TrueOnline": {
+"target": 0,
+"daily": [
+0,
+0,
+0,
+0
+],
+"runrate": 0
+}
+}
+},
+{
+"name": "Kiosk Lotus's Ramindra",
+"tds": 80101630,
+"ww": 80101630,
+"products": {
+"Device": {
+"target": 722564,
+"daily": [
+0,
+24800,
+299,
+21298
+],
+"runrate": 359576.75
+},
+"GIA": {
+"target": 163583,
+"daily": [
+329,
+1369,
+0,
+827
+],
+"runrate": 19568.75
+},
+"Postpay": {
+"target": 10450,
+"daily": [
+0,
+0,
+199,
+499
+],
+"runrate": 5409.5
+},
+"TrueOnline": {
+"target": 2,
+"daily": [
+0,
+0,
+0,
+0
+],
+"runrate": 0
+}
+}
+},
+{
+"name": "True Shop Supreme Complex (D)",
+"tds": 80101667,
+"ww": 80101667,
+"products": {
+"Device": {
+"target": 1054701,
+"daily": [
+5196,
+24700,
+799,
+799
+],
+"runrate": 244078.5
+},
+"GIA": {
+"target": 13733,
+"daily": [
+670,
+5160,
+0,
+0
+],
+"runrate": 45182.5
+},
+"Postpay": {
+"target": 43782,
+"daily": [
+0,
+399,
+599,
+948
+],
+"runrate": 15081.5
+},
+"TrueOnline": {
+"target": 23,
+"daily": [
+0,
+0,
+0,
+1
+],
+"runrate": 7.75
+}
+}
+}
+]
 }
