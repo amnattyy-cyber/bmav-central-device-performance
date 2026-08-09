@@ -51,6 +51,24 @@ test("provides four independent product datasets", async () => {
   }
 });
 
+test("provides Postpay individual performance as of 07 August 2026", async () => {
+  const data = JSON.parse(await readFile(new URL("app/postpay-person-performance.json", root), "utf8"));
+  assert.equal(data.meta.product, "Postpay");
+  assert.equal(data.meta.asOf, "2026-08-07");
+  assert.equal(data.meta.area, "BMA V - Central");
+  assert.equal(data.people.length, 142);
+  assert.equal(data.people.filter((person) => person.target > 0).length, 141);
+  assert.equal(new Set(data.people.map((person) => person.shopName)).size, 16);
+  const totals = data.people.reduce((sum, person) => ({
+    target: sum.target + person.target,
+    actual: sum.actual + person.actual,
+    actualRunrate: sum.actualRunrate + person.actualRunrate,
+  }), { target: 0, actual: 0, actualRunrate: 0 });
+  assert.deepEqual(totals, { target: 2547937, actual: 340200, actualRunrate: 1504106 });
+  assert.ok(data.people.every((person) => typeof person.runrateAchievement === "number"));
+  assert.ok(data.people.every((person, index) => index === 0 || data.people[index - 1].runrateAchievement >= person.runrateAchievement));
+});
+
 test("dashboard exposes product, branch, and optional date filters", async () => {
   const page = await readFile(new URL("app/page.tsx", root), "utf8");
   const sheetSync = await readFile(new URL("app/google-sheet-data.ts", root), "utf8");
@@ -85,6 +103,16 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(page, /dailyValues\.indexOf\(bestValue\) \+ 1/);
   assert.match(page, /Top 3 Contribution/);
   assert.match(page, /ข้อเสนอแนะสำหรับสาขา/);
+  assert.match(page, /product === "Postpay"/);
+  assert.match(page, /POSTPAY • PEOPLE PERFORMANCE/);
+  assert.match(page, /Performance รายบุคคล/);
+  assert.match(page, /Data as of 07\/08\/2026/);
+  assert.match(page, /postpay-person-performance\.json/);
+  assert.match(page, /person\.shopName === branchName/);
+  assert.match(page, /ค้นหาพนักงาน \/ ID \/ สาขา/);
+  assert.match(page, /Actual-RR/);
+  assert.match(page, /RR ACH/);
+  assert.match(page, /Detailed Performance แยกจากยอดระดับสาขา/);
   assert.match(page, /%Achieve \{percent\(metrics\.pace\)\}/);
   assert.match(page, /name === "TrueOnline" \? " \(QTY\)"/);
   assert.match(page, /isQtyProduct \? " QTY"/);
@@ -110,5 +138,8 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(css, /\.rr-percent\.atrisk/);
   assert.match(css, /\.product-lens/);
   assert.match(css, /\.branch-analysis-grid/);
+  assert.match(css, /\.people-performance/);
+  assert.match(css, /\.people-table-wrap/);
+  assert.match(css, /\.people-distribution/);
 });
 
