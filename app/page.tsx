@@ -60,6 +60,9 @@ export default function Home() {
     const sync = async () => {
       try {
         const nextData = await loadGoogleSheetData(controller.signal);
+        if (nextData.meta.asOf < (fallbackData as DashboardData).meta.asOf) {
+          throw new Error("Google Sheet data is older than the bundled dashboard update");
+        }
         if (active) {
           setData(nextData);
           setSyncSource("sheet");
