@@ -13,6 +13,29 @@ const productMeta: Record<ProductName, { color: string; accent: string; short: s
   TrueOnline: { color: "#00a8e8", accent: "#cffafe", short: "TOL" },
 };
 
+const executiveFocus: Record<ProductName, { title: string; description: string; action: string }> = {
+  Device: {
+    title: "เร่งมูลค่ายอดขายและปิด Gap รายสาขา",
+    description: "ติดตามมูลค่ายอดขายเทียบ Target ตามวัน พร้อมจับตาการกระจุกตัวของยอดในสาขานำ",
+    action: "ให้สาขาที่ต่ำกว่าแผนเร่งดีลมูลค่าสูง และทบทวนยอดปิดทุกวัน",
+  },
+  GIA: {
+    title: "ยกระดับความสม่ำเสมอของยอด GIA",
+    description: "โฟกัสความเร็วเทียบ Target MTD และความต่อเนื่องของผลงานระหว่างสาขา",
+    action: "กำหนดเป้าปิด GIA รายวันให้สาขาที่ต่ำกว่าแผน และติดตามผลเป็นรายสาขา",
+  },
+  Postpay: {
+    title: "เร่งยอดปิด Postpay ให้ทัน Runrate",
+    description: "วัดยอดสะสมและจังหวะการปิดรายวัน โดยไม่รวมยอดจาก Product อื่น",
+    action: "เร่งสาขาที่ ACH MTD ต่ำกว่า 85% และติดตามยอดปิด Postpay รายวัน",
+  },
+  TrueOnline: {
+    title: "เพิ่มจำนวนปิด TOL ในมุม QTY",
+    description: "ทุกตัวเลขวิเคราะห์เป็นจำนวน QTY เพื่อให้เห็นภารกิจปิดงานที่ชัดเจน",
+    action: "กำหนด QTY ที่ต้องปิดต่อวัน และโฟกัสสาขาที่ไม่มียอดต่อเนื่อง",
+  },
+};
+
 const money = (value: number) => new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 }).format(value);
 const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
 const shortShop = (name: string) => name
@@ -50,7 +73,7 @@ export default function Home() {
 
   const targetedBranches = useMemo(
     () => branches.filter((branch) => branch.products[product].target > 0),
-    [product],
+    [branches, product],
   );
 
   useEffect(() => {
@@ -137,6 +160,41 @@ export default function Home() {
   const maxPace = Math.max(1, ...activeBranches.map((branch) => branch.pace));
   const maxDaily = Math.max(metrics.dailyTarget, ...metrics.daily.slice(0, asOfDay), 1);
   const targetLevel = Math.min(96, (metrics.dailyTarget / maxDaily) * 100);
+  const productFocus = executiveFocus[product];
+  const remainingDays = Math.max(1, data.meta.daysInMonth - asOfDay);
+  const monthlyGap = Math.max(0, metrics.target - metrics.mtd);
+  const requiredPerDay = monthlyGap / remainingDays;
+  const topThreeTotal = [...activeBranches]
+    .sort((a, b) => b.mtd - a.mtd)
+    .slice(0, 3)
+    .reduce((sum, branch) => sum + branch.mtd, 0);
+  const topThreeShare = metrics.mtd > 0 ? topThreeTotal / metrics.mtd : 0;
+  const planSignal = metrics.pace >= 1
+    ? "เหนือเป้าตามเวลา"
+    : metrics.pace >= .85
+      ? "ใกล้เป้า ต้องคุมจังหวะ"
+      : "ต่ำกว่าแผน ต้องเร่ง";
+
+  const selectedBranch = branchName === ALL_BRANCHES
+    ? null
+    : targetedBranches.find((branch) => branch.name === branchName) ?? null;
+  const branchExecutive = useMemo(() => {
+    if (!selectedBranch) return null;
+    const item = selectedBranch.products[product];
+    const dailyValues = item.daily.slice(0, asOfDay);
+    const mtd = dailyValues.reduce((sum, value) => sum + value, 0);
+    const targetMtd = item.target * asOfDay / data.meta.daysInMonth;
+    const pace = targetMtd > 0 ? mtd / targetMtd : 0;
+    const achievement = item.target > 0 ? mtd / item.target : 0;
+    const forecast = asOfDay > 0 ? mtd / asOfDay * data.meta.daysInMonth : 0;
+    const gap = Math.max(0, item.target - mtd);
+    const requiredDaily = gap / remainingDays;
+    const bestValue = Math.max(...dailyValues, 0);
+    const bestDay = bestValue > 0 ? dailyValues.indexOf(bestValue) + 1 : 0;
+    const activeDays = dailyValues.filter((value) => value > 0).length;
+    const runrateAchievement = item.target > 0 ? item.runrate / item.target : 0;
+    return { mtd, pace, achievement, forecast, gap, requiredDaily, bestValue, bestDay, activeDays, runrate: item.runrate, runrateAchievement };
+  }, [selectedBranch, product, asOfDay, data.meta.daysInMonth, remainingDays]);
 
   const reset = () => {
     setProduct("Device");
@@ -202,6 +260,15 @@ export default function Home() {
             <div className="insight"><i>03</i><div><span>On Track</span><strong>{onTrack.length} สาขา</strong><p>{activeBranches.length ? `${Math.round(onTrack.length / activeBranches.length * 100)}% ของสาขาที่มีเป้า` : "ไม่มีสาขาที่มีเป้า"}</p></div></div>
             <div className="insight"><i>04</i><div><span>ต้องเร่ง</span><strong>{atRisk.length} สาขา</strong><p>%Achieve ต่ำกว่า 85% ของเป้าตามวัน</p></div></div>
           </div>
+          <div className="product-lens">
+            <div><span>PRODUCT EXECUTIVE LENS • {product}</span><strong>{productFocus.title}</strong><p>{productFocus.description}</p></div>
+            <div className="lens-kpis">
+              <div><small>สถานะเทียบแผน</small><b>{planSignal}</b></div>
+              <div><small>Top 3 Contribution</small><b>{percent(topThreeShare)}</b></div>
+              <div><small>ต้องปิดต่อวัน</small><b>{displayValue(requiredPerDay)}</b></div>
+            </div>
+            <p className="lens-action"><b>Management Action:</b> {productFocus.action}</p>
+          </div>
         </article>
 
         <aside className="mission-card">
@@ -216,6 +283,21 @@ export default function Home() {
           </ul>
         </aside>
       </section>
+
+      {branchExecutive && selectedBranch && <section className="panel branch-analysis">
+        <div className="section-head"><div><span>BRANCH EXECUTIVE ANALYSIS</span><h2>{shortShop(selectedBranch.name)} • {product}</h2></div><b>สะสมถึง {String(asOfDay).padStart(2, "0")} {shortMonth}</b></div>
+        <div className="branch-summary">
+          <div><span>EXECUTIVE SIGNAL</span><strong>{branchExecutive.pace >= 1 ? "สาขาเดินหน้าเหนือแผน" : branchExecutive.pace >= .85 ? "สาขาใกล้แผน ต้องคุมยอดปิด" : "สาขาต่ำกว่าแผน ต้องเร่งทันที"}</strong></div>
+          <p>ยอดสะสม {displayValue(branchExecutive.mtd)} • %ACH {percent(branchExecutive.achievement)} • ACH MTD {percent(branchExecutive.pace)}</p>
+        </div>
+        <div className="branch-analysis-grid">
+          <article><span>ตำแหน่งปัจจุบัน</span><strong>ACH MTD {percent(branchExecutive.pace)}</strong><small>{status(branchExecutive.pace).label} เทียบ Target MTD</small></article>
+          <article><span>วันที่ทำยอดสูงสุด</span><strong>{branchExecutive.bestDay ? `วันที่ ${String(branchExecutive.bestDay).padStart(2, "0")}` : "ยังไม่มียอด"}</strong><small>{displayValue(branchExecutive.bestValue)} • มียอด {branchExecutive.activeDays}/{asOfDay} วัน</small></article>
+          <article><span>ภารกิจปิด Gap</span><strong>{displayValue(branchExecutive.requiredDaily)} / วัน</strong><small>Gap คงเหลือ {displayValue(branchExecutive.gap)}</small></article>
+          <article><span>Outlook สิ้นเดือน</span><strong>{displayValue(branchExecutive.forecast)}</strong><small>Runrate {percent(branchExecutive.runrateAchievement)} • {displayValue(branchExecutive.runrate)}</small></article>
+        </div>
+        <div className="branch-action"><span>ข้อเสนอแนะสำหรับสาขา</span><p>{branchExecutive.pace >= 1 ? `รักษาจังหวะ ${product} ให้ต่อเนื่อง และใช้วันที่ทำยอดสูงสุดเป็นต้นแบบการปิดยอด` : `${productFocus.action} สาขานี้ต้องทำเพิ่มเฉลี่ย ${displayValue(branchExecutive.requiredDaily)} ต่อวันในวันที่เหลือ`}</p></div>
+      </section>}
 
       <section className="two-col">
         <article className="panel trend-panel">
@@ -255,3 +337,4 @@ export default function Home() {
     </main>
   );
 }
+
