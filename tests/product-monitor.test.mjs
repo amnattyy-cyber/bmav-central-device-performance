@@ -66,7 +66,7 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(page, /ทุกวัน \(ยอดสะสมถึง \{String\(asOfDay\)/);
   assert.match(page, /เฉพาะวันที่/);
   assert.match(page, /loadGoogleSheetData/);
-  assert.match(page, /nextData\\.meta\\.asOf < \\(fallbackData as DashboardData\\)\\.meta\\.asOf/);
+  assert.match(page, /nextData\.meta\.asOf < \(fallbackData as DashboardData\)\.meta\.asOf/);
   assert.match(page, /5 \* 60 \* 1000/);
   assert.match(page, /Google Sheet Live/);
   assert.match(sheetSync, /output=csv/);
@@ -74,6 +74,17 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(sheetSync, /dashboardDataFromCsv/);
   assert.match(page, /Ranking Shop/);
   assert.match(page, /Shop Top Ranking/);
+  assert.match(page, /PRODUCT EXECUTIVE LENS/);
+  assert.match(page, /BRANCH EXECUTIVE ANALYSIS/);
+  assert.match(page, /executiveFocus: Record<ProductName/);
+  assert.match(page, /เพิ่มจำนวนปิด TOL ในมุม QTY/);
+  assert.match(page, /ยกระดับความสม่ำเสมอของยอด GIA/);
+  assert.match(page, /เร่งยอดปิด Postpay ให้ทัน Runrate/);
+  assert.match(page, /branchName === ALL_BRANCHES/);
+  assert.match(page, /const requiredPerDay = monthlyGap \/ remainingDays/);
+  assert.match(page, /dailyValues\.indexOf\(bestValue\) \+ 1/);
+  assert.match(page, /Top 3 Contribution/);
+  assert.match(page, /ข้อเสนอแนะสำหรับสาขา/);
   assert.match(page, /%Achieve \{percent\(metrics\.pace\)\}/);
   assert.match(page, /name === "TrueOnline" \? " \(QTY\)"/);
   assert.match(page, /isQtyProduct \? " QTY"/);
@@ -97,4 +108,7 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(css, /\.rr-percent\.ontrack/);
   assert.match(css, /\.rr-percent\.watch/);
   assert.match(css, /\.rr-percent\.atrisk/);
+  assert.match(css, /\.product-lens/);
+  assert.match(css, /\.branch-analysis-grid/);
 });
+
