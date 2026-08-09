@@ -14,16 +14,25 @@ test("provides four independent product datasets", async () => {
     product,
     data.branches.reduce((sum, branch) => sum + branch.products[product].target, 0),
   ]));
-  assert.ok(Math.abs(targetTotals.Device - 50953082.89859254) < 0.001);\n  assert.ok(Math.abs(targetTotals.Postpay - 1979015.614442571) < 0.001);
+  assert.ok(Math.abs(targetTotals.Device - 50953082.89859254) < 0.001);
+  assert.ok(Math.abs(targetTotals.Postpay - 1979015.614442571) < 0.001);
   assert.ok(Math.abs(targetTotals.GIA - 8376155) < 0.001);
   assert.ok(Math.abs(targetTotals.TrueOnline - 599.2025015042318) < 0.001);
   assert.equal(
     data.branches.reduce((sum, branch) => sum + branch.products.TrueOnline.daily.reduce((dailySum, value) => dailySum + value, 0), 0),
-    137,
+    126,
   );
   assert.ok(Math.abs(
-    data.branches.reduce((sum, branch) => sum + branch.products.TrueOnline.runrate, 0) - 530.875,
+    data.branches.reduce((sum, branch) => sum + branch.products.TrueOnline.runrate, 0) - 488.25,
   ) < 0.001);
+  assert.ok(Math.abs(
+    data.branches.reduce((sum, branch) => sum + branch.products.Postpay.daily.reduce((dailySum, value) => dailySum + value, 0), 0) - 385185.15,
+  ) < 0.001);
+  assert.ok(Math.abs(
+    data.branches.reduce((sum, branch) => sum + branch.products.Postpay.runrate, 0) - 1492592.45625,
+  ) < 0.001);
+  assert.equal(data.branches.reduce((sum, branch) => sum + branch.products.Postpay.daily[7], 0), 41481);
+  assert.equal(data.branches.reduce((sum, branch) => sum + branch.products.TrueOnline.daily[7], 0), 12);
   assert.deepEqual(
     Object.fromEntries(data.products.map((product) => [
       product,
@@ -56,7 +65,8 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(page, /setDateFilter/);
   assert.match(page, /ทุกวัน \(ยอดสะสมถึง \{String\(asOfDay\)/);
   assert.match(page, /เฉพาะวันที่/);
-  assert.match(page, /loadGoogleSheetData/);\n  assert.match(page, /nextData\\.meta\\.asOf < \\(fallbackData as DashboardData\\)\\.meta\\.asOf/);
+  assert.match(page, /loadGoogleSheetData/);
+  assert.match(page, /nextData\\.meta\\.asOf < \\(fallbackData as DashboardData\\)\\.meta\\.asOf/);
   assert.match(page, /5 \* 60 \* 1000/);
   assert.match(page, /Google Sheet Live/);
   assert.match(sheetSync, /output=csv/);
