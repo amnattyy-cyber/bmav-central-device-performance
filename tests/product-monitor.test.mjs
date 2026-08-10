@@ -8,7 +8,7 @@ test("provides four independent product datasets", async () => {
   const data = JSON.parse(await readFile(new URL("app/sales-product-data.json", root), "utf8"));
   assert.deepEqual(data.products, ["Device", "GIA", "Postpay", "TrueOnline"]);
   assert.equal(data.branches.length, 17);
-  assert.equal(data.meta.asOf, "2026-08-09");
+  assert.equal(data.meta.asOf, "2026-08-10");
   assert.equal(data.meta.targetUpdated, "2026-08-04");
   const targetTotals = Object.fromEntries(data.products.map((product) => [
     product,
@@ -20,21 +20,30 @@ test("provides four independent product datasets", async () => {
   assert.ok(Math.abs(targetTotals.TrueOnline - 599.2025015042318) < 0.001);
   assert.equal(
     data.branches.reduce((sum, branch) => sum + branch.products.TrueOnline.daily.reduce((dailySum, value) => dailySum + value, 0), 0),
-    145,
+    155,
   );
   assert.ok(Math.abs(
-    data.branches.reduce((sum, branch) => sum + branch.products.TrueOnline.runrate, 0) - 499.44444444444446,
+    data.branches.reduce((sum, branch) => sum + branch.products.TrueOnline.runrate, 0) - 480.5,
   ) < 0.001);
   assert.ok(Math.abs(
-    data.branches.reduce((sum, branch) => sum + branch.products.Postpay.daily.reduce((dailySum, value) => dailySum + value, 0), 0) - 432122.15,
+    data.branches.reduce((sum, branch) => sum + branch.products.Postpay.daily.reduce((dailySum, value) => dailySum + value, 0), 0) - 481089.15,
   ) < 0.001);
   assert.ok(Math.abs(
-    data.branches.reduce((sum, branch) => sum + branch.products.Postpay.runrate, 0) - 1488420.7388888889,
+    data.branches.reduce((sum, branch) => sum + branch.products.Postpay.runrate, 0) - 1491376.365,
   ) < 0.001);
-  assert.equal(data.branches.reduce((sum, branch) => sum + branch.products.Device.daily[8], 0), 2641069);
-  assert.equal(data.branches.reduce((sum, branch) => sum + branch.products.GIA.daily[8], 0), 240817);
-  assert.equal(data.branches.reduce((sum, branch) => sum + branch.products.Postpay.daily[8], 0), 46937);
-  assert.equal(data.branches.reduce((sum, branch) => sum + branch.products.TrueOnline.daily[8], 0), 19);
+  assert.equal(data.branches.reduce((sum, branch) => sum + branch.products.Device.daily[9], 0), 1794161);
+  assert.equal(data.branches.reduce((sum, branch) => sum + branch.products.GIA.daily[9], 0), 140076);
+  assert.equal(data.branches.reduce((sum, branch) => sum + branch.products.Postpay.daily[9], 0), 45365);
+  assert.equal(data.branches.reduce((sum, branch) => sum + branch.products.TrueOnline.daily[9], 0), 20);
+  const productMom = Object.fromEntries(data.products.map((product) => {
+    const runrate = data.branches.reduce((sum, branch) => sum + branch.products[product].runrate, 0);
+    const julyActual = data.branches.reduce((sum, branch) => sum + branch.products[product].julyActual, 0);
+    return [product, runrate / julyActual - 1];
+  }));
+  assert.ok(Math.abs(productMom.Device - 0.4909114897512159) < 1e-9);
+  assert.ok(Math.abs(productMom.GIA - 0.24171099981115618) < 1e-9);
+  assert.ok(Math.abs(productMom.Postpay - 0.09916815958458813) < 1e-9);
+  assert.ok(Math.abs(productMom.TrueOnline - 0.01585623678646919) < 1e-9);
   assert.deepEqual(
     Object.fromEntries(data.products.map((product) => [
       product,
@@ -47,8 +56,9 @@ test("provides four independent product datasets", async () => {
       assert.ok(branch.products[product]);
       assert.equal(typeof branch.products[product].target, "number");
       assert.equal(typeof branch.products[product].runrate, "number");
+      assert.equal(typeof branch.products[product].julyActual, "number");
       assert.ok(Array.isArray(branch.products[product].daily));
-      assert.equal(branch.products[product].daily.length, 9);
+      assert.equal(branch.products[product].daily.length, 10);
     }
   }
 });
@@ -129,6 +139,11 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(page, /status\(branch\.runrateAchievement\)\.key/);
   assert.doesNotMatch(page, /อันดับรายสาขา/);
   assert.match(page, /Runrate %/);
+  assert.match(page, /%MOM/);
+  assert.match(page, /Runrate เทียบ July Actual/);
+  assert.match(page, /momPercent\(metrics\.mom\)/);
+  assert.match(page, /momPercent\(branch\.mom\)/);
+  assert.match(sheetSync, /julyActual/);
   assert.doesNotMatch(page, /฿/);
   assert.match(page, /หน่วย: บาท/);
   assert.match(css, /td \{[^}]*font-size:\s*13px/);
@@ -144,4 +159,3 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(css, /\.people-table-wrap/);
   assert.match(css, /\.people-distribution/);
 });
-

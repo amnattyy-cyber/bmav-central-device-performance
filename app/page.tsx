@@ -53,6 +53,8 @@ const executiveFocus: Record<ProductName, { title: string; description: string; 
 
 const money = (value: number) => new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 }).format(value);
 const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
+const momPercent = (value: number | null) => value === null ? "N/A" : `${value >= 0 ? "+" : ""}${(value * 100).toFixed(1)}%`;
+const momTone = (value: number | null) => value === null ? "neutral" : value >= 0 ? "positive" : "negative";
 const shortShop = (name: string) => name
   .replace("True Shop Station ", "Station ")
   .replace("True Shop at ", "")
@@ -154,7 +156,9 @@ export default function Home() {
     const achievement = target > 0 ? mtd / target : 0;
     const runrate = selectedBranches.reduce((sum, branch) => sum + branch.products[product].runrate, 0);
     const runrateAchievement = target > 0 ? runrate / target : 0;
-    return { target, daily, mtd, today, targetMtd, pace, forecast, achievement, runrate, runrateAchievement, dailyTarget: target / data.meta.daysInMonth };
+    const julyActual = selectedBranches.reduce((sum, branch) => sum + branch.products[product].julyActual, 0);
+    const mom = julyActual > 0 ? runrate / julyActual - 1 : null;
+    return { target, daily, mtd, today, targetMtd, pace, forecast, achievement, runrate, runrateAchievement, julyActual, mom, dailyTarget: target / data.meta.daysInMonth };
   }, [selectedBranches, product, isDailyView, periodDay, periodDays]);
 
   const branchPerformance = useMemo(() => targetedBranches.map((branch) => {
@@ -166,7 +170,8 @@ export default function Home() {
     const pace = targetMtd > 0 ? mtd / targetMtd : 0;
     const forecast = periodDays > 0 ? mtd / periodDays * data.meta.daysInMonth : 0;
     const runrateAchievement = item.target > 0 ? item.runrate / item.target : 0;
-    return { ...branch, target: item.target, mtd, targetMtd, pace, forecast, runrate: item.runrate, runrateAchievement, today: item.daily[periodDay - 1] ?? 0 };
+    const mom = item.julyActual > 0 ? item.runrate / item.julyActual - 1 : null;
+    return { ...branch, target: item.target, mtd, targetMtd, pace, forecast, runrate: item.runrate, runrateAchievement, julyActual: item.julyActual, mom, today: item.daily[periodDay - 1] ?? 0 };
   }).filter((branch) => branchName === ALL_BRANCHES || branch.name === branchName)
     .sort((a, b) => b.pace - a.pace), [targetedBranches, product, branchName, isDailyView, periodDay, periodDays]);
 
@@ -210,7 +215,8 @@ export default function Home() {
     const bestDay = bestValue > 0 ? dailyValues.indexOf(bestValue) + 1 : 0;
     const activeDays = dailyValues.filter((value) => value > 0).length;
     const runrateAchievement = item.target > 0 ? item.runrate / item.target : 0;
-    return { mtd, pace, achievement, forecast, gap, requiredDaily, bestValue, bestDay, activeDays, runrate: item.runrate, runrateAchievement };
+    const mom = item.julyActual > 0 ? item.runrate / item.julyActual - 1 : null;
+    return { mtd, pace, achievement, forecast, gap, requiredDaily, bestValue, bestDay, activeDays, runrate: item.runrate, runrateAchievement, julyActual: item.julyActual, mom };
   }, [selectedBranch, product, asOfDay, data.meta.daysInMonth, remainingDays]);
 
   const personPositions = useMemo(
@@ -293,6 +299,7 @@ export default function Home() {
         <article className={`kpi pace ${status(metrics.pace).key}`}><span>{isDailyView ? "ACH Daily" : "ACH MTD"}</span><strong>{percent(metrics.pace)}</strong><small>{status(metrics.pace).label}</small></article>
         <article className="kpi runrate-kpi"><span>Runrate</span><strong>{displayValue(metrics.runrate)}</strong><small>จาก {isQtyProduct ? "RR QTY" : "RR Net Amount"} ในไฟล์ต้นฉบับ</small></article>
         <article className="kpi"><span>Runrate % เทียบเป้า</span><strong>{percent(metrics.runrateAchievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, metrics.runrateAchievement * 100)}%` }} /></div></article>
+        <article className={`kpi mom-kpi ${momTone(metrics.mom)}`}><span>%MOM</span><strong>{momPercent(metrics.mom)}</strong><small>Runrate เทียบ July Actual {displayValue(metrics.julyActual)}</small></article>
         <article className="kpi"><span>Forecast สิ้นเดือน</span><strong>{displayValue(metrics.forecast)}</strong><small>{percent(metrics.target ? metrics.forecast / metrics.target : 0)} ของเป้า</small></article>
         <article className="kpi"><span>Gap ถึงเป้าเดือน</span><strong>{displayValue(Math.max(0, metrics.target - metrics.mtd))}</strong><small>ยอดที่ยังต้องปิด</small></article>
       </section>
@@ -312,6 +319,7 @@ export default function Home() {
               <div><small>สถานะเทียบแผน</small><b>{planSignal}</b></div>
               <div><small>Top 3 Contribution</small><b>{percent(topThreeShare)}</b></div>
               <div><small>ต้องปิดต่อวัน</small><b>{displayValue(requiredPerDay)}</b></div>
+              <div><small>%MOM เทียบ July</small><b className={`mom-text ${momTone(metrics.mom)}`}>{momPercent(metrics.mom)}</b></div>
             </div>
             <p className="lens-action"><b>Management Action:</b> {productFocus.action}</p>
           </div>
@@ -324,6 +332,7 @@ export default function Home() {
           <ul>
             <li><b>วันนี้</b><span>{displayValue(metrics.today)} • {percent(metrics.dailyTarget ? metrics.today / metrics.dailyTarget : 0)}</span></li>
             <li><b>Runrate</b><span>{displayValue(metrics.runrate)} • {percent(metrics.runrateAchievement)}</span></li>
+            <li><b>%MOM</b><span>{momPercent(metrics.mom)} • July {displayValue(metrics.julyActual)}</span></li>
             <li><b>Forecast</b><span>{displayValue(metrics.forecast)}</span></li>
             <li><b>Priority</b><span>{atRisk[0] ? shortShop(atRisk[0].name) : "รักษาทุกสาขา"}</span></li>
           </ul>
@@ -340,7 +349,7 @@ export default function Home() {
           <article><span>ตำแหน่งปัจจุบัน</span><strong>ACH MTD {percent(branchExecutive.pace)}</strong><small>{status(branchExecutive.pace).label} เทียบ Target MTD</small></article>
           <article><span>วันที่ทำยอดสูงสุด</span><strong>{branchExecutive.bestDay ? `วันที่ ${String(branchExecutive.bestDay).padStart(2, "0")}` : "ยังไม่มียอด"}</strong><small>{displayValue(branchExecutive.bestValue)} • มียอด {branchExecutive.activeDays}/{asOfDay} วัน</small></article>
           <article><span>ภารกิจปิด Gap</span><strong>{displayValue(branchExecutive.requiredDaily)} / วัน</strong><small>Gap คงเหลือ {displayValue(branchExecutive.gap)}</small></article>
-          <article><span>Outlook สิ้นเดือน</span><strong>{displayValue(branchExecutive.forecast)}</strong><small>Runrate {percent(branchExecutive.runrateAchievement)} • {displayValue(branchExecutive.runrate)}</small></article>
+          <article><span>Outlook สิ้นเดือน</span><strong>{displayValue(branchExecutive.forecast)}</strong><small>Runrate {percent(branchExecutive.runrateAchievement)} • %MOM {momPercent(branchExecutive.mom)}</small></article>
         </div>
         <div className="branch-action"><span>ข้อเสนอแนะสำหรับสาขา</span><p>{branchExecutive.pace >= 1 ? `รักษาจังหวะ ${product} ให้ต่อเนื่อง และใช้วันที่ทำยอดสูงสุดเป็นต้นแบบการปิดยอด` : `${productFocus.action} สาขานี้ต้องทำเพิ่มเฉลี่ย ${displayValue(branchExecutive.requiredDaily)} ต่อวันในวันที่เหลือ`}</p></div>
       </section>}
@@ -401,10 +410,10 @@ export default function Home() {
 
       <section className="panel table-panel">
         <div className="section-head"><div><span>BRANCH MONITOR</span><h2>{product} Performance by Branch</h2></div><div className="table-actions"><b>หน่วย: บาท • {isDailyView ? `เฉพาะวันที่ ${String(periodDay).padStart(2, "0")} Aug` : "ยอดสะสมทุกวัน"}</b><button className="capture-toggle" onClick={toggleCaptureMode}>{captureMode ? "กลับ Dashboard" : "ดูครบทุกสาขา / Copy รูป"}</button></div></div>
-        <div className="table-wrap"><table><thead><tr><th>สาขา</th><th>{isDailyView ? `ยอดวันที่ ${String(periodDay).padStart(2, "0")}` : "ยอด MTD"}</th><th>Target</th><th>%ACH</th><th>{isDailyView ? "Target Daily" : "Target MTD"}</th><th>{isDailyView ? "ACH Daily" : "ACH MTD"}</th><th>Runrate</th><th>Runrate %</th><th>Forecast</th><th>สถานะ</th></tr></thead>
+        <div className="table-wrap"><table><thead><tr><th>สาขา</th><th>{isDailyView ? `ยอดวันที่ ${String(periodDay).padStart(2, "0")}` : "ยอด MTD"}</th><th>Target</th><th>%ACH</th><th>{isDailyView ? "Target Daily" : "Target MTD"}</th><th>{isDailyView ? "ACH Daily" : "ACH MTD"}</th><th>Runrate</th><th>Runrate %</th><th>%MOM</th><th>Forecast</th><th>สถานะ</th></tr></thead>
           <tbody>{branchPerformance.map((branch) => {
             const currentStatus = status(branch.pace);
-            return <tr key={branch.name}><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "รอรหัสสาขา"}</small></td><td><b>{displayValue(branch.mtd)}</b><small>{isDailyView ? "เฉพาะวันที่เลือก" : `วันที่ ${String(asOfDay).padStart(2, "0")} ${shortMonth} ${displayValue(branch.today)}`}</small></td><td>{displayValue(branch.target)}</td><td>{percent(branch.target ? branch.mtd / branch.target : 0)}</td><td>{displayValue(branch.targetMtd)}</td><td><strong>{percent(branch.pace)}</strong></td><td><b className="rr-value">{displayValue(branch.runrate)}</b></td><td><strong className={`rr-percent ${status(branch.runrateAchievement).key}`}>{percent(branch.runrateAchievement)}</strong></td><td>{displayValue(branch.forecast)}</td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
+            return <tr key={branch.name}><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "รอรหัสสาขา"}</small></td><td><b>{displayValue(branch.mtd)}</b><small>{isDailyView ? "เฉพาะวันที่เลือก" : `วันที่ ${String(asOfDay).padStart(2, "0")} ${shortMonth} ${displayValue(branch.today)}`}</small></td><td>{displayValue(branch.target)}</td><td>{percent(branch.target ? branch.mtd / branch.target : 0)}</td><td>{displayValue(branch.targetMtd)}</td><td><strong>{percent(branch.pace)}</strong></td><td><b className="rr-value">{displayValue(branch.runrate)}</b></td><td><strong className={`rr-percent ${status(branch.runrateAchievement).key}`}>{percent(branch.runrateAchievement)}</strong></td><td><strong className={`mom-cell ${momTone(branch.mom)}`}>{momPercent(branch.mom)}</strong></td><td>{displayValue(branch.forecast)}</td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
           })}</tbody></table></div>
       </section>
 
@@ -413,4 +422,3 @@ export default function Home() {
     </main>
   );
 }
-

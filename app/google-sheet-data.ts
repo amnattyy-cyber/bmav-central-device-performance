@@ -4,6 +4,7 @@ export type ProductValue = {
   target: number;
   daily: number[];
   runrate: number;
+  julyActual: number;
 };
 
 export type Branch = {
@@ -123,6 +124,7 @@ export function dashboardDataFromCsv(csv: string): DashboardData {
     branch.products[product] = {
       target: toNumber(read(row, "Target")),
       runrate: toNumber(read(row, "Runrate")),
+      julyActual: column.has("JulyActual") ? toNumber(read(row, "JulyActual")) : 0,
       daily: Array.from({ length: daysInMonth }, (_, index) =>
         toNumber(read(row, `Day${String(index + 1).padStart(2, "0")}`))),
     };
