@@ -137,6 +137,18 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(page, /loadGooglePersonPerformance/);
   assert.match(page, /peopleSyncSource/);
   assert.match(page, /อัปเดตอัตโนมัติทุก 5 นาที/);
+  assert.match(page, /positionFilters/);
+  assert.match(page, /togglePosition/);
+  assert.match(page, /type="checkbox"/);
+  assert.match(page, /เลือก Type \/ ตำแหน่ง/);
+  assert.match(page, /noSalesPeople/);
+  assert.match(page, /noSalesGroups/);
+  assert.match(page, /NO SALES FOCUS/);
+  assert.match(page, /ดูชื่อ • ตำแหน่ง • สาขา/);
+  assert.match(page, /AUTO-GENERATED EXECUTIVE INSIGHT/);
+  assert.match(page, /ข้อมูลเชิงลึกสำหรับผู้บริหาร/);
+  assert.match(page, /executiveActions/);
+  assert.match(page, /วิเคราะห์อัตโนมัติตาม/);
   assert.match(personSheetSync, /Postpay_People/);
   assert.match(personSheetSync, /TOL_People/);
   assert.match(personSheetSync, /personPerformanceFromCsv/);
@@ -179,5 +191,10 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(css, /\.people-performance/);
   assert.match(css, /\.people-table-wrap/);
   assert.match(css, /\.people-distribution/);
+  assert.match(css, /\.position-checks/);
+  assert.match(css, /\.no-sales-focus/);
+  assert.match(css, /\.no-sales-groups/);
+  assert.match(css, /\.auto-executive-analysis/);
+  assert.match(css, /\.management-actions/);
 });
 
