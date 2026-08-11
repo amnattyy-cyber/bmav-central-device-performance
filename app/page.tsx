@@ -65,7 +65,7 @@ export default function Home() {
   const [personDataByProduct, setPersonDataByProduct] = useState(fallbackPersonDataByProduct);
   const [peopleSyncSource, setPeopleSyncSource] = useState<"sheet" | "fallback">("fallback");
   const [product, setProduct] = useState<ProductName>("Device");
-  const [branchName, setBranchName] = useState(ALL_BRANCHES);
+  const [selectedBranchNames, setSelectedBranchNames] = useState<string[]>([]);
   const [dateFilter, setDateFilter] = useState(ALL_DAYS);
   const [captureMode, setCaptureMode] = useState(false);
   const [personSearch, setPersonSearch] = useState("");
@@ -174,10 +174,12 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (branchName !== ALL_BRANCHES && !targetedBranches.some((branch) => branch.name === branchName)) {
-      setBranchName(ALL_BRANCHES);
-    }
-  }, [branchName, targetedBranches]);
+    setSelectedBranchNames((current) => {
+      const available = new Set(targetedBranches.map((branch) => branch.name));
+      const next = current.filter((name) => available.has(name));
+      return next.length === current.length ? current : next;
+    });
+  }, [targetedBranches]);
 
   useEffect(() => {
     setPersonSearch("");
@@ -186,8 +188,10 @@ export default function Home() {
   }, [product]);
 
   const selectedBranches = useMemo(
-    () => branchName === ALL_BRANCHES ? targetedBranches : targetedBranches.filter((branch) => branch.name === branchName),
-    [branchName, targetedBranches],
+    () => selectedBranchNames.length === 0
+      ? targetedBranches
+      : targetedBranches.filter((branch) => selectedBranchNames.includes(branch.name)),
+    [selectedBranchNames, targetedBranches],
   );
 
   const metrics = useMemo(() => {
@@ -220,8 +224,8 @@ export default function Home() {
     const runrateAchievement = item.target > 0 ? item.runrate / item.target : 0;
     const mom = item.julyActual > 0 ? item.runrate / item.julyActual - 1 : null;
     return { ...branch, target: item.target, mtd, targetMtd, pace, forecast, runrate: item.runrate, runrateAchievement, julyActual: item.julyActual, mom, today: item.daily[periodDay - 1] ?? 0 };
-  }).filter((branch) => branchName === ALL_BRANCHES || branch.name === branchName)
-    .sort((a, b) => b.pace - a.pace), [targetedBranches, product, branchName, isDailyView, periodDay, periodDays]);
+  }).filter((branch) => selectedBranchNames.length === 0 || selectedBranchNames.includes(branch.name))
+    .sort((a, b) => b.pace - a.pace), [targetedBranches, product, selectedBranchNames, isDailyView, periodDay, periodDays]);
 
   const activeBranches = branchPerformance.filter((branch) => branch.target > 0);
   const onTrack = activeBranches.filter((branch) => branch.pace >= 1);
@@ -245,9 +249,9 @@ export default function Home() {
       ? "ใกล้เป้า ต้องคุมจังหวะ"
       : "ต่ำกว่าแผน ต้องเร่ง";
 
-  const selectedBranch = branchName === ALL_BRANCHES
-    ? null
-    : targetedBranches.find((branch) => branch.name === branchName) ?? null;
+  const selectedBranch = selectedBranchNames.length === 1
+    ? targetedBranches.find((branch) => branch.name === selectedBranchNames[0]) ?? null
+    : null;
   const branchExecutive = useMemo(() => {
     if (!selectedBranch) return null;
     const item = selectedBranch.products[product];
@@ -272,7 +276,7 @@ export default function Home() {
     [productPeople],
   );
   const scopedPeople = useMemo(() => productPeople.filter((person) =>
-    branchName === ALL_BRANCHES || person.shopName === branchName), [branchName, productPeople]);
+    selectedBranchNames.length === 0 || selectedBranchNames.includes(person.shopName)), [selectedBranchNames, productPeople]);
   const positionScopedPeople = useMemo(() => scopedPeople.filter((person) =>
     positionFilters.length === 0 || positionFilters.includes(person.position)), [scopedPeople, positionFilters]);
   const filteredPeople = useMemo(() => {
@@ -314,10 +318,26 @@ export default function Home() {
       : [...current, position]);
   };
 
+  const toggleBranch = (branch: string) => {
+    setSelectedBranchNames((current) => current.includes(branch)
+      ? current.filter((item) => item !== branch)
+      : [...current, branch]);
+  };
+
+  const branchSelectionLabel = selectedBranchNames.length === 0
+    ? ALL_BRANCHES
+    : selectedBranchNames.length === 1
+      ? shortShop(selectedBranchNames[0])
+      : `${selectedBranchNames.length} สาขาที่เลือก`;
+
   const analysisActiveDays = metrics.daily.slice(0, asOfDay).filter((value) => value > 0).length;
   const analysisBestValue = Math.max(...metrics.daily.slice(0, asOfDay), 0);
   const analysisBestDay = analysisBestValue > 0 ? metrics.daily.indexOf(analysisBestValue) + 1 : 0;
-  const analysisScope = branchName === ALL_BRANCHES ? `ภาพรวม ${activeBranches.length} สาขา` : shortShop(branchName);
+  const analysisScope = selectedBranchNames.length === 0
+    ? `ภาพรวม ${activeBranches.length} สาขา`
+    : selectedBranchNames.length === 1
+      ? shortShop(selectedBranchNames[0])
+      : `กลุ่ม ${selectedBranchNames.length} สาขาที่เลือก`;
   const analysisPeriod = isDailyView ? `วันที่ ${String(periodDay).padStart(2, "0")} ${shortMonth}` : `สะสมถึง ${String(asOfDay).padStart(2, "0")} ${shortMonth}`;
   const weakestBranch = [...activeBranches].sort((a, b) => a.pace - b.pace)[0];
   const strongestBranch = [...activeBranches].sort((a, b) => b.pace - a.pace)[0];
@@ -325,7 +345,7 @@ export default function Home() {
     metrics.pace >= 1
       ? `รักษายอด ${product} ให้ไม่น้อยกว่า ${displayValue(metrics.dailyTarget)} ต่อวัน และถอดรูปแบบจากวันที่ทำยอดสูงสุด`
       : `เร่งปิด Gap เฉลี่ย ${displayValue(requiredPerDay)} ต่อวัน เพื่อกลับเข้าสู่เป้าสิ้นเดือน`,
-    branchName === ALL_BRANCHES && weakestBranch
+    selectedBranchNames.length !== 1 && weakestBranch
       ? `ติดตาม ${shortShop(weakestBranch.name)} เป็น Priority แรก เพราะ ACH MTD อยู่ที่ ${percent(weakestBranch.pace)}`
       : `ทบทวนยอดปิดรายวันของ ${analysisScope} และใช้วันที่ ${analysisBestDay || "—"} เป็น Benchmark`,
     personData
@@ -337,7 +357,7 @@ export default function Home() {
 
   const reset = () => {
     setProduct("Device");
-    setBranchName(ALL_BRANCHES);
+    setSelectedBranchNames([]);
     setDateFilter(ALL_DAYS);
     setCaptureMode(false);
     setPersonSearch("");
@@ -346,7 +366,7 @@ export default function Home() {
   };
 
   const toggleCaptureMode = () => {
-    if (!captureMode) setBranchName(ALL_BRANCHES);
+    if (!captureMode) setSelectedBranchNames([]);
     setCaptureMode((current) => !current);
   };
 
@@ -361,7 +381,7 @@ export default function Home() {
         <div className="hero-focus">
           <span>PRODUCT IN FOCUS</span>
           <strong>{product}</strong>
-          <small>{branchName === ALL_BRANCHES ? `${targetedBranches.length} สาขาที่มี Target` : shortShop(branchName)} • {syncSource === "sheet" ? "Google Sheet Live" : "ข้อมูลสำรอง"}</small>
+          <small>{selectedBranchNames.length === 0 ? `${targetedBranches.length} สาขาที่มี Target` : branchSelectionLabel} • {syncSource === "sheet" ? "Google Sheet Live" : "ข้อมูลสำรอง"}</small>
         </div>
       </header>
 
@@ -371,13 +391,28 @@ export default function Home() {
             <i style={{ background: productMeta[name].color }}>{productMeta[name].short}</i><span>{name}{name === "TrueOnline" ? " (QTY)" : ""}</span>
           </button>)}
         </div>
-        <label><span>สาขา</span><select value={branchName} onChange={(event) => setBranchName(event.target.value)}><option>{ALL_BRANCHES}</option>{targetedBranches.map((branch) => <option key={branch.name}>{branch.name}</option>)}</select></label>
+        <div className="branch-multiselect">
+          <span className="control-label">สาขา</span>
+          <details>
+            <summary><span>{branchSelectionLabel}</span><b>{selectedBranchNames.length === 0 ? "ทั้งหมด" : `${selectedBranchNames.length}/${targetedBranches.length}`}</b></summary>
+            <div className="branch-options">
+              <label className={selectedBranchNames.length === 0 ? "selected" : ""}>
+                <input type="checkbox" checked={selectedBranchNames.length === 0} onChange={() => setSelectedBranchNames([])} />
+                <span>{ALL_BRANCHES}</span><small>{targetedBranches.length} สาขาที่มี Target</small>
+              </label>
+              {targetedBranches.map((branch) => <label className={selectedBranchNames.includes(branch.name) ? "selected" : ""} key={branch.name}>
+                <input type="checkbox" checked={selectedBranchNames.includes(branch.name)} onChange={() => toggleBranch(branch.name)} />
+                <span>{branch.name}</span><small>{branch.ww ? `WW ${branch.ww}` : ""}</small>
+              </label>)}
+            </div>
+          </details>
+        </div>
         <label><span>เลือกวันที่</span><select value={dateFilter} onChange={(event) => setDateFilter(event.target.value)}><option value={ALL_DAYS}>ทุกวัน (ยอดสะสมถึง {String(asOfDay).padStart(2, "0")} {shortMonth})</option>{Array.from({ length: asOfDay }, (_, index) => <option key={index + 1} value={String(index + 1)}>เฉพาะวันที่ {String(index + 1).padStart(2, "0")} {shortMonth} {asOfDate.getFullYear()}</option>)}</select></label>
         <button className="reset" onClick={reset}>ล้างตัวกรอง</button>
       </section>
 
       <section className="scope-strip">
-        <div><span>มุมมองปัจจุบัน</span><strong>{product} • {branchName}</strong></div>
+        <div><span>มุมมองปัจจุบัน</span><strong>{product} • {branchSelectionLabel}</strong></div>
         <div><span>ช่วงวันที่</span><strong>{isDailyView ? `เฉพาะวันที่ ${String(periodDay).padStart(2, "0")} ${monthYear}` : `ทุกวัน • สะสมถึง ${String(asOfDay).padStart(2, "0")} ${monthYear}`}</strong></div>
         <div><span>หลักการคำนวณ</span><strong>เฉพาะ {product} เท่านั้น{isQtyProduct ? " • มุม QTY" : ""}</strong></div>
       </section>
@@ -445,7 +480,7 @@ export default function Home() {
       </section>}
 
       {personData && <section className="panel people-performance">
-        <div className="section-head people-head"><div><span>{product === "TrueOnline" ? "TOL" : "POSTPAY"} • PEOPLE PERFORMANCE</span><h2>Performance Indy รายบุคคล</h2><p>Data as of {personAsOfDisplay} • {peopleSyncSource === "sheet" ? "Google Sheet Live • อัปเดตอัตโนมัติทุก 5 นาที" : "ข้อมูลสำรอง • กำลังรอเชื่อม Google Sheet"}</p></div><b>{branchName === ALL_BRANCHES ? "ทุกสาขา" : shortShop(branchName)} • {filteredPeople.length} คน</b></div>
+        <div className="section-head people-head"><div><span>{product === "TrueOnline" ? "TOL" : "POSTPAY"} • PEOPLE PERFORMANCE</span><h2>Performance Indy รายบุคคล</h2><p>Data as of {personAsOfDisplay} • {peopleSyncSource === "sheet" ? "Google Sheet Live • อัปเดตอัตโนมัติทุก 5 นาที" : "ข้อมูลสำรอง • กำลังรอเชื่อม Google Sheet"}</p></div><b>{branchSelectionLabel} • {filteredPeople.length} คน</b></div>
         <div className="people-kpis">
           <article><span>พนักงานในมุมมอง</span><strong>{filteredPeople.length} คน</strong><small>{peopleWithTarget.length} คนที่มี Target</small></article>
           <article><span>Actual ถึง {personAsOfShort}</span><strong>{personValue(personTotals.actual)}</strong><small>%ACH {percent(personActualAchievement)}</small></article>
