@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import fallbackData from "./sales-product-data.json";
 import postpayPersonData from "./postpay-person-performance.json";
+import tolPersonData from "./tol-person-performance.json";
 import { type Branch, type DashboardData, loadGoogleSheetData, type ProductName } from "./google-sheet-data";
 
 const ALL_BRANCHES = "ทุกสาขา";
@@ -20,7 +21,15 @@ type PersonPerformance = {
   tenure: string;
   id: string;
 };
-const postpayPeople = postpayPersonData.people as PersonPerformance[];
+type PersonPerformanceData = {
+  meta: { product: string; asOf: string; area: string; source: string };
+  people: PersonPerformance[];
+};
+const personDataByProduct: Partial<Record<ProductName, PersonPerformanceData>> = {
+  Postpay: postpayPersonData as PersonPerformanceData,
+  TrueOnline: tolPersonData as PersonPerformanceData,
+};
+const PERSON_PERFORMANCE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1F6pHFgsF3soHf7NJkgxQ_fKUU-ccQ2jIekmhgydPxv0/edit";
 const productMeta: Record<ProductName, { color: string; accent: string; short: string }> = {
   Device: { color: "#2563eb", accent: "#dbeafe", short: "DEV" },
   GIA: { color: "#8e44ad", accent: "#f3e8ff", short: "GIA" },
@@ -89,6 +98,13 @@ export default function Home() {
   const theme = productMeta[product];
   const isQtyProduct = product === "TrueOnline";
   const displayValue = (value: number) => `${money(value)}${isQtyProduct ? " QTY" : ""}`;
+  const personData = personDataByProduct[product];
+  const productPeople = personData?.people ?? [];
+  const personAsOf = personData?.meta.asOf ?? data.meta.asOf;
+  const personAsOfDate = new Date(`${personAsOf}T00:00:00+07:00`);
+  const personAsOfDisplay = personAsOfDate.toLocaleDateString("en-GB");
+  const personAsOfShort = personAsOfDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+  const personValue = (value: number) => `${money(value)}${isQtyProduct ? " QTY" : ""}`;
 
   const targetedBranches = useMemo(
     () => branches.filter((branch) => branch.products[product].target > 0),
@@ -136,6 +152,11 @@ export default function Home() {
       setBranchName(ALL_BRANCHES);
     }
   }, [branchName, targetedBranches]);
+
+  useEffect(() => {
+    setPersonSearch("");
+    setPositionFilter(ALL_POSITIONS);
+  }, [product]);
 
   const selectedBranches = useMemo(
     () => branchName === ALL_BRANCHES ? targetedBranches : targetedBranches.filter((branch) => branch.name === branchName),
@@ -220,11 +241,11 @@ export default function Home() {
   }, [selectedBranch, product, asOfDay, data.meta.daysInMonth, remainingDays]);
 
   const personPositions = useMemo(
-    () => [...new Set(postpayPeople.map((person) => person.position))].sort(),
-    [],
+    () => [...new Set(productPeople.map((person) => person.position))].sort(),
+    [productPeople],
   );
-  const scopedPeople = useMemo(() => postpayPeople.filter((person) =>
-    branchName === ALL_BRANCHES || person.shopName === branchName), [branchName]);
+  const scopedPeople = useMemo(() => productPeople.filter((person) =>
+    branchName === ALL_BRANCHES || person.shopName === branchName), [branchName, productPeople]);
   const filteredPeople = useMemo(() => {
     const query = personSearch.trim().toLocaleLowerCase("th-TH");
     return scopedPeople.filter((person) => {
@@ -354,12 +375,12 @@ export default function Home() {
         <div className="branch-action"><span>ข้อเสนอแนะสำหรับสาขา</span><p>{branchExecutive.pace >= 1 ? `รักษาจังหวะ ${product} ให้ต่อเนื่อง และใช้วันที่ทำยอดสูงสุดเป็นต้นแบบการปิดยอด` : `${productFocus.action} สาขานี้ต้องทำเพิ่มเฉลี่ย ${displayValue(branchExecutive.requiredDaily)} ต่อวันในวันที่เหลือ`}</p></div>
       </section>}
 
-      {product === "Postpay" && <section className="panel people-performance">
-        <div className="section-head people-head"><div><span>POSTPAY • PEOPLE PERFORMANCE</span><h2>Performance รายบุคคล</h2><p>Data as of 07/08/2026 • Detailed Performance แยกจากยอดระดับสาขา</p></div><b>{branchName === ALL_BRANCHES ? "ทุกสาขา" : shortShop(branchName)} • {filteredPeople.length} คน</b></div>
+      {personData && <section className="panel people-performance">
+        <div className="section-head people-head"><div><span>{product === "TrueOnline" ? "TOL" : "POSTPAY"} • PEOPLE PERFORMANCE</span><h2>Performance Indy รายบุคคล</h2><p>Data as of {personAsOfDisplay} • ข้อมูลล่าสุดจาก Google Sheet แยกจากยอดระดับสาขา</p></div><b>{branchName === ALL_BRANCHES ? "ทุกสาขา" : shortShop(branchName)} • {filteredPeople.length} คน</b></div>
         <div className="people-kpis">
           <article><span>พนักงานในมุมมอง</span><strong>{filteredPeople.length} คน</strong><small>{peopleWithTarget.length} คนที่มี Target</small></article>
-          <article><span>Actual ถึง 07 Aug</span><strong>{money(personTotals.actual)}</strong><small>%ACH {percent(personActualAchievement)}</small></article>
-          <article><span>Actual-RR</span><strong>{money(personTotals.actualRunrate)}</strong><small>RR ACH {percent(personRunrateAchievement)}</small></article>
+          <article><span>Actual ถึง {personAsOfShort}</span><strong>{personValue(personTotals.actual)}</strong><small>%ACH {percent(personActualAchievement)}</small></article>
+          <article><span>{isQtyProduct ? "RR QTY" : "Actual-RR"}</span><strong>{personValue(personTotals.actualRunrate)}</strong><small>RR ACH {percent(personRunrateAchievement)}</small></article>
           <article><span>Top RR Ranking</span><strong>{topPerson ? topPerson.name : "—"}</strong><small>{topPerson ? `${percent(topPerson.runrateAchievement)} • ${shortShop(topPerson.shopName)}` : "ไม่พบข้อมูล"}</small></article>
         </div>
         <div className="people-insight-row">
@@ -374,14 +395,14 @@ export default function Home() {
           <label><span>ค้นหาพนักงาน / ID / สาขา</span><input value={personSearch} onChange={(event) => setPersonSearch(event.target.value)} placeholder="พิมพ์ชื่อ รหัส หรือสาขา" /></label>
           <label><span>ตำแหน่ง</span><select value={positionFilter} onChange={(event) => setPositionFilter(event.target.value)}><option>{ALL_POSITIONS}</option>{personPositions.map((position) => <option key={position}>{position}</option>)}</select></label>
         </div>
-        <div className="people-table-wrap"><table className="people-table"><thead><tr><th>Rank</th><th>พนักงาน</th><th>ตำแหน่ง</th><th>สาขา</th><th>Target</th><th>Actual</th><th>Actual-RR</th><th>% RR ACH</th><th>อายุงาน</th><th>สถานะ</th></tr></thead><tbody>
+        <div className="people-table-wrap"><table className="people-table"><thead><tr><th>Rank</th><th>พนักงาน</th><th>ตำแหน่ง</th><th>สาขา</th><th>Target</th><th>Actual</th><th>{isQtyProduct ? "RR QTY" : "Actual-RR"}</th><th>% RR ACH</th><th>อายุงาน</th><th>สถานะ</th></tr></thead><tbody>
           {filteredPeople.map((person, index) => {
             const personStatus = person.target > 0 ? status(person.runrateAchievement) : { key: "notarget", label: "No Target" };
-            return <tr key={`${person.id}-${person.name}`}><td><b>{String(index + 1).padStart(2, "0")}</b></td><td><strong>{person.name}</strong><small>ID {person.id || "—"}</small></td><td>{person.position}</td><td>{shortShop(person.shopName)}</td><td>{money(person.target)}</td><td><b>{money(person.actual)}</b></td><td>{money(person.actualRunrate)}</td><td><strong className={`rr-percent ${personStatus.key}`}>{percent(person.runrateAchievement)}</strong></td><td>{person.tenure}</td><td><span className={`status ${personStatus.key}`}>{personStatus.label}</span></td></tr>;
+            return <tr key={`${person.id}-${person.name}`}><td><b>{String(index + 1).padStart(2, "0")}</b></td><td><strong>{person.name}</strong><small>ID {person.id || "—"}</small></td><td>{person.position}</td><td>{shortShop(person.shopName)}</td><td>{personValue(person.target)}</td><td><b>{personValue(person.actual)}</b></td><td>{personValue(person.actualRunrate)}</td><td><strong className={`rr-percent ${personStatus.key}`}>{percent(person.runrateAchievement)}</strong></td><td>{person.tenure}</td><td><span className={`status ${personStatus.key}`}>{personStatus.label}</span></td></tr>;
           })}
           {!filteredPeople.length && <tr><td colSpan={10} className="people-empty">ไม่พบข้อมูลตามตัวกรองที่เลือก</td></tr>}
         </tbody></table></div>
-        <div className="people-source-note"><b>หมายเหตุ:</b> Target, Actual, Actual-RR และ % RR ACH ส่วนรายบุคคลมาจาก detailed_performance_table.csv ณ 07/08/2026 โดยตรง จึงแยกชุดคำนวณจาก Postpay ระดับสาขาที่อัปเดตถึง 08/08/2026</div>
+        <div className="people-source-note"><b>หมายเหตุ:</b> Target, Actual, {isQtyProduct ? "RR QTY" : "Actual-RR"} และ % RR ACH รายบุคคลมาจาก <a href={PERSON_PERFORMANCE_SHEET_URL} target="_blank" rel="noreferrer">BMAV Person Performance Daily Update</a> ณ {personAsOfDisplay} โดยตรง และแยกชุดคำนวณจากยอดระดับสาขา</div>
       </section>}
 
       <section className="two-col">

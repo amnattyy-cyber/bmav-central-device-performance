@@ -8,7 +8,7 @@ test("provides four independent product datasets", async () => {
   const data = JSON.parse(await readFile(new URL("app/sales-product-data.json", root), "utf8"));
   assert.deepEqual(data.products, ["Device", "GIA", "Postpay", "TrueOnline"]);
   assert.equal(data.branches.length, 17);
-  assert.equal(data.meta.asOf, "2026-08-10");
+  assert.equal(data.meta.asOf, "2026-08-11");
   assert.equal(data.meta.targetUpdated, "2026-08-04");
   const targetTotals = Object.fromEntries(data.products.map((product) => [
     product,
@@ -20,30 +20,30 @@ test("provides four independent product datasets", async () => {
   assert.ok(Math.abs(targetTotals.TrueOnline - 599.2025015042318) < 0.001);
   assert.equal(
     data.branches.reduce((sum, branch) => sum + branch.products.TrueOnline.daily.reduce((dailySum, value) => dailySum + value, 0), 0),
-    155,
+    169,
   );
   assert.ok(Math.abs(
-    data.branches.reduce((sum, branch) => sum + branch.products.TrueOnline.runrate, 0) - 480.5,
+    data.branches.reduce((sum, branch) => sum + branch.products.TrueOnline.runrate, 0) - 476.2727272727273,
   ) < 0.001);
   assert.ok(Math.abs(
-    data.branches.reduce((sum, branch) => sum + branch.products.Postpay.daily.reduce((dailySum, value) => dailySum + value, 0), 0) - 481089.15,
+    data.branches.reduce((sum, branch) => sum + branch.products.Postpay.daily.reduce((dailySum, value) => dailySum + value, 0), 0) - 529833.95,
   ) < 0.001);
   assert.ok(Math.abs(
-    data.branches.reduce((sum, branch) => sum + branch.products.Postpay.runrate, 0) - 1491376.365,
+    data.branches.reduce((sum, branch) => sum + branch.products.Postpay.runrate, 0) - 1493168.4045454545,
   ) < 0.001);
-  assert.equal(data.branches.reduce((sum, branch) => sum + branch.products.Device.daily[9], 0), 1794161);
-  assert.equal(data.branches.reduce((sum, branch) => sum + branch.products.GIA.daily[9], 0), 140076);
-  assert.equal(data.branches.reduce((sum, branch) => sum + branch.products.Postpay.daily[9], 0), 45365);
-  assert.equal(data.branches.reduce((sum, branch) => sum + branch.products.TrueOnline.daily[9], 0), 20);
+  assert.equal(data.branches.reduce((sum, branch) => sum + branch.products.Device.daily[10], 0), 1678321);
+  assert.equal(data.branches.reduce((sum, branch) => sum + branch.products.GIA.daily[10], 0), 128569);
+  assert.equal(data.branches.reduce((sum, branch) => sum + branch.products.Postpay.daily[10], 0), 48048);
+  assert.equal(data.branches.reduce((sum, branch) => sum + branch.products.TrueOnline.daily[10], 0), 13);
   const productMom = Object.fromEntries(data.products.map((product) => {
     const runrate = data.branches.reduce((sum, branch) => sum + branch.products[product].runrate, 0);
     const julyActual = data.branches.reduce((sum, branch) => sum + branch.products[product].julyActual, 0);
     return [product, runrate / julyActual - 1];
   }));
-  assert.ok(Math.abs(productMom.Device - 0.4909114897512159) < 1e-9);
-  assert.ok(Math.abs(productMom.GIA - 0.24171099981115618) < 1e-9);
-  assert.ok(Math.abs(productMom.Postpay - 0.09916815958458813) < 1e-9);
-  assert.ok(Math.abs(productMom.TrueOnline - 0.01585623678646919) < 1e-9);
+  assert.ok(Math.abs(productMom.Device - 0.47145187226716323) < 1e-9);
+  assert.ok(Math.abs(productMom.GIA - 0.21969659921389662) < 1e-9);
+  assert.ok(Math.abs(productMom.Postpay - 0.10048892130195686) < 1e-9);
+  assert.ok(Math.abs(productMom.TrueOnline - 0.006919085143186621) < 1e-9);
   assert.deepEqual(
     Object.fromEntries(data.products.map((product) => [
       product,
@@ -58,27 +58,38 @@ test("provides four independent product datasets", async () => {
       assert.equal(typeof branch.products[product].runrate, "number");
       assert.equal(typeof branch.products[product].julyActual, "number");
       assert.ok(Array.isArray(branch.products[product].daily));
-      assert.equal(branch.products[product].daily.length, 10);
+      assert.equal(branch.products[product].daily.length, 11);
     }
   }
 });
 
-test("provides Postpay individual performance as of 07 August 2026", async () => {
+test("provides Google Sheet individual performance for Postpay and TOL", async () => {
   const data = JSON.parse(await readFile(new URL("app/postpay-person-performance.json", root), "utf8"));
+  const tol = JSON.parse(await readFile(new URL("app/tol-person-performance.json", root), "utf8"));
   assert.equal(data.meta.product, "Postpay");
-  assert.equal(data.meta.asOf, "2026-08-07");
+  assert.equal(data.meta.asOf, "2026-08-09");
   assert.equal(data.meta.area, "BMA V - Central");
-  assert.equal(data.people.length, 142);
-  assert.equal(data.people.filter((person) => person.target > 0).length, 141);
-  assert.equal(new Set(data.people.map((person) => person.shopName)).size, 16);
+  assert.equal(data.people.length, 140);
+  assert.equal(data.people.filter((person) => person.target > 0).length, 140);
+  assert.equal(new Set(data.people.map((person) => person.shopName)).size, 15);
   const totals = data.people.reduce((sum, person) => ({
     target: sum.target + person.target,
     actual: sum.actual + person.actual,
     actualRunrate: sum.actualRunrate + person.actualRunrate,
   }), { target: 0, actual: 0, actualRunrate: 0 });
-  assert.deepEqual(totals, { target: 2547937, actual: 340200, actualRunrate: 1504106 });
+  assert.deepEqual(totals, { target: 2833420, actual: 436123, actualRunrate: 1509601 });
   assert.ok(data.people.every((person) => typeof person.runrateAchievement === "number"));
   assert.ok(data.people.every((person, index) => index === 0 || data.people[index - 1].runrateAchievement >= person.runrateAchievement));
+  assert.equal(tol.meta.product, "TrueOnline");
+  assert.equal(tol.meta.asOf, "2026-08-10");
+  assert.equal(tol.people.length, 130);
+  assert.equal(new Set(tol.people.map((person) => person.shopName)).size, 15);
+  assert.deepEqual(tol.people.reduce((sum, person) => ({
+    target: sum.target + person.target,
+    actual: sum.actual + person.actual,
+    actualRunrate: sum.actualRunrate + person.actualRunrate,
+  }), { target: 0, actual: 0, actualRunrate: 0 }), { target: 804, actual: 151, actualRunrate: 456 });
+  assert.ok(tol.people.every((person) => person.target === 0 || person.runrateAchievement === person.actualRunrate / person.target));
 });
 
 test("dashboard exposes product, branch, and optional date filters", async () => {
@@ -115,16 +126,18 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(page, /dailyValues\.indexOf\(bestValue\) \+ 1/);
   assert.match(page, /Top 3 Contribution/);
   assert.match(page, /ข้อเสนอแนะสำหรับสาขา/);
-  assert.match(page, /product === "Postpay"/);
-  assert.match(page, /POSTPAY • PEOPLE PERFORMANCE/);
-  assert.match(page, /Performance รายบุคคล/);
-  assert.match(page, /Data as of 07\/08\/2026/);
+  assert.match(page, /personDataByProduct/);
+  assert.match(page, /POSTPAY/);
+  assert.match(page, /TOL/);
+  assert.match(page, /Performance Indy รายบุคคล/);
+  assert.match(page, /personAsOfDisplay/);
   assert.match(page, /postpay-person-performance\.json/);
+  assert.match(page, /tol-person-performance\.json/);
   assert.match(page, /person\.shopName === branchName/);
   assert.match(page, /ค้นหาพนักงาน \/ ID \/ สาขา/);
   assert.match(page, /Actual-RR/);
   assert.match(page, /RR ACH/);
-  assert.match(page, /Detailed Performance แยกจากยอดระดับสาขา/);
+  assert.match(page, /ข้อมูลล่าสุดจาก Google Sheet แยกจากยอดระดับสาขา/);
   assert.match(page, /%Achieve \{percent\(metrics\.pace\)\}/);
   assert.match(page, /name === "TrueOnline" \? " \(QTY\)"/);
   assert.match(page, /isQtyProduct \? " QTY"/);
