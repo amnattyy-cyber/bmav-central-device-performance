@@ -36,6 +36,23 @@ main { --product: #2563eb; --product-soft: #dbeafe; width: min(1480px, calc(100%
 .product-switch button { font-size: 12px; }.product-switch button i { width: 36px; height: 32px; display: grid; place-items: center; border-radius: 8px; color: white; font-size: 10px; font-style: normal; letter-spacing: .4px; }
 .product-switch button.active { color: var(--product); border-color: var(--product); background: var(--product-soft); box-shadow: 0 0 0 3px color-mix(in srgb, var(--product) 12%, transparent); }
 .control-deck label > span { display: block; margin: 0 0 5px 2px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.control-label { display: block; margin: 0 0 5px 2px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.branch-multiselect { position: relative; min-width: 0; }
+.branch-multiselect details { position: relative; }
+.branch-multiselect summary { width: 100%; height: 46px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: #fff; font-size: 13px; cursor: pointer; list-style: none; }
+.branch-multiselect summary::-webkit-details-marker { display: none; }
+.branch-multiselect summary::after { content: "⌄"; color: #657286; font-size: 16px; font-weight: 900; transition: transform .18s ease; }
+.branch-multiselect summary span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.branch-multiselect summary b { margin-left: auto; padding: 3px 7px; border-radius: 999px; color: var(--product); background: var(--product-soft); font-size: 9px; white-space: nowrap; }
+.branch-multiselect details[open] summary { border-color: var(--product); box-shadow: 0 0 0 3px color-mix(in srgb, var(--product) 12%, transparent); }
+.branch-multiselect details[open] summary::after { transform: rotate(180deg); }
+.branch-options { position: absolute; z-index: 30; top: calc(100% + 7px); left: 0; width: min(440px, calc(100vw - 36px)); max-height: 390px; overflow-y: auto; padding: 8px; border: 1px solid #d6deea; border-radius: 14px; background: #fff; box-shadow: 0 20px 45px rgba(17,38,66,.2); }
+.branch-options label { display: grid; grid-template-columns: 18px minmax(0,1fr) auto; align-items: center; gap: 9px; padding: 10px 9px; border-radius: 9px; cursor: pointer; transition: background .15s ease; }
+.branch-options label:hover { background: #f4f7fb; }
+.branch-options label.selected { background: color-mix(in srgb, var(--product) 9%, #fff); }
+.branch-options input { width: 16px; height: 16px; margin: 0; accent-color: var(--product); }
+.branch-options label > span { margin: 0; overflow: hidden; color: var(--ink); font-size: 11px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+.branch-options small { color: #7c8899; font-size: 8px; white-space: nowrap; }
 select { width: 100%; height: 46px; padding: 0 35px 0 12px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: #fff; outline: none; font-size: 13px; }
 select:focus { border-color: var(--product); box-shadow: 0 0 0 3px color-mix(in srgb, var(--product) 12%, transparent); }
 .reset { height: 44px; padding: 0 17px; border: 1px solid #ffd0cd; border-radius: 12px; color: #b42318; font-weight: 700; background: #fff1f0; cursor: pointer; }
