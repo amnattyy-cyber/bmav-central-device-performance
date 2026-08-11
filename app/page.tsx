@@ -9,7 +9,6 @@ import { loadGooglePersonPerformance, PERSON_PERFORMANCE_SHEET_URL, type PersonP
 
 const ALL_BRANCHES = "ทุกสาขา";
 const ALL_DAYS = "all";
-const ALL_POSITIONS = "ทุกตำแหน่ง";
 const fallbackPersonDataByProduct: Partial<Record<ProductName, PersonPerformanceData>> = {
   Postpay: postpayPersonData as PersonPerformanceData,
   TrueOnline: tolPersonData as PersonPerformanceData,
@@ -70,7 +69,8 @@ export default function Home() {
   const [dateFilter, setDateFilter] = useState(ALL_DAYS);
   const [captureMode, setCaptureMode] = useState(false);
   const [personSearch, setPersonSearch] = useState("");
-  const [positionFilter, setPositionFilter] = useState(ALL_POSITIONS);
+  const [positionFilters, setPositionFilters] = useState<string[]>([]);
+  const [showNoSales, setShowNoSales] = useState(false);
   const productNames = data.products;
   const branches = data.branches as Branch[];
   const asOfDay = Number(data.meta.asOf.slice(-2));
@@ -181,7 +181,8 @@ export default function Home() {
 
   useEffect(() => {
     setPersonSearch("");
-    setPositionFilter(ALL_POSITIONS);
+    setPositionFilters([]);
+    setShowNoSales(false);
   }, [product]);
 
   const selectedBranches = useMemo(
@@ -272,14 +273,15 @@ export default function Home() {
   );
   const scopedPeople = useMemo(() => productPeople.filter((person) =>
     branchName === ALL_BRANCHES || person.shopName === branchName), [branchName, productPeople]);
+  const positionScopedPeople = useMemo(() => scopedPeople.filter((person) =>
+    positionFilters.length === 0 || positionFilters.includes(person.position)), [scopedPeople, positionFilters]);
   const filteredPeople = useMemo(() => {
     const query = personSearch.trim().toLocaleLowerCase("th-TH");
-    return scopedPeople.filter((person) => {
-      const matchesPosition = positionFilter === ALL_POSITIONS || person.position === positionFilter;
+    return positionScopedPeople.filter((person) => {
       const matchesSearch = !query || `${person.name} ${person.id} ${person.shopName}`.toLocaleLowerCase("th-TH").includes(query);
-      return matchesPosition && matchesSearch;
+      return matchesSearch;
     });
-  }, [scopedPeople, personSearch, positionFilter]);
+  }, [positionScopedPeople, personSearch]);
   const peopleWithTarget = filteredPeople.filter((person) => person.target > 0);
   const personTotals = filteredPeople.reduce((sum, person) => ({
     target: sum.target + person.target,
@@ -292,6 +294,46 @@ export default function Home() {
   const peopleWatch = peopleWithTarget.filter((person) => person.runrateAchievement >= .85 && person.runrateAchievement < 1);
   const peopleAtRisk = peopleWithTarget.filter((person) => person.runrateAchievement < .85);
   const topPerson = filteredPeople[0];
+  const noSalesPeople = positionScopedPeople.filter((person) => person.actual <= 0);
+  const noSalesRate = positionScopedPeople.length > 0 ? noSalesPeople.length / positionScopedPeople.length : 0;
+  const noSalesGroups = useMemo(() => {
+    const groups = new Map<string, typeof noSalesPeople>();
+    for (const person of noSalesPeople) {
+      const group = groups.get(person.shopName) ?? [];
+      group.push(person);
+      groups.set(person.shopName, group);
+    }
+    return Array.from(groups.entries())
+      .map(([shopName, people]) => ({ shopName, people: [...people].sort((a, b) => a.position.localeCompare(b.position) || a.name.localeCompare(b.name, "th")) }))
+      .sort((a, b) => b.people.length - a.people.length || a.shopName.localeCompare(b.shopName));
+  }, [noSalesPeople]);
+
+  const togglePosition = (position: string) => {
+    setPositionFilters((current) => current.includes(position)
+      ? current.filter((item) => item !== position)
+      : [...current, position]);
+  };
+
+  const analysisActiveDays = metrics.daily.slice(0, asOfDay).filter((value) => value > 0).length;
+  const analysisBestValue = Math.max(...metrics.daily.slice(0, asOfDay), 0);
+  const analysisBestDay = analysisBestValue > 0 ? metrics.daily.indexOf(analysisBestValue) + 1 : 0;
+  const analysisScope = branchName === ALL_BRANCHES ? `ภาพรวม ${activeBranches.length} สาขา` : shortShop(branchName);
+  const analysisPeriod = isDailyView ? `วันที่ ${String(periodDay).padStart(2, "0")} ${shortMonth}` : `สะสมถึง ${String(asOfDay).padStart(2, "0")} ${shortMonth}`;
+  const weakestBranch = [...activeBranches].sort((a, b) => a.pace - b.pace)[0];
+  const strongestBranch = [...activeBranches].sort((a, b) => b.pace - a.pace)[0];
+  const executiveActions = [
+    metrics.pace >= 1
+      ? `รักษายอด ${product} ให้ไม่น้อยกว่า ${displayValue(metrics.dailyTarget)} ต่อวัน และถอดรูปแบบจากวันที่ทำยอดสูงสุด`
+      : `เร่งปิด Gap เฉลี่ย ${displayValue(requiredPerDay)} ต่อวัน เพื่อกลับเข้าสู่เป้าสิ้นเดือน`,
+    branchName === ALL_BRANCHES && weakestBranch
+      ? `ติดตาม ${shortShop(weakestBranch.name)} เป็น Priority แรก เพราะ ACH MTD อยู่ที่ ${percent(weakestBranch.pace)}`
+      : `ทบทวนยอดปิดรายวันของ ${analysisScope} และใช้วันที่ ${analysisBestDay || "—"} เป็น Benchmark`,
+    personData
+      ? noSalesPeople.length > 0
+        ? `Coaching กลุ่ม No Sales ${noSalesPeople.length} คน โดยเริ่มจากสาขาที่มีจำนวนสูงสุด${noSalesGroups[0] ? `: ${shortShop(noSalesGroups[0].shopName)} ${noSalesGroups[0].people.length} คน` : ""}`
+        : "รักษาผลงานรายบุคคลและติดตามไม่ให้เกิด No Sales เพิ่ม"
+      : productFocus.action,
+  ];
 
   const reset = () => {
     setProduct("Device");
@@ -299,7 +341,8 @@ export default function Home() {
     setDateFilter(ALL_DAYS);
     setCaptureMode(false);
     setPersonSearch("");
-    setPositionFilter(ALL_POSITIONS);
+    setPositionFilters([]);
+    setShowNoSales(false);
   };
 
   const toggleCaptureMode = () => {
@@ -312,74 +355,7 @@ export default function Home() {
       <header className="hero" data-sync-source={syncSource}>
         <div className="hero-copy">
           <div className="eyebrow"><span className="live-dot" /> BMAV-CENTRAL • DAILY SALES</div>
-          <h1>Product<br />Performance <em>Monitor</em></h1>
-          <p>Dashboard ยอดขายรายวัน (Device/GIA : Data TSM, Post/TOL : Data Link Daily Sales)</p>
-        </div>
-        <div className="hero-focus">
-          <span>PRODUCT IN FOCUS</span>
-          <strong>{product}</strong>
-          <small>{branchName === ALL_BRANCHES ? `${targetedBranches.length} สาขาที่มี Target` : shortShop(branchName)} • {syncSource === "sheet" ? "Google Sheet Live" : "ข้อมูลสำรอง"}</small>
-        </div>
-      </header>
-
-      <section className="control-deck" aria-label="ตัวกรอง Dashboard">
-        <div className="product-switch" role="group" aria-label="เลือก Product">
-          {productNames.map((name) => <button key={name} className={product === name ? "active" : ""} onClick={() => setProduct(name)}>
-            <i style={{ background: productMeta[name].color }}>{productMeta[name].short}</i><span>{name}{name === "TrueOnline" ? " (QTY)" : ""}</span>
-          </button>)}
-        </div>
-        <label><span>สาขา</span><select value={branchName} onChange={(event) => setBranchName(event.target.value)}><option>{ALL_BRANCHES}</option>{targetedBranches.map((branch) => <option key={branch.name}>{branch.name}</option>)}</select></label>
-        <label><span>เลือกวันที่</span><select value={dateFilter} onChange={(event) => setDateFilter(event.target.value)}><option value={ALL_DAYS}>ทุกวัน (ยอดสะสมถึง {String(asOfDay).padStart(2, "0")} {shortMonth})</option>{Array.from({ length: asOfDay }, (_, index) => <option key={index + 1} value={String(index + 1)}>เฉพาะวันที่ {String(index + 1).padStart(2, "0")} {shortMonth} {asOfDate.getFullYear()}</option>)}</select></label>
-        <button className="reset" onClick={reset}>ล้างตัวกรอง</button>
-      </section>
-
-      <section className="scope-strip">
-        <div><span>มุมมองปัจจุบัน</span><strong>{product} • {branchName}</strong></div>
-        <div><span>ช่วงวันที่</span><strong>{isDailyView ? `เฉพาะวันที่ ${String(periodDay).padStart(2, "0")} ${monthYear}` : `ทุกวัน • สะสมถึง ${String(asOfDay).padStart(2, "0")} ${monthYear}`}</strong></div>
-        <div><span>หลักการคำนวณ</span><strong>เฉพาะ {product} เท่านั้น{isQtyProduct ? " • มุม QTY" : ""}</strong></div>
-      </section>
-
-      <section className="kpi-grid" aria-label="KPI ของ Product ที่เลือก">
-        <article className="kpi hero-kpi"><span>{isDailyView ? `ยอดวันที่ ${String(periodDay).padStart(2, "0")} ${shortMonth}` : "ยอดสะสม MTD"}</span><strong>{displayValue(metrics.mtd)}</strong><small>{isDailyView ? "ยอดเฉพาะวันที่เลือก" : `ยอดวันที่ ${String(asOfDay).padStart(2, "0")} ${shortMonth} ${displayValue(metrics.today)}`}</small></article>
-        <article className="kpi"><span>Target</span><strong>{displayValue(metrics.target)}</strong><small>เฉลี่ย {displayValue(metrics.dailyTarget)} / วัน</small></article>
-        <article className="kpi"><span>%ACH</span><strong>{percent(metrics.achievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, metrics.achievement * 100)}%` }} /></div></article>
-        <article className={`kpi pace ${status(metrics.pace).key}`}><span>{isDailyView ? "ACH Daily" : "ACH MTD"}</span><strong>{percent(metrics.pace)}</strong><small>{status(metrics.pace).label}</small></article>
-        <article className="kpi runrate-kpi"><span>Runrate</span><strong>{displayValue(metrics.runrate)}</strong><small>จาก {isQtyProduct ? "RR QTY" : "RR Net Amount"} ในไฟล์ต้นฉบับ</small></article>
-        <article className="kpi"><span>Runrate % เทียบเป้า</span><strong>{percent(metrics.runrateAchievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, metrics.runrateAchievement * 100)}%` }} /></div></article>
-        <article className={`kpi mom-kpi ${momTone(metrics.mom)}`}><span>%MOM</span><strong>{momPercent(metrics.mom)}</strong><small>Runrate เทียบ July Actual {displayValue(metrics.julyActual)}</small></article>
-        <article className="kpi"><span>Forecast สิ้นเดือน</span><strong>{displayValue(metrics.forecast)}</strong><small>{percent(metrics.target ? metrics.forecast / metrics.target : 0)} ของเป้า</small></article>
-        <article className="kpi"><span>Gap ถึงเป้าเดือน</span><strong>{displayValue(Math.max(0, metrics.target - metrics.mtd))}</strong><small>ยอดที่ยังต้องปิด</small></article>
-      </section>
-
-      <section className="executive-grid">
-        <article className="panel insight-panel">
-          <div className="section-head"><div><span>PRODUCT INTELLIGENCE</span><h2>Executive Infographic</h2></div><b>{product} • {isDailyView ? `วันที่ ${periodDay}` : `สะสม ${asOfDay} วัน`}</b></div>
-          <div className="insight-grid">
-            <div className="insight major"><i>01</i><div><span>ภาพรวม Product</span><strong>%Achieve {percent(metrics.pace)}</strong><p>ทำได้ {displayValue(metrics.mtd)} จากเป้าที่ควรได้ {displayValue(metrics.targetMtd)}</p></div></div>
-            <div className="insight"><i>02</i><div><span>Shop Top Ranking</span><strong>{leader ? shortShop(leader.name) : "—"}</strong><p>{leader ? `%Achieve ${percent(leader.pace)} • ${displayValue(leader.mtd)}` : "ยังไม่มีเป้าหมาย"}</p></div></div>
-            <div className="insight"><i>03</i><div><span>On Track</span><strong>{onTrack.length} สาขา</strong><p>{activeBranches.length ? `${Math.round(onTrack.length / activeBranches.length * 100)}% ของสาขาที่มีเป้า` : "ไม่มีสาขาที่มีเป้า"}</p></div></div>
-            <div className="insight"><i>04</i><div><span>ต้องเร่ง</span><strong>{atRisk.length} สาขา</strong><p>%Achieve ต่ำกว่า 85% ของเป้าตามวัน</p></div></div>
-          </div>
-          <div className="product-lens">
-            <div><span>PRODUCT EXECUTIVE LENS • {product}</span><strong>{productFocus.title}</strong><p>{productFocus.description}</p></div>
-            <div className="lens-kpis">
-              <div><small>สถานะเทียบแผน</small><b>{planSignal}</b></div>
-              <div><small>Top 3 Contribution</small><b>{percent(topThreeShare)}</b></div>
-              <div><small>ต้องปิดต่อวัน</small><b>{displayValue(requiredPerDay)}</b></div>
-              <div><small>%MOM เทียบ July</small><b className={`mom-text ${momTone(metrics.mom)}`}>{momPercent(metrics.mom)}</b></div>
-            </div>
-            <p className="lens-action"><b>Management Action:</b> {productFocus.action}</p>
-          </div>
-        </article>
-
-        <aside className="mission-card">
-          <span>DAILY MISSION</span>
-          <h2>{metrics.pace >= 1 ? "รักษาจังหวะเหนือเป้า" : "เร่งปิด Gap รายวัน"}</h2>
-          <div className="mission-number"><small>เป้าต่อวัน</small><strong>{displayValue(metrics.dailyTarget)}</strong></div>
-          <ul>
-            <li><b>วันนี้</b><span>{displayValue(metrics.today)} • {percent(metrics.dailyTarget ? metrics.today / metrics.dailyTarget : 0)}</span></li>
-            <li><b>Runrate</b><span>{displayValue(metrics.runrate)} • {percent(metrics.runrateAchievement)}</span></li>
-            <li><b>%MOM</b><span>{momPercent(metrics.mom)} • July {displayValue(metrics.julyActual)}</span></li>
+          <h1>Product<br />Performance <…1995 tokens truncated….mom)} • July {displayValue(metrics.julyActual)}</span></li>
             <li><b>Forecast</b><span>{displayValue(metrics.forecast)}</span></li>
             <li><b>Priority</b><span>{atRisk[0] ? shortShop(atRisk[0].name) : "รักษาทุกสาขา"}</span></li>
           </ul>
@@ -417,9 +393,23 @@ export default function Home() {
           </div>
           <div className="people-executive-note"><span>EXECUTIVE TAKEAWAY</span><strong>{peopleOnTrack.length >= peopleAtRisk.length ? "กำลังหลักส่วนใหญ่เดินหน้าได้ตามแผน" : "ต้องเร่ง Coaching รายบุคคลในกลุ่ม At Risk"}</strong><p>{peopleAtRisk.length ? `มี ${peopleAtRisk.length} คนต่ำกว่า 85% ของ RR Target ควรเริ่มจากผู้ที่ Actual ยังต่ำและมี Gap สูง` : "รักษาจังหวะการปิดยอดและถอดบทเรียนจาก Top RR Ranking"}</p></div>
         </div>
+        <button className={`no-sales-focus ${showNoSales ? "open" : ""}`} onClick={() => setShowNoSales((current) => !current)} aria-expanded={showNoSales}>
+          <span><i>NO SALES FOCUS</i><strong>{noSalesPeople.length} คน</strong><small>{analysisScope} • {percent(noSalesRate)} ของพนักงาน {positionScopedPeople.length} คนใน Type ที่เลือก</small></span>
+          <b>{showNoSales ? "ซ่อนรายชื่อ" : "ดูชื่อ • ตำแหน่ง • สาขา"}</b>
+        </button>
+        {showNoSales && <div className="no-sales-detail">
+          <div className="no-sales-title"><div><span>NO SALES PERSON DETAIL</span><h3>{analysisScope}</h3></div><b>Actual = 0 ณ {personAsOfDisplay}</b></div>
+          {noSalesGroups.length > 0 ? <div className="no-sales-groups">{noSalesGroups.map((group) => <article key={group.shopName}>
+            <header><strong>{shortShop(group.shopName)}</strong><b>{group.people.length} คน</b></header>
+            <div>{group.people.map((person) => <p key={`${person.id}-${person.name}`}><span><strong>{person.name}</strong><small>ID {person.id || "—"}</small></span><b>{person.position}</b></p>)}</div>
+          </article>)}</div> : <p className="no-sales-empty">ไม่พบพนักงาน No Sales ในมุมมองที่เลือก</p>}
+        </div>}
         <div className="people-controls">
           <label><span>ค้นหาพนักงาน / ID / สาขา</span><input value={personSearch} onChange={(event) => setPersonSearch(event.target.value)} placeholder="พิมพ์ชื่อ รหัส หรือสาขา" /></label>
-          <label><span>ตำแหน่ง</span><select value={positionFilter} onChange={(event) => setPositionFilter(event.target.value)}><option>{ALL_POSITIONS}</option>{personPositions.map((position) => <option key={position}>{position}</option>)}</select></label>
+          <fieldset className="position-checks"><legend>เลือก Type / ตำแหน่ง</legend><div>
+            <label className={positionFilters.length === 0 ? "selected" : ""}><input type="checkbox" checked={positionFilters.length === 0} onChange={() => setPositionFilters([])} /><span>ทุกตำแหน่ง</span></label>
+            {personPositions.map((position) => <label className={positionFilters.includes(position) ? "selected" : ""} key={position}><input type="checkbox" checked={positionFilters.includes(position)} onChange={() => togglePosition(position)} /><span>{position}</span></label>)}
+          </div></fieldset>
         </div>
         <div className="people-table-wrap"><table className="people-table"><thead><tr><th>Rank</th><th>พนักงาน</th><th>ตำแหน่ง</th><th>สาขา</th><th>Target</th><th>Actual</th><th>{isQtyProduct ? "RR QTY" : "Actual-RR"}</th><th>% RR ACH</th><th>อายุงาน</th><th>สถานะ</th></tr></thead><tbody>
           {filteredPeople.map((person, index) => {
@@ -462,6 +452,23 @@ export default function Home() {
             const currentStatus = status(branch.pace);
             return <tr key={branch.name}><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "รอรหัสสาขา"}</small></td><td><b>{displayValue(branch.mtd)}</b><small>{isDailyView ? "เฉพาะวันที่เลือก" : `วันที่ ${String(asOfDay).padStart(2, "0")} ${shortMonth} ${displayValue(branch.today)}`}</small></td><td>{displayValue(branch.target)}</td><td>{percent(branch.target ? branch.mtd / branch.target : 0)}</td><td>{displayValue(branch.targetMtd)}</td><td><strong>{percent(branch.pace)}</strong></td><td><b className="rr-value">{displayValue(branch.runrate)}</b></td><td><strong className={`rr-percent ${status(branch.runrateAchievement).key}`}>{percent(branch.runrateAchievement)}</strong></td><td><strong className={`mom-cell ${momTone(branch.mom)}`}>{momPercent(branch.mom)}</strong></td><td>{displayValue(branch.forecast)}</td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
           })}</tbody></table></div>
+      </section>
+
+      <section className="panel auto-executive-analysis">
+        <div className="analysis-heading"><div><span>AUTO-GENERATED EXECUTIVE INSIGHT</span><h2>ข้อมูลเชิงลึกสำหรับผู้บริหาร</h2><p>วิเคราะห์อัตโนมัติตาม {product} • {analysisScope} • {analysisPeriod}</p></div><b>{planSignal}</b></div>
+        <div className="analysis-lead">
+          <span>EXECUTIVE SUMMARY</span>
+          <strong>{metrics.pace >= 1 ? `${product} เดินหน้าเหนือเป้าตามเวลา` : metrics.pace >= .85 ? `${product} อยู่ใกล้เป้า แต่ต้องคุมยอดปิดทุกวัน` : `${product} ต่ำกว่าแผนและต้องเร่งแก้ Gap`}</strong>
+          <p>{analysisScope} ทำยอด {displayValue(metrics.mtd)} เทียบ Target MTD {displayValue(metrics.targetMtd)} คิดเป็น ACH MTD {percent(metrics.pace)} ขณะที่ Runrate อยู่ที่ {displayValue(metrics.runrate)} หรือ {percent(metrics.runrateAchievement)} ของ Target เดือน และแนวโน้มเทียบเดือนก่อนอยู่ที่ {momPercent(metrics.mom)}</p>
+        </div>
+        <div className="analysis-grid">
+          <article><span>01 • PERFORMANCE POSITION</span><h3>ตำแหน่งเทียบแผน</h3><ul><li><b>%ACH เดือน</b><strong>{percent(metrics.achievement)}</strong></li><li><b>ACH MTD</b><strong>{percent(metrics.pace)}</strong></li><li><b>Forecast</b><strong>{displayValue(metrics.forecast)}</strong></li><li><b>Gap เดือน</b><strong>{displayValue(monthlyGap)}</strong></li></ul></article>
+          <article><span>02 • SALES MOMENTUM</span><h3>คุณภาพและจังหวะยอด</h3><p>มียอด {analysisActiveDays}/{asOfDay} วัน โดยวันที่ดีที่สุดคือ {analysisBestDay ? `วันที่ ${analysisBestDay}` : "ยังไม่มียอด"} ทำได้ {displayValue(analysisBestValue)} ปัจจุบันต้องรักษาหรือเพิ่มยอดเฉลี่ย {displayValue(requiredPerDay)} ต่อวันในช่วงที่เหลือ</p><div className="analysis-signal"><b>%MOM</b><strong className={momTone(metrics.mom)}>{momPercent(metrics.mom)}</strong></div></article>
+          <article><span>03 • RISK & PEOPLE</span><h3>จุดเสี่ยงที่ต้องบริหาร</h3>{personData ? <><p>ใน Type ที่เลือกมี No Sales {noSalesPeople.length} คน จาก {positionScopedPeople.length} คน ({percent(noSalesRate)}) และกลุ่ม At Risk ตาม RR ACH จำนวน {peopleAtRisk.length} คน</p><div className="analysis-signal"><b>สาขา No Sales สูงสุด</b><strong>{noSalesGroups[0] ? `${shortShop(noSalesGroups[0].shopName)} • ${noSalesGroups[0].people.length} คน` : "ไม่มี No Sales"}</strong></div></> : <><p>มีสาขาต่ำกว่า 85% ของ Target MTD จำนวน {atRisk.length} สาขา จาก {activeBranches.length} สาขา โดยต้องติดตามความต่อเนื่องของยอดและ Gap รายวัน</p><div className="analysis-signal"><b>สาขาที่ต้องเร่ง</b><strong>{weakestBranch ? `${shortShop(weakestBranch.name)} • ${percent(weakestBranch.pace)}` : "—"}</strong></div></>}</article>
+          <article><span>04 • OPPORTUNITY</span><h3>โอกาสขยายผล</h3><p>{strongestBranch ? `${shortShop(strongestBranch.name)} เป็น Benchmark ของมุมมองนี้ที่ ACH MTD ${percent(strongestBranch.pace)} ควรถอดวิธีสร้างยอดและส่งต่อให้สาขาที่ต่ำกว่าแผน` : "ยังไม่มีข้อมูลสาขาสำหรับวิเคราะห์"}</p><div className="analysis-signal"><b>Top Contribution</b><strong>{strongestBranch ? `${shortShop(strongestBranch.name)} • ${displayValue(strongestBranch.mtd)}` : "—"}</strong></div></article>
+        </div>
+        <div className="management-actions"><span>MANAGEMENT PRIORITIES</span><div>{executiveActions.map((action, index) => <p key={action}><b>{String(index + 1).padStart(2, "0")}</b><span>{action}</span></p>)}</div></div>
+        <p className="analysis-footnote">บทวิเคราะห์นี้สร้างจากข้อมูล Dashboard ปัจจุบันโดยอัตโนมัติ และจะคำนวณใหม่ทันทีเมื่อเปลี่ยน Product, สาขา, วันที่ หรือ Type ตำแหน่ง</p>
       </section>
 
       <section className="method-note"><div><strong>หลักการแยก Product</strong><p>ทุก KPI, กราฟ, อันดับ และตารางคำนวณจาก Product ที่เลือกเพียงรายการเดียว พร้อมซ่อนสาขาที่ไม่มี Target ของ Product นั้น</p></div><div><strong>Runrate จากไฟล์ต้นฉบับ</strong><p>ใช้ค่า {isQtyProduct ? "RR QTY สำหรับ TOL" : "RR Net Amount"} แยกตาม Product และสาขา • Runrate % = Runrate ÷ Target รายเดือน</p></div></section>
