@@ -95,6 +95,7 @@ test("provides Google Sheet individual performance for Postpay and TOL", async (
 test("dashboard exposes product, branch, and optional date filters", async () => {
   const page = await readFile(new URL("app/page.tsx", root), "utf8");
   const sheetSync = await readFile(new URL("app/google-sheet-data.ts", root), "utf8");
+  const personSheetSync = await readFile(new URL("app/google-person-data.ts", root), "utf8");
   const css = await readFile(new URL("app/globals.css", root), "utf8");
   assert.match(page, /Product Performance Monitor/);
   assert.match(page, /Dashboard ยอดขายรายวัน \(Device\/GIA : Data TSM, Post\/TOL : Data Link Daily Sales\)/);
@@ -126,18 +127,25 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(page, /dailyValues\.indexOf\(bestValue\) \+ 1/);
   assert.match(page, /Top 3 Contribution/);
   assert.match(page, /ข้อเสนอแนะสำหรับสาขา/);
-  assert.match(page, /personDataByProduct/);
+  assert.match(page, /fallbackPersonDataByProduct/);
   assert.match(page, /POSTPAY/);
   assert.match(page, /TOL/);
   assert.match(page, /Performance Indy รายบุคคล/);
   assert.match(page, /personAsOfDisplay/);
   assert.match(page, /postpay-person-performance\.json/);
   assert.match(page, /tol-person-performance\.json/);
+  assert.match(page, /loadGooglePersonPerformance/);
+  assert.match(page, /peopleSyncSource/);
+  assert.match(page, /อัปเดตอัตโนมัติทุก 5 นาที/);
+  assert.match(personSheetSync, /Postpay_People/);
+  assert.match(personSheetSync, /TOL_People/);
+  assert.match(personSheetSync, /personPerformanceFromCsv/);
+  assert.match(personSheetSync, /actualRunrate \/ target/);
   assert.match(page, /person\.shopName === branchName/);
   assert.match(page, /ค้นหาพนักงาน \/ ID \/ สาขา/);
   assert.match(page, /Actual-RR/);
   assert.match(page, /RR ACH/);
-  assert.match(page, /ข้อมูลล่าสุดจาก Google Sheet แยกจากยอดระดับสาขา/);
+  assert.match(page, /Google Sheet Live • อัปเดตอัตโนมัติทุก 5 นาที/);
   assert.match(page, /%Achieve \{percent\(metrics\.pace\)\}/);
   assert.match(page, /name === "TrueOnline" \? " \(QTY\)"/);
   assert.match(page, /isQtyProduct \? " QTY"/);
@@ -172,3 +180,4 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(css, /\.people-table-wrap/);
   assert.match(css, /\.people-distribution/);
 });
+
