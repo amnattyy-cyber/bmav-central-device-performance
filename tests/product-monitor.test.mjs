@@ -100,7 +100,10 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(page, /Product Performance Monitor/);
   assert.match(page, /Dashboard ยอดขายรายวัน \(Device\/GIA : Data TSM, Post\/TOL : Data Link Daily Sales\)/);
   assert.match(page, /setProduct/);
-  assert.match(page, /setBranchName/);
+  assert.match(page, /setSelectedBranchNames/);
+  assert.match(page, /branch-multiselect/);
+  assert.match(page, /toggleBranch/);
+  assert.match(page, /selectedBranchNames\.includes\(branch\.name\)/);
   assert.match(page, /targetedBranches/);
   assert.match(page, /branch\.products\[product\]\.target > 0/);
   assert.match(page, /ซ่อนสาขาที่ไม่มี Target/);
@@ -122,7 +125,7 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(page, /เพิ่มจำนวนปิด TOL ในมุม QTY/);
   assert.match(page, /ยกระดับความสม่ำเสมอของยอด GIA/);
   assert.match(page, /เร่งยอดปิด Postpay ให้ทัน Runrate/);
-  assert.match(page, /branchName === ALL_BRANCHES/);
+  assert.match(page, /selectedBranchNames\.length === 0/);
   assert.match(page, /const requiredPerDay = monthlyGap \/ remainingDays/);
   assert.match(page, /dailyValues\.indexOf\(bestValue\) \+ 1/);
   assert.match(page, /Top 3 Contribution/);
@@ -153,7 +156,7 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(personSheetSync, /TOL_People/);
   assert.match(personSheetSync, /personPerformanceFromCsv/);
   assert.match(personSheetSync, /actualRunrate \/ target/);
-  assert.match(page, /person\.shopName === branchName/);
+  assert.match(page, /selectedBranchNames\.includes\(person\.shopName\)/);
   assert.match(page, /ค้นหาพนักงาน \/ ID \/ สาขา/);
   assert.match(page, /Actual-RR/);
   assert.match(page, /RR ACH/);
@@ -197,4 +200,3 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(css, /\.auto-executive-analysis/);
   assert.match(css, /\.management-actions/);
 });
-
