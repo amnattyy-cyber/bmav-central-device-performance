@@ -5,31 +5,15 @@ import fallbackData from "./sales-product-data.json";
 import postpayPersonData from "./postpay-person-performance.json";
 import tolPersonData from "./tol-person-performance.json";
 import { type Branch, type DashboardData, loadGoogleSheetData, type ProductName } from "./google-sheet-data";
+import { loadGooglePersonPerformance, PERSON_PERFORMANCE_SHEET_URL, type PersonPerformanceData } from "./google-person-data";
 
 const ALL_BRANCHES = "ทุกสาขา";
 const ALL_DAYS = "all";
 const ALL_POSITIONS = "ทุกตำแหน่ง";
-type PersonPerformance = {
-  name: string;
-  position: string;
-  shopName: string;
-  area: string;
-  target: number;
-  actual: number;
-  actualRunrate: number;
-  runrateAchievement: number;
-  tenure: string;
-  id: string;
-};
-type PersonPerformanceData = {
-  meta: { product: string; asOf: string; area: string; source: string };
-  people: PersonPerformance[];
-};
-const personDataByProduct: Partial<Record<ProductName, PersonPerformanceData>> = {
+const fallbackPersonDataByProduct: Partial<Record<ProductName, PersonPerformanceData>> = {
   Postpay: postpayPersonData as PersonPerformanceData,
   TrueOnline: tolPersonData as PersonPerformanceData,
 };
-const PERSON_PERFORMANCE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1F6pHFgsF3soHf7NJkgxQ_fKUU-ccQ2jIekmhgydPxv0/edit";
 const productMeta: Record<ProductName, { color: string; accent: string; short: string }> = {
   Device: { color: "#2563eb", accent: "#dbeafe", short: "DEV" },
   GIA: { color: "#8e44ad", accent: "#f3e8ff", short: "GIA" },
@@ -79,6 +63,8 @@ function status(pace: number) {
 export default function Home() {
   const [data, setData] = useState<DashboardData>(fallbackData as DashboardData);
   const [syncSource, setSyncSource] = useState<"sheet" | "fallback">("fallback");
+  const [personDataByProduct, setPersonDataByProduct] = useState(fallbackPersonDataByProduct);
+  const [peopleSyncSource, setPeopleSyncSource] = useState<"sheet" | "fallback">("fallback");
   const [product, setProduct] = useState<ProductName>("Device");
   const [branchName, setBranchName] = useState(ALL_BRANCHES);
   const [dateFilter, setDateFilter] = useState(ALL_DAYS);
@@ -137,6 +123,46 @@ export default function Home() {
     const interval = window.setInterval(sync, 5 * 60 * 1000);
     const onVisibility = () => {
       if (document.visibilityState === "visible") void sync();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      active = false;
+      controller.abort();
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+
+    const syncPeople = async () => {
+      try {
+        const nextData = await loadGooglePersonPerformance(controller.signal);
+        for (const productName of ["Postpay", "TrueOnline"] as const) {
+          const next = nextData[productName];
+          const bundled = fallbackPersonDataByProduct[productName];
+          if (!next || (bundled && next.meta.asOf < bundled.meta.asOf)) {
+            throw new Error(`Google Sheet ${productName} data is older than the bundled update`);
+          }
+        }
+        if (active) {
+          setPersonDataByProduct(nextData);
+          setPeopleSyncSource("sheet");
+        }
+      } catch (error) {
+        if (active && !(error instanceof DOMException && error.name === "AbortError")) {
+          console.warn("Google Sheet person sync unavailable; using bundled person data.", error);
+          setPeopleSyncSource("fallback");
+        }
+      }
+    };
+
+    void syncPeople();
+    const interval = window.setInterval(syncPeople, 5 * 60 * 1000);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void syncPeople();
     };
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
@@ -376,7 +402,7 @@ export default function Home() {
       </section>}
 
       {personData && <section className="panel people-performance">
-        <div className="section-head people-head"><div><span>{product === "TrueOnline" ? "TOL" : "POSTPAY"} • PEOPLE PERFORMANCE</span><h2>Performance Indy รายบุคคล</h2><p>Data as of {personAsOfDisplay} • ข้อมูลล่าสุดจาก Google Sheet แยกจากยอดระดับสาขา</p></div><b>{branchName === ALL_BRANCHES ? "ทุกสาขา" : shortShop(branchName)} • {filteredPeople.length} คน</b></div>
+        <div className="section-head people-head"><div><span>{product === "TrueOnline" ? "TOL" : "POSTPAY"} • PEOPLE PERFORMANCE</span><h2>Performance Indy รายบุคคล</h2><p>Data as of {personAsOfDisplay} • {peopleSyncSource === "sheet" ? "Google Sheet Live • อัปเดตอัตโนมัติทุก 5 นาที" : "ข้อมูลสำรอง • กำลังรอเชื่อม Google Sheet"}</p></div><b>{branchName === ALL_BRANCHES ? "ทุกสาขา" : shortShop(branchName)} • {filteredPeople.length} คน</b></div>
         <div className="people-kpis">
           <article><span>พนักงานในมุมมอง</span><strong>{filteredPeople.length} คน</strong><small>{peopleWithTarget.length} คนที่มี Target</small></article>
           <article><span>Actual ถึง {personAsOfShort}</span><strong>{personValue(personTotals.actual)}</strong><small>%ACH {percent(personActualAchievement)}</small></article>
@@ -402,7 +428,7 @@ export default function Home() {
           })}
           {!filteredPeople.length && <tr><td colSpan={10} className="people-empty">ไม่พบข้อมูลตามตัวกรองที่เลือก</td></tr>}
         </tbody></table></div>
-        <div className="people-source-note"><b>หมายเหตุ:</b> Target, Actual, {isQtyProduct ? "RR QTY" : "Actual-RR"} และ % RR ACH รายบุคคลมาจาก <a href={PERSON_PERFORMANCE_SHEET_URL} target="_blank" rel="noreferrer">BMAV Person Performance Daily Update</a> ณ {personAsOfDisplay} โดยตรง และแยกชุดคำนวณจากยอดระดับสาขา</div>
+        <div className="people-source-note"><b>หมายเหตุ:</b> Target, Actual, {isQtyProduct ? "RR QTY" : "Actual-RR"} และ % RR ACH รายบุคคลมาจาก <a href={PERSON_PERFORMANCE_SHEET_URL} target="_blank" rel="noreferrer">BMAV Person Performance Daily Update</a> ณ {personAsOfDisplay} โดยตรง • แหล่งข้อมูลสาธารณะ • รีเฟรชอัตโนมัติทุก 5 นาที และแยกชุดคำนวณจากยอดระดับสาขา</div>
       </section>}
 
       <section className="two-col">
@@ -443,3 +469,4 @@ export default function Home() {
     </main>
   );
 }
+
