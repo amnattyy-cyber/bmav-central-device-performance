@@ -6,7 +6,7 @@ Online infographic dashboard สำหรับติดตามยอดขา
 - เลือกดูทุกสาขาหรือสาขาเดียวได้
 - KPI, กราฟ, อันดับ, Runrate และ Forecast คำนวณเฉพาะ Product ที่เลือก
 - ไม่มีการรวมยอดข้าม Product
-- ข้อมูลยอดขายล่าสุด: ถึงวันที่ 11 August 2026 จากไฟล์ `8778 Aug 2026 V1.xlsx`
+- ข้อมูลยอดขายล่าสุด: ถึงวันที่ 12 August 2026 จากไฟล์ `8778 Aug 2026 V1.xlsx`
 - Runrate ใช้ข้อมูล `RR Net Amount` แยกตาม Product และสาขา
 - Performance Indy รายบุคคล: Postpay ถึง 09/08/2026 และ TOL ถึง 10/08/2026 จาก Google Sheet `BMAV Person Performance Daily Update`
 
