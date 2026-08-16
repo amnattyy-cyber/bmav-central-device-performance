@@ -1,5 +1,5 @@
 import focusSales from "./focus-device-sales.json";
-import { GOOGLE_SHEET_URL, type DashboardData } from "./google-sheet-data";
+import { GOOGLE_SHEET_ID, GOOGLE_SHEET_URL, type DashboardData } from "./google-sheet-data";
 
 export type FocusDeviceBranch = {
   name: string;
@@ -22,7 +22,7 @@ export type FocusDeviceData = {
 
 export const FOCUS_DEVICE_SHEET_URL = GOOGLE_SHEET_URL;
 export const FOCUS_DEVICE_SHEET_TAB = "Focus_Device";
-export const FOCUS_DEVICE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRL3jDKCZEI0VJuYlPlRZCkTqH4tBwEQoSkcfQGmXzMs0SgbDCqrkdukhk2Gko9DoW9zwyE7hUs-h0w/pub?gid=16082026&single=true&output=csv";
+export const FOCUS_DEVICE_SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Focus_Device`;
 
 const SPECIAL_TARGET_BRANCHES = new Set([
   "True Shop Central Rama 9 4Fl.",
