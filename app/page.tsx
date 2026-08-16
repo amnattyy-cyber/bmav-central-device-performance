@@ -6,6 +6,7 @@ import postpayPersonData from "./postpay-person-performance.json";
 import tolPersonData from "./tol-person-performance.json";
 import { type Branch, type DashboardData, loadGoogleSheetData, type ProductName } from "./google-sheet-data";
 import { loadGooglePersonPerformance, PERSON_PERFORMANCE_SHEET_URL, type PersonPerformanceData } from "./google-person-data";
+import { createFocusDeviceFallback, FOCUS_DEVICE_SHEET_URL, loadFocusDeviceData, type FocusDeviceData } from "./focus-device-data";
 
 const ALL_BRANCHES = "ทุกสาขา";
 const ALL_DAYS = "all";
@@ -13,6 +14,7 @@ const fallbackPersonDataByProduct: Partial<Record<ProductName, PersonPerformance
   Postpay: postpayPersonData as PersonPerformanceData,
   TrueOnline: tolPersonData as PersonPerformanceData,
 };
+const fallbackFocusDeviceData = createFocusDeviceFallback(fallbackData as DashboardData);
 const productMeta: Record<ProductName, { color: string; accent: string; short: string }> = {
   Device: { color: "#2563eb", accent: "#dbeafe", short: "DEV" },
   GIA: { color: "#8e44ad", accent: "#f3e8ff", short: "GIA" },
@@ -64,6 +66,8 @@ export default function Home() {
   const [syncSource, setSyncSource] = useState<"sheet" | "fallback">("fallback");
   const [personDataByProduct, setPersonDataByProduct] = useState(fallbackPersonDataByProduct);
   const [peopleSyncSource, setPeopleSyncSource] = useState<"sheet" | "fallback">("fallback");
+  const [focusData, setFocusData] = useState<FocusDeviceData>(fallbackFocusDeviceData);
+  const [focusSyncSource, setFocusSyncSource] = useState<"sheet" | "fallback">("fallback");
   const [product, setProduct] = useState<ProductName>("Device");
   const [selectedBranchNames, setSelectedBranchNames] = useState<string[]>([]);
   const [dateFilter, setDateFilter] = useState(ALL_DAYS);
@@ -91,6 +95,9 @@ export default function Home() {
   const personAsOfDisplay = personAsOfDate.toLocaleDateString("en-GB");
   const personAsOfShort = personAsOfDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
   const personValue = (value: number) => `${money(value)}${isQtyProduct ? " QTY" : ""}`;
+  const focusAsOfDay = Number(focusData.meta.asOf.slice(-2));
+  const focusPeriodDay = selectedDay ?? focusAsOfDay;
+  const focusPeriodDays = selectedDay === null ? focusAsOfDay : 1;
 
   const targetedBranches = useMemo(
     () => branches.filter((branch) => branch.products[product].target > 0),
@@ -123,6 +130,42 @@ export default function Home() {
     const interval = window.setInterval(sync, 5 * 60 * 1000);
     const onVisibility = () => {
       if (document.visibilityState === "visible") void sync();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      active = false;
+      controller.abort();
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+
+    const syncFocusDevice = async () => {
+      try {
+        const nextData = await loadFocusDeviceData(controller.signal);
+        if (nextData.meta.asOf < fallbackFocusDeviceData.meta.asOf) {
+          throw new Error("Focus Device Sheet data is older than the bundled update");
+        }
+        if (active) {
+          setFocusData(nextData);
+          setFocusSyncSource("sheet");
+        }
+      } catch (error) {
+        if (active && !(error instanceof DOMException && error.name === "AbortError")) {
+          console.warn("Focus Device Sheet sync unavailable; using bundled focus data.", error);
+          setFocusSyncSource("fallback");
+        }
+      }
+    };
+
+    void syncFocusDevice();
+    const interval = window.setInterval(syncFocusDevice, 5 * 60 * 1000);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void syncFocusDevice();
     };
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
@@ -226,6 +269,37 @@ export default function Home() {
     return { ...branch, target: item.target, mtd, targetMtd, pace, forecast, runrate: item.runrate, runrateAchievement, julyActual: item.julyActual, mom, today: item.daily[periodDay - 1] ?? 0 };
   }).filter((branch) => selectedBranchNames.length === 0 || selectedBranchNames.includes(branch.name))
     .sort((a, b) => b.pace - a.pace), [targetedBranches, product, selectedBranchNames, isDailyView, periodDay, periodDays]);
+
+  const focusBranchPerformance = useMemo(() => focusData.branches
+    .filter((branch) => branch.dailyTarget > 0)
+    .filter((branch) => selectedBranchNames.length === 0 || selectedBranchNames.includes(branch.name))
+    .map((branch) => {
+      const actual = selectedDay === null
+        ? branch.daily.slice(0, focusAsOfDay).reduce<number>((sum, value) => sum + (value ?? 0), 0)
+        : branch.daily[focusPeriodDay - 1] ?? 0;
+      const target = branch.dailyTarget * focusPeriodDays;
+      const achievement = target > 0 ? actual / target : 0;
+      const activeDays = selectedDay === null
+        ? branch.daily.slice(0, focusAsOfDay).filter((value) => (value ?? 0) > 0).length
+        : actual > 0 ? 1 : 0;
+      return { ...branch, actual, target, achievement, gap: Math.max(0, target - actual), activeDays };
+    })
+    .sort((a, b) => b.actual - a.actual || b.dailyTarget - a.dailyTarget || a.name.localeCompare(b.name)),
+  [focusData, selectedBranchNames, selectedDay, focusAsOfDay, focusPeriodDay, focusPeriodDays]);
+
+  const focusMetrics = useMemo(() => {
+    const total = focusBranchPerformance.reduce((sum, branch) => ({
+      actual: sum.actual + branch.actual,
+      target: sum.target + branch.target,
+      dailyTarget: sum.dailyTarget + branch.dailyTarget,
+    }), { actual: 0, target: 0, dailyTarget: 0 });
+    return {
+      ...total,
+      achievement: total.target > 0 ? total.actual / total.target : 0,
+      gap: Math.max(0, total.target - total.actual),
+      branchesWithSales: focusBranchPerformance.filter((branch) => branch.actual > 0).length,
+    };
+  }, [focusBranchPerformance]);
 
   const activeBranches = branchPerformance.filter((branch) => branch.target > 0);
   const onTrack = activeBranches.filter((branch) => branch.pace >= 1);
@@ -477,6 +551,25 @@ export default function Home() {
           <article><span>Outlook สิ้นเดือน</span><strong>{displayValue(branchExecutive.forecast)}</strong><small>Runrate {percent(branchExecutive.runrateAchievement)} • %MOM {momPercent(branchExecutive.mom)}</small></article>
         </div>
         <div className="branch-action"><span>ข้อเสนอแนะสำหรับสาขา</span><p>{branchExecutive.pace >= 1 ? `รักษาจังหวะ ${product} ให้ต่อเนื่อง และใช้วันที่ทำยอดสูงสุดเป็นต้นแบบการปิดยอด` : `${productFocus.action} สาขานี้ต้องทำเพิ่มเฉลี่ย ${displayValue(branchExecutive.requiredDaily)} ต่อวันในวันที่เหลือ`}</p></div>
+      </section>}
+
+      {product === "Device" && <section className="panel focus-device-monitor">
+        <div className="section-head focus-device-head"><div><span>FOCUS DEVICE MODEL</span><h2>{focusData.meta.model}</h2><p>ติดตามยอดขาย QTY และ Target รายสาขา • เริ่มนับตั้งแต่ 1 Aug 2026</p></div><b>{focusSyncSource === "sheet" ? "Google Sheet Live" : "ข้อมูลสำรอง"} • ถึง {String(focusAsOfDay).padStart(2, "0")} Aug</b></div>
+        <div className="focus-device-kpis">
+          <article><span>{isDailyView ? `ยอดวันที่ ${String(focusPeriodDay).padStart(2, "0")} Aug` : "ยอดสะสม"}</span><strong>{money(focusMetrics.actual)} QTY</strong><small>{focusMetrics.branchesWithSales} สาขามียอด</small></article>
+          <article><span>{isDailyView ? "Target ประจำวัน" : "Target สะสม"}</span><strong>{money(focusMetrics.target)} QTY</strong><small>เป้ารวม {money(focusMetrics.dailyTarget)} เครื่อง/วัน</small></article>
+          <article><span>%ACH</span><strong>{percent(focusMetrics.achievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, focusMetrics.achievement * 100)}%` }} /></div></article>
+          <article><span>Gap</span><strong>{money(focusMetrics.gap)} QTY</strong><small>ยอดที่ต้องเร่งเพิ่ม</small></article>
+        </div>
+        <div className="focus-target-rule"><strong>Target ต่อวัน</strong><span>Central Rama 9 4Fl. และ Central World 4Fl. = 3 เครื่อง/สาขา</span><span>อีก 13 สาขาที่มี Target = 1 เครื่อง/สาขา</span></div>
+        <div className="table-wrap focus-device-table-wrap"><table className="focus-device-table"><thead><tr><th>Rank</th><th>สาขา</th><th>Target/วัน</th><th>{isDailyView ? "Target วันนี้" : "Target สะสม"}</th><th>Actual QTY</th><th>%ACH</th><th>Gap</th><th>วันที่มียอด</th><th>สถานะ</th></tr></thead><tbody>
+          {focusBranchPerformance.map((branch, index) => {
+            const currentStatus = status(branch.achievement);
+            const isSpecialTarget = branch.dailyTarget === 3;
+            return <tr key={branch.name}><td>{index + 1}</td><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "รอรหัสสาขา"}{isSpecialTarget ? " • Focus 3/วัน" : ""}</small></td><td><b>{branch.dailyTarget} QTY</b></td><td>{money(branch.target)} QTY</td><td><strong>{money(branch.actual)} QTY</strong></td><td><b>{percent(branch.achievement)}</b></td><td>{money(branch.gap)} QTY</td><td>{branch.activeDays}/{focusPeriodDays} วัน</td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
+          })}
+        </tbody></table></div>
+        <p className="focus-device-source">ยอดจริง 14 เครื่อง จากข้อมูลที่ยืนยันถึง 15 Aug 2026 • แสดงเฉพาะ 15 สาขาที่มี Target • เปลี่ยนวันที่หรือเลือกสาขาด้านบนเพื่อดูเฉพาะมุมที่ต้องการ • <a href={FOCUS_DEVICE_SHEET_URL} target="_blank" rel="noreferrer">เปิด Google Sheet</a></p>
       </section>}
 
       {personData && <section className="panel people-performance">

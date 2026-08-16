@@ -1,0 +1,18 @@
+{
+  "model": "Honor X5C Plus",
+  "asOf": "2026-08-15",
+  "sales": [
+    { "day": 2, "branch": "True Shop Central World 4Fl.", "qty": 1 },
+    { "day": 4, "branch": "True Shop Central Rama 9", "qty": 1 },
+    { "day": 6, "branch": "True Shop Central Rama 3", "qty": 1 },
+    { "day": 11, "branch": "True Shop Central World 4Fl.", "qty": 1 },
+    { "day": 11, "branch": "True Shop Silom Complex", "qty": 1 },
+    { "day": 12, "branch": "True Shop Central Rama 3", "qty": 2 },
+    { "day": 13, "branch": "True Shop Central Festival East Ville", "qty": 1 },
+    { "day": 14, "branch": "Kiosk Lotus's Ramindra", "qty": 1 },
+    { "day": 15, "branch": "True Shop Central Rama 9", "qty": 1 },
+    { "day": 15, "branch": "True Shop Central World 4Fl.", "qty": 2 },
+    { "day": 15, "branch": "True Shop Mahboon Krong 4Fl.", "qty": 1 },
+    { "day": 15, "branch": "True Shop at Chamchuri Square 1", "qty": 1 }
+  ]
+}
