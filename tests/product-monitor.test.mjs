@@ -179,6 +179,7 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(page, /focusSyncSource/);
   assert.match(focusSync, /Focus_Device/);
   assert.match(focusSync, /gviz\/tq/);
+  assert.match(focusSync, /range=A4:K531/);
   assert.match(focusSync, /EXCLUDED_TARGET_BRANCHES/);
   assert.match(focusSync, /True Kiosk The Eight Thonglor/);
   assert.match(focusSync, /True Shop U Chu Liang Building/);

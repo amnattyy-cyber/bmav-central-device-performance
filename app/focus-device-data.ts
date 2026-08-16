@@ -22,7 +22,7 @@ export type FocusDeviceData = {
 
 export const FOCUS_DEVICE_SHEET_URL = GOOGLE_SHEET_URL;
 export const FOCUS_DEVICE_SHEET_TAB = "Focus_Device";
-export const FOCUS_DEVICE_SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Focus_Device`;
+export const FOCUS_DEVICE_SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Focus_Device&range=A4:K531`;
 
 const SPECIAL_TARGET_BRANCHES = new Set([
   "True Shop Central Rama 9 4Fl.",
