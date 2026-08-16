@@ -172,6 +172,8 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(page, /ดูครบทุกสาขา \/ Copy รูป/);
   assert.match(page, /FOCUS DEVICE MODEL/);
   assert.match(page, /focusBranchPerformance/);
+  assert.match(page, /focusCaptureMode/);
+  assert.match(page, /ดูครบ 15 สาขา \/ Copy รูป/);
   assert.match(page, /Target ต่อวัน/);
   assert.match(page, /Central Rama 9 4Fl\./);
   assert.match(page, /Central World 4Fl\./);
@@ -185,6 +187,8 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(focusSync, /True Shop U Chu Liang Building/);
   assert.match(page, /branch\.dailyTarget > 0/);
   assert.match(page, /แสดงเฉพาะ 15 สาขาที่มี Target/);
+  assert.match(page, /BRANCH HEALTH SCORE/);
+  assert.match(page, /branchHealthScore/);
   assert.equal(focusSales.model, "Honor X5C Plus");
   assert.equal(focusSales.asOf, "2026-08-15");
   assert.equal(focusSales.sales.reduce((sum, row) => sum + row.qty, 0), 14);
@@ -219,4 +223,6 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(css, /\.no-sales-groups/);
   assert.match(css, /\.auto-executive-analysis/);
   assert.match(css, /\.management-actions/);
+  assert.match(css, /\.focus-capture-mode/);
+  assert.match(css, /\.trend-scorebar/);
 });

@@ -72,6 +72,7 @@ export default function Home() {
   const [selectedBranchNames, setSelectedBranchNames] = useState<string[]>([]);
   const [dateFilter, setDateFilter] = useState(ALL_DAYS);
   const [captureMode, setCaptureMode] = useState(false);
+  const [focusCaptureMode, setFocusCaptureMode] = useState(false);
   const [personSearch, setPersonSearch] = useState("");
   const [positionFilters, setPositionFilters] = useState<string[]>([]);
   const [showNoSales, setShowNoSales] = useState(false);
@@ -303,7 +304,11 @@ export default function Home() {
 
   const activeBranches = branchPerformance.filter((branch) => branch.target > 0);
   const onTrack = activeBranches.filter((branch) => branch.pace >= 1);
+  const watch = activeBranches.filter((branch) => branch.pace >= .85 && branch.pace < 1);
   const atRisk = activeBranches.filter((branch) => branch.pace < .85);
+  const branchHealthScore = activeBranches.length > 0
+    ? (onTrack.length * 100 + watch.length * 70 + atRisk.length * 30) / activeBranches.length
+    : 0;
   const leader = activeBranches[0];
   const maxPace = Math.max(1, ...activeBranches.map((branch) => branch.pace));
   const maxDaily = Math.max(metrics.dailyTarget, ...metrics.daily.slice(0, asOfDay), 1);
@@ -444,8 +449,16 @@ export default function Home() {
     setCaptureMode((current) => !current);
   };
 
+  const toggleFocusCaptureMode = () => {
+    if (!focusCaptureMode) {
+      setProduct("Device");
+      setSelectedBranchNames([]);
+    }
+    setFocusCaptureMode((current) => !current);
+  };
+
   return (
-    <main className={captureMode ? "capture-mode" : ""} style={{ "--product": theme.color, "--product-soft": theme.accent } as React.CSSProperties}>
+    <main className={captureMode ? "capture-mode" : focusCaptureMode ? "focus-capture-mode" : ""} style={{ "--product": theme.color, "--product-soft": theme.accent } as React.CSSProperties}>
       <header className="hero" data-sync-source={syncSource}>
         <div className="hero-copy">
           <div className="eyebrow"><span className="live-dot" /> BMAV-CENTRAL • DAILY SALES</div>
@@ -554,7 +567,7 @@ export default function Home() {
       </section>}
 
       {product === "Device" && <section className="panel focus-device-monitor">
-        <div className="section-head focus-device-head"><div><span>FOCUS DEVICE MODEL</span><h2>{focusData.meta.model}</h2><p>ติดตามยอดขาย QTY และ Target รายสาขา • เริ่มนับตั้งแต่ 1 Aug 2026</p></div><b>{focusSyncSource === "sheet" ? "Google Sheet Live" : "ข้อมูลสำรอง"} • ถึง {String(focusAsOfDay).padStart(2, "0")} Aug</b></div>
+        <div className="section-head focus-device-head"><div><span>FOCUS DEVICE MODEL</span><h2>{focusData.meta.model}</h2><p>ติดตามยอดขาย QTY และ Target รายสาขา • เริ่มนับตั้งแต่ 1 Aug 2026</p></div><div className="focus-device-actions"><b>{focusSyncSource === "sheet" ? "Google Sheet Live" : "ข้อมูลสำรอง"} • ถึง {String(focusAsOfDay).padStart(2, "0")} Aug</b><button className="capture-toggle" onClick={toggleFocusCaptureMode}>{focusCaptureMode ? "กลับ Dashboard" : "ดูครบ 15 สาขา / Copy รูป"}</button></div></div>
         <div className="focus-device-kpis">
           <article><span>{isDailyView ? `ยอดวันที่ ${String(focusPeriodDay).padStart(2, "0")} Aug` : "ยอดสะสม"}</span><strong>{money(focusMetrics.actual)} QTY</strong><small>{focusMetrics.branchesWithSales} สาขามียอด</small></article>
           <article><span>{isDailyView ? "Target ประจำวัน" : "Target สะสม"}</span><strong>{money(focusMetrics.target)} QTY</strong><small>เป้ารวม {money(focusMetrics.dailyTarget)} เครื่อง/วัน</small></article>
@@ -624,6 +637,15 @@ export default function Home() {
             {metrics.daily.map((value, index) => <div className={`day-bar ${index + 1 > asOfDay ? "future" : ""} ${isDailyView && index + 1 !== selectedDay ? "not-selected" : ""} ${isDailyView && index + 1 === selectedDay ? "selected" : ""}`} key={index} title={`วันที่ ${index + 1}: ${displayValue(value)}`}>
               <i style={{ height: `${Math.max(value > 0 ? 4 : 0, value / maxDaily * 100)}%` }} /><span>{index + 1}</span>
             </div>)}
+          </div>
+          <div className="trend-scorebar">
+            <div className="trend-score-head"><span>BRANCH HEALTH SCORE</span><strong>{Math.round(branchHealthScore)} / 100</strong></div>
+            <div className="trend-score-track">
+              {onTrack.length > 0 && <i className="ontrack" style={{ width: `${onTrack.length / activeBranches.length * 100}%` }} />}
+              {watch.length > 0 && <i className="watch" style={{ width: `${watch.length / activeBranches.length * 100}%` }} />}
+              {atRisk.length > 0 && <i className="atrisk" style={{ width: `${atRisk.length / activeBranches.length * 100}%` }} />}
+            </div>
+            <div className="trend-score-legend"><span><i className="ontrack" />On Track <b>{onTrack.length}</b></span><span><i className="watch" />Watch <b>{watch.length}</b></span><span><i className="atrisk" />At Risk <b>{atRisk.length}</b></span></div>
           </div>
         </article>
 
