@@ -7,6 +7,7 @@ import tolPersonData from "./tol-person-performance.json";
 import { type Branch, type DashboardData, loadGoogleSheetData, type ProductName } from "./google-sheet-data";
 import { loadGooglePersonPerformance, PERSON_PERFORMANCE_SHEET_URL, type PersonPerformanceData } from "./google-person-data";
 import { createFocusDeviceFallback, FOCUS_DEVICE_SHEET_URL, loadFocusDeviceData, type FocusDeviceData } from "./focus-device-data";
+import { downloadExcelWorkbook, type ExcelSheet } from "./excel-export";
 
 const ALL_BRANCHES = "ทุกสาขา";
 const ALL_DAYS = "all";
@@ -434,6 +435,103 @@ export default function Home() {
       : productFocus.action,
   ];
 
+  const exportSubtitle = `${analysisScope} • ${analysisPeriod} • Data as of ${data.meta.asOf}`;
+  const exportFileSuffix = `${data.meta.asOf}_${isDailyView ? `day-${String(periodDay).padStart(2, "0")}` : "mtd"}`;
+
+  const downloadProductExcel = () => {
+    const branchSheet: ExcelSheet = {
+      name: `${product} Branch`,
+      title: `${product} Performance by Branch`,
+      subtitle: exportSubtitle,
+      headers: ["Rank", "Branch", "WW", "Product", "Period", "Target", "Actual", "Target by Period", "ACH by Period", "Status", "Runrate", "Runrate % Target", "July Actual", "%MOM", "Forecast", "Gap to Target", "Latest / Selected Day"],
+      rows: branchPerformance.map((branch, index) => [
+        index + 1,
+        branch.name,
+        branch.ww ?? "",
+        product,
+        analysisPeriod,
+        branch.target,
+        branch.mtd,
+        branch.targetMtd,
+        branch.pace,
+        status(branch.pace).label,
+        branch.runrate,
+        branch.runrateAchievement,
+        branch.julyActual,
+        branch.mom,
+        branch.forecast,
+        Math.max(0, branch.target - branch.mtd),
+        branch.today,
+      ]),
+      numberColumns: [0, 5, 6, 7, 10, 12, 14, 15, 16],
+      percentageColumns: [8, 11, 13],
+    };
+    const trendSheet: ExcelSheet = {
+      name: "Daily Trend",
+      title: `${product} Daily Trend`,
+      subtitle: `${analysisScope} • สะสมถึง ${String(asOfDay).padStart(2, "0")} ${monthYear}`,
+      headers: ["Date", "Actual", "Daily Target", "Variance"],
+      rows: metrics.daily.slice(0, asOfDay).map((actual, index) => [
+        `${data.meta.asOf.slice(0, 8)}${String(index + 1).padStart(2, "0")}`,
+        actual,
+        metrics.dailyTarget,
+        actual - metrics.dailyTarget,
+      ]),
+      numberColumns: [1, 2, 3],
+    };
+    downloadExcelWorkbook([branchSheet, trendSheet], `BMAV_${product}_${exportFileSuffix}.xlsx`);
+  };
+
+  const downloadFocusExcel = () => {
+    const focusSheet: ExcelSheet = {
+      name: "Honor X5C Plus",
+      title: `Focus Model: ${focusData.meta.model}`,
+      subtitle: `${branchSelectionLabel} • ${selectedDay === null ? `สะสม 1-${focusAsOfDay} Aug 2026` : `เฉพาะวันที่ ${focusPeriodDay} Aug 2026`} • Data as of ${focusData.meta.asOf}`,
+      headers: ["Rank", "Branch", "Target / Day", "Target by Period", "Actual QTY", "%ACH", "Gap", "Active Days"],
+      rows: focusBranchPerformance.map((branch, index) => [
+        index + 1,
+        branch.name,
+        branch.dailyTarget,
+        branch.target,
+        branch.actual,
+        branch.achievement,
+        branch.gap,
+        branch.activeDays,
+      ]),
+      numberColumns: [0, 2, 3, 4, 6, 7],
+      percentageColumns: [5],
+    };
+    downloadExcelWorkbook([focusSheet], `BMAV_Honor-X5C-Plus_${exportFileSuffix}.xlsx`);
+  };
+
+  const downloadPeopleExcel = () => {
+    if (!personData) return;
+    const peopleSheet: ExcelSheet = {
+      name: `${product} Indy`,
+      title: `${product} Performance Indy`,
+      subtitle: `${branchSelectionLabel} • ${positionFilters.length === 0 ? "ทุกตำแหน่ง" : positionFilters.join(", ")} • Data as of ${personAsOf}`,
+      headers: ["Rank", "Employee ID", "Name", "Position", "Branch", "Area", "Target", "Actual", "Actual % Target", "Actual-Runrate", "RR ACH", "Tenure", "No Sales"],
+      rows: filteredPeople.map((person, index) => [
+        index + 1,
+        person.id,
+        person.name,
+        person.position,
+        person.shopName,
+        person.area,
+        person.target,
+        person.actual,
+        person.target > 0 ? person.actual / person.target : 0,
+        person.actualRunrate,
+        person.runrateAchievement,
+        person.tenure,
+        person.actual <= 0 ? "Yes" : "No",
+      ]),
+      numberColumns: [0, 6, 7, 9],
+      percentageColumns: [8, 10],
+    };
+    downloadExcelWorkbook([peopleSheet], `BMAV_${product}_Performance-Indy_${exportFileSuffix}.xlsx`);
+  };
+
   const reset = () => {
     setProduct("Device");
     setSelectedBranchNames([]);
@@ -495,6 +593,17 @@ export default function Home() {
           </details>
         </div>
         <label><span>เลือกวันที่</span><select value={dateFilter} onChange={(event) => setDateFilter(event.target.value)}><option value={ALL_DAYS}>ทุกวัน (ยอดสะสมถึง {String(asOfDay).padStart(2, "0")} {shortMonth})</option>{Array.from({ length: asOfDay }, (_, index) => <option key={index + 1} value={String(index + 1)}>เฉพาะวันที่ {String(index + 1).padStart(2, "0")} {shortMonth} {asOfDate.getFullYear()}</option>)}</select></label>
+        <div className="download-menu">
+          <span className="control-label">ดาวน์โหลด</span>
+          <details>
+            <summary>Download Excel</summary>
+            <div className="download-options">
+              <button onClick={(event) => { downloadProductExcel(); event.currentTarget.closest("details")?.removeAttribute("open"); }}><b>{product} มุมมองปัจจุบัน</b><small>สรุปรายสาขา + Daily Trend</small></button>
+              {product === "Device" && <button onClick={(event) => { downloadFocusExcel(); event.currentTarget.closest("details")?.removeAttribute("open"); }}><b>Focus Honor X5C Plus</b><small>Target และยอดขายรายสาขา</small></button>}
+              {personData && <button onClick={(event) => { downloadPeopleExcel(); event.currentTarget.closest("details")?.removeAttribute("open"); }}><b>Performance Indy</b><small>รายบุคคลตามตัวกรองปัจจุบัน</small></button>}
+            </div>
+          </details>
+        </div>
         <button className="reset" onClick={reset}>ล้างตัวกรอง</button>
       </section>
 

@@ -189,6 +189,15 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(page, /แสดงเฉพาะ 15 สาขาที่มี Target/);
   assert.match(page, /BRANCH HEALTH SCORE/);
   assert.match(page, /branchHealthScore/);
+  assert.match(page, /Download Excel/);
+  assert.match(page, /downloadProductExcel/);
+  assert.match(page, /downloadFocusExcel/);
+  assert.match(page, /downloadPeopleExcel/);
+  assert.match(page, /สรุปรายสาขา \+ Daily Trend/);
+  assert.match(page, /Performance Indy<\/b>/);
+  assert.match(page, /excel-export/);
+  assert.match(css, /\.download-menu/);
+  assert.match(css, /\.download-options/);
   assert.equal(focusSales.model, "Honor X5C Plus");
   assert.equal(focusSales.asOf, "2026-08-15");
   assert.equal(focusSales.sales.reduce((sum, row) => sum + row.qty, 0), 14);
