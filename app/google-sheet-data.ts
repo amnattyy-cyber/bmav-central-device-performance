@@ -3,6 +3,7 @@ export type ProductName = "Device" | "GIA" | "Postpay" | "TrueOnline";
 export type ProductValue = {
   target: number;
   daily: number[];
+  dailyByDate?: Record<string, number>;
   runrate: number;
   julyActual: number;
 };
@@ -103,6 +104,11 @@ export function dashboardDataFromCsv(csv: string): DashboardData {
   const read = (row: string[], header: string) => row[column.get(header) ?? -1] ?? "";
   const first = values[0];
   const daysInMonth = Math.max(1, Math.min(31, Math.round(toNumber(read(first, "DaysInMonth")))));
+  const asOf = toIsoDate(read(first, "AsOf"));
+  const datedColumns = headers.flatMap((header, index) => {
+    const match = header.trim().match(/^(?:Date[_-]?)?(\d{4}-\d{2}-\d{2})$/i);
+    return match ? [{ date: match[1], index }] : [];
+  });
   const branches = new Map<string, Branch>();
 
   for (const row of values) {
@@ -121,12 +127,21 @@ export function dashboardDataFromCsv(csv: string): DashboardData {
       branches.set(branchName, branch);
     }
 
+    const daily = Array.from({ length: daysInMonth }, (_, index) =>
+      toNumber(read(row, `Day${String(index + 1).padStart(2, "0")}`)));
+    const dailyByDate: Record<string, number> = Object.fromEntries(
+      datedColumns.map(({ date, index }) => [date, toNumber(row[index] ?? "")]),
+    );
+    for (let index = 0; index < daily.length; index += 1) {
+      dailyByDate[`${asOf.slice(0, 8)}${String(index + 1).padStart(2, "0")}`] = daily[index];
+    }
+
     branch.products[product] = {
       target: toNumber(read(row, "Target")),
       runrate: toNumber(read(row, "Runrate")),
       julyActual: column.has("JulyActual") ? toNumber(read(row, "JulyActual")) : 0,
-      daily: Array.from({ length: daysInMonth }, (_, index) =>
-        toNumber(read(row, `Day${String(index + 1).padStart(2, "0")}`))),
+      daily,
+      dailyByDate,
     };
   }
 
@@ -138,7 +153,7 @@ export function dashboardDataFromCsv(csv: string): DashboardData {
     meta: {
       area: read(first, "Area").trim() || "BMAV-Central",
       month: read(first, "Month").trim(),
-      asOf: toIsoDate(read(first, "AsOf")),
+      asOf,
       targetUpdated: toIsoDate(read(first, "TargetUpdated")),
       daysInMonth,
       currency: "THB",
@@ -154,3 +169,4 @@ export async function loadGoogleSheetData(signal?: AbortSignal) {
   if (!response.ok) throw new Error(`Google Sheet request failed: ${response.status}`);
   return dashboardDataFromCsv(await response.text());
 }
+
