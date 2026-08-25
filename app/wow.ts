@@ -17,7 +17,7 @@ export const WOW_WEEKS: WowWeek[] = [
   { id: "W36", label: "Week 36", start: "2026-08-31", end: "2026-09-06", baseStart: "2026-08-24", baseEnd: "2026-08-30" },
 ];
 
-const THAI_MONTHS = ["�.�.", "�.�.", "��.�.", "��.�.", "�.�.", "��.�.", "�.�.", "�.�.", "�.�.", "�.�.", "�.�.", "�.�."];
+const THAI_MONTHS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
 function toUtcDate(iso: string) {
   return new Date(`${iso}T00:00:00Z`);
@@ -45,8 +45,8 @@ export function formatWowRange(start: string, end: string) {
   const firstMonth = THAI_MONTHS[first.getUTCMonth()];
   const lastMonth = THAI_MONTHS[last.getUTCMonth()];
   return first.getUTCMonth() === last.getUTCMonth()
-    ? `${firstDay}�${lastDay} ${lastMonth}`
-    : `${firstDay} ${firstMonth}�${lastDay} ${lastMonth}`;
+    ? `${firstDay}–${lastDay} ${lastMonth}`
+    : `${firstDay} ${firstMonth}–${lastDay} ${lastMonth}`;
 }
 
 export function findDefaultWowWeek(asOf: string) {
