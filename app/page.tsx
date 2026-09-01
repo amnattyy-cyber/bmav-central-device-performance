@@ -75,7 +75,7 @@ function status(pace: number) {
 }
 
 export default function Home() {
-  const hasLoadedLiveDataset = useRef(false);
+  const monthChosenByUser = useRef(false);
   const [dashboardDataset, setDashboardDataset] = useState(fallbackDashboardDataset);
   const [syncSource, setSyncSource] = useState<"sheet" | "fallback">("fallback");
   const [personDataByProduct, setPersonDataByProduct] = useState(fallbackPersonDataByProduct);
@@ -149,12 +149,11 @@ export default function Home() {
         if (active) {
           setDashboardDataset(nextData);
           setMonthKey((current) => {
-            if (!hasLoadedLiveDataset.current) return nextData.latestMonthKey;
+            if (!monthChosenByUser.current) return nextData.latestMonthKey;
             return nextData.months.some((month) => month.meta.monthKey === current)
               ? current
               : nextData.latestMonthKey;
           });
-          hasLoadedLiveDataset.current = true;
           setSyncSource("sheet");
         }
       } catch (error) {
@@ -586,6 +585,7 @@ export default function Home() {
   };
 
   const reset = () => {
+    monthChosenByUser.current = false;
     setProduct("Device");
     setMonthKey(dashboardDataset.latestMonthKey);
     setMetric("Net");
@@ -605,6 +605,7 @@ export default function Home() {
 
   const toggleFocusCaptureMode = () => {
     if (!focusCaptureMode) {
+      monthChosenByUser.current = true;
       setProduct("Device");
       setMonthKey("2026-08");
       setMetric("Net");
@@ -626,6 +627,7 @@ export default function Home() {
 
   const changeMonth = (nextMonthKey: string) => {
     const options = availableMetricsFor(dashboardDataset, nextMonthKey, product);
+    monthChosenByUser.current = true;
     setMonthKey(nextMonthKey);
     if (!options.includes(metric)) {
       setMetric(options.includes(DEFAULT_METRIC_BY_PRODUCT[product])
