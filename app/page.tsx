@@ -1,10 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import fallbackData from "./sales-product-data.json";
 import postpayPersonData from "./postpay-person-performance.json";
 import tolPersonData from "./tol-person-performance.json";
-import { type Branch, type DashboardData, loadGoogleSheetData, type ProductName } from "./google-sheet-data";
+import {
+  availableMetricsFor,
+  type Branch,
+  type DashboardData,
+  dashboardDatasetFromData,
+  DEFAULT_METRIC_BY_PRODUCT,
+  loadGoogleSheetData,
+  type MetricName,
+  type ProductName,
+  selectDashboardData,
+} from "./dashboard-data";
 import { loadGooglePersonPerformance, PERSON_PERFORMANCE_SHEET_URL, type PersonPerformanceData } from "./google-person-data";
 import { createFocusDeviceFallback, FOCUS_DEVICE_SHEET_URL, loadFocusDeviceData, type FocusDeviceData } from "./focus-device-data";
 import { downloadExcelWorkbook, type ExcelSheet } from "./excel-export";
@@ -17,6 +27,7 @@ const fallbackPersonDataByProduct: Partial<Record<ProductName, PersonPerformance
   TrueOnline: tolPersonData as PersonPerformanceData,
 };
 const fallbackFocusDeviceData = createFocusDeviceFallback(fallbackData as DashboardData);
+const fallbackDashboardDataset = dashboardDatasetFromData(fallbackData as DashboardData);
 const productMeta: Record<ProductName, { color: string; accent: string; short: string }> = {
   Device: { color: "#2563eb", accent: "#dbeafe", short: "DEV" },
   GIA: { color: "#8e44ad", accent: "#f3e8ff", short: "GIA" },
@@ -64,13 +75,16 @@ function status(pace: number) {
 }
 
 export default function Home() {
-  const [data, setData] = useState<DashboardData>(fallbackData as DashboardData);
+  const hasLoadedLiveDataset = useRef(false);
+  const [dashboardDataset, setDashboardDataset] = useState(fallbackDashboardDataset);
   const [syncSource, setSyncSource] = useState<"sheet" | "fallback">("fallback");
   const [personDataByProduct, setPersonDataByProduct] = useState(fallbackPersonDataByProduct);
   const [peopleSyncSource, setPeopleSyncSource] = useState<"sheet" | "fallback">("fallback");
   const [focusData, setFocusData] = useState<FocusDeviceData>(fallbackFocusDeviceData);
   const [focusSyncSource, setFocusSyncSource] = useState<"sheet" | "fallback">("fallback");
   const [product, setProduct] = useState<ProductName>("Device");
+  const [monthKey, setMonthKey] = useState(fallbackDashboardDataset.latestMonthKey);
+  const [metric, setMetric] = useState<MetricName>("Net");
   const [selectedBranchNames, setSelectedBranchNames] = useState<string[]>([]);
   const [dateFilter, setDateFilter] = useState(ALL_DAYS);
   const [weekFilter, setWeekFilter] = useState("auto");
@@ -79,26 +93,35 @@ export default function Home() {
   const [personSearch, setPersonSearch] = useState("");
   const [positionFilters, setPositionFilters] = useState<string[]>([]);
   const [showNoSales, setShowNoSales] = useState(false);
+  const monthOptions = dashboardDataset.months;
+  const metricOptions = availableMetricsFor(dashboardDataset, monthKey, product);
+  const data = useMemo(
+    () => selectDashboardData(dashboardDataset, monthKey, metric, product),
+    [dashboardDataset, monthKey, metric, product],
+  );
   const productNames = data.products;
   const branches = data.branches as Branch[];
-  const asOfDay = Number(data.meta.asOf.slice(-2));
-  const asOfDate = new Date(`${data.meta.asOf}T00:00:00+07:00`);
+  const selectedMonthKey = data.meta.monthKey ?? data.meta.asOf.slice(0, 7);
+  const hasPublishedMonthData = data.meta.asOf.slice(0, 7) === selectedMonthKey;
+  const asOfDay = hasPublishedMonthData ? Number(data.meta.asOf.slice(-2)) : 0;
+  const displayDate = hasPublishedMonthData ? data.meta.asOf : `${selectedMonthKey}-01`;
+  const asOfDate = new Date(`${displayDate}T00:00:00+07:00`);
   const shortMonth = asOfDate.toLocaleDateString("en-GB", { month: "short" });
   const monthYear = data.meta.month;
   const selectedDay = dateFilter === ALL_DAYS ? null : Number(dateFilter);
-  const periodDay = selectedDay ?? asOfDay;
+  const periodDay = selectedDay ?? Math.max(asOfDay, 1);
   const periodDays = selectedDay === null ? asOfDay : 1;
   const isDailyView = selectedDay !== null;
   const theme = productMeta[product];
-  const isQtyProduct = product === "TrueOnline";
-  const wowUnit = isQtyProduct ? "Qty" : "Net";
+  const isQtyProduct = data.meta.metric === "Qty";
+  const wowUnit = data.meta.metric;
   const defaultWowWeek = findDefaultWowWeek(data.meta.asOf);
   const selectedWowWeek = weekFilter === "auto"
     ? defaultWowWeek
     : WOW_WEEKS.find((week) => week.id === weekFilter) ?? defaultWowWeek;
   const displayValue = (value: number) => `${money(value)}${isQtyProduct ? " QTY" : ""}`;
-  const personData = personDataByProduct[product];
-  const productPeople = personData?.people ?? [];
+  const personData = data.meta.metric === DEFAULT_METRIC_BY_PRODUCT[product] ? personDataByProduct[product] : undefined;
+  const productPeople = useMemo(() => personData?.people ?? [], [personData]);
   const personAsOf = personData?.meta.asOf ?? data.meta.asOf;
   const personAsOfDate = new Date(`${personAsOf}T00:00:00+07:00`);
   const personAsOfDisplay = personAsOfDate.toLocaleDateString("en-GB");
@@ -109,7 +132,7 @@ export default function Home() {
   const focusPeriodDays = selectedDay === null ? focusAsOfDay : 1;
 
   const targetedBranches = useMemo(
-    () => branches.filter((branch) => branch.products[product].target > 0),
+    () => branches.filter((branch) => branch.products[product].target > 0 || branch.products[product].eligible),
     [branches, product],
   );
 
@@ -120,11 +143,18 @@ export default function Home() {
     const sync = async () => {
       try {
         const nextData = await loadGoogleSheetData(controller.signal);
-        if (nextData.meta.asOf < (fallbackData as DashboardData).meta.asOf) {
+        if (nextData.latestAsOf < (fallbackData as DashboardData).meta.asOf) {
           throw new Error("Google Sheet data is older than the bundled dashboard update");
         }
         if (active) {
-          setData(nextData);
+          setDashboardDataset(nextData);
+          setMonthKey((current) => {
+            if (!hasLoadedLiveDataset.current) return nextData.latestMonthKey;
+            return nextData.months.some((month) => month.meta.monthKey === current)
+              ? current
+              : nextData.latestMonthKey;
+          });
+          hasLoadedLiveDataset.current = true;
           setSyncSource("sheet");
         }
       } catch (error) {
@@ -225,20 +255,6 @@ export default function Home() {
     };
   }, []);
 
-  useEffect(() => {
-    setSelectedBranchNames((current) => {
-      const available = new Set(targetedBranches.map((branch) => branch.name));
-      const next = current.filter((name) => available.has(name));
-      return next.length === current.length ? current : next;
-    });
-  }, [targetedBranches]);
-
-  useEffect(() => {
-    setPersonSearch("");
-    setPositionFilters([]);
-    setShowNoSales(false);
-  }, [product]);
-
   const selectedBranches = useMemo(
     () => selectedBranchNames.length === 0
       ? targetedBranches
@@ -260,10 +276,10 @@ export default function Home() {
     const achievement = target > 0 ? mtd / target : 0;
     const runrate = selectedBranches.reduce((sum, branch) => sum + branch.products[product].runrate, 0);
     const runrateAchievement = target > 0 ? runrate / target : 0;
-    const julyActual = selectedBranches.reduce((sum, branch) => sum + branch.products[product].julyActual, 0);
-    const mom = julyActual > 0 ? runrate / julyActual - 1 : null;
-    return { target, daily, mtd, today, targetMtd, pace, forecast, achievement, runrate, runrateAchievement, julyActual, mom, dailyTarget: target / data.meta.daysInMonth };
-  }, [selectedBranches, product, isDailyView, periodDay, periodDays]);
+    const previousActual = selectedBranches.reduce((sum, branch) => sum + branch.products[product].previousActual, 0);
+    const mom = previousActual > 0 ? runrate / previousActual - 1 : null;
+    return { target, daily, mtd, today, targetMtd, pace, forecast, achievement, runrate, runrateAchievement, previousActual, mom, dailyTarget: target / data.meta.daysInMonth };
+  }, [selectedBranches, product, isDailyView, periodDay, periodDays, asOfDay, data.meta.daysInMonth]);
 
   const wowMetrics = useMemo(
     () => calculateWow(selectedBranches, product, data, selectedWowWeek),
@@ -291,11 +307,11 @@ export default function Home() {
     const pace = targetMtd > 0 ? mtd / targetMtd : 0;
     const forecast = periodDays > 0 ? mtd / periodDays * data.meta.daysInMonth : 0;
     const runrateAchievement = item.target > 0 ? item.runrate / item.target : 0;
-    const mom = item.julyActual > 0 ? item.runrate / item.julyActual - 1 : null;
+    const mom = item.previousActual > 0 ? item.runrate / item.previousActual - 1 : null;
     const branchWow = calculateWow([branch], product, data, selectedWowWeek);
-    return { ...branch, target: item.target, mtd, targetMtd, pace, forecast, runrate: item.runrate, runrateAchievement, julyActual: item.julyActual, mom, wow: branchWow.wow, wowCurrent: branchWow.currentTotal, wowBase: branchWow.baseTotal, today: item.daily[periodDay - 1] ?? 0 };
+    return { ...branch, target: item.target, mtd, targetMtd, pace, forecast, runrate: item.runrate, runrateAchievement, previousActual: item.previousActual, mom, wow: branchWow.wow, wowCurrent: branchWow.currentTotal, wowBase: branchWow.baseTotal, today: item.daily[periodDay - 1] ?? 0 };
   }).filter((branch) => selectedBranchNames.length === 0 || selectedBranchNames.includes(branch.name))
-    .sort((a, b) => b.pace - a.pace), [targetedBranches, product, data, selectedWowWeek, selectedBranchNames, isDailyView, periodDay, periodDays]);
+    .sort((a, b) => a.target > 0 || b.target > 0 ? b.pace - a.pace : b.mtd - a.mtd), [targetedBranches, product, data, selectedWowWeek, selectedBranchNames, isDailyView, periodDay, periodDays, asOfDay]);
 
   const focusBranchPerformance = useMemo(() => focusData.branches
     .filter((branch) => branch.dailyTarget > 0)
@@ -328,14 +344,16 @@ export default function Home() {
     };
   }, [focusBranchPerformance]);
 
-  const activeBranches = branchPerformance.filter((branch) => branch.target > 0);
-  const onTrack = activeBranches.filter((branch) => branch.pace >= 1);
-  const watch = activeBranches.filter((branch) => branch.pace >= .85 && branch.pace < 1);
-  const atRisk = activeBranches.filter((branch) => branch.pace < .85);
+  const hasMetricTargets = branchPerformance.some((branch) => branch.target > 0);
+  const activeBranches = hasMetricTargets ? branchPerformance.filter((branch) => branch.target > 0) : branchPerformance;
+  const onTrack = hasMetricTargets ? activeBranches.filter((branch) => branch.pace >= 1) : [];
+  const watch = hasMetricTargets ? activeBranches.filter((branch) => branch.pace >= .85 && branch.pace < 1) : [];
+  const atRisk = hasMetricTargets ? activeBranches.filter((branch) => branch.pace < .85) : [];
   const branchHealthScore = activeBranches.length > 0
     ? (onTrack.length * 100 + watch.length * 70 + atRisk.length * 30) / activeBranches.length
     : 0;
-  const leader = activeBranches[0];
+  const leader = [...activeBranches].sort((a, b) => hasMetricTargets ? b.pace - a.pace : b.mtd - a.mtd)[0];
+  const branchesWithActual = activeBranches.filter((branch) => branch.mtd > 0);
   const maxPace = Math.max(1, ...activeBranches.map((branch) => branch.pace));
   const maxDaily = Math.max(metrics.dailyTarget, ...metrics.daily.slice(0, asOfDay), 1);
   const targetLevel = Math.min(96, (metrics.dailyTarget / maxDaily) * 100);
@@ -348,7 +366,9 @@ export default function Home() {
     .slice(0, 3)
     .reduce((sum, branch) => sum + branch.mtd, 0);
   const topThreeShare = metrics.mtd > 0 ? topThreeTotal / metrics.mtd : 0;
-  const planSignal = metrics.pace >= 1
+  const planSignal = !hasMetricTargets
+    ? "Actual only • รอ Target"
+    : metrics.pace >= 1
     ? "เหนือเป้าตามเวลา"
     : metrics.pace >= .85
       ? "ใกล้เป้า ต้องคุมจังหวะ"
@@ -372,8 +392,8 @@ export default function Home() {
     const bestDay = bestValue > 0 ? dailyValues.indexOf(bestValue) + 1 : 0;
     const activeDays = dailyValues.filter((value) => value > 0).length;
     const runrateAchievement = item.target > 0 ? item.runrate / item.target : 0;
-    const mom = item.julyActual > 0 ? item.runrate / item.julyActual - 1 : null;
-    return { mtd, pace, achievement, forecast, gap, requiredDaily, bestValue, bestDay, activeDays, runrate: item.runrate, runrateAchievement, julyActual: item.julyActual, mom };
+    const mom = item.previousActual > 0 ? item.runrate / item.previousActual - 1 : null;
+    return { mtd, pace, achievement, forecast, gap, requiredDaily, bestValue, bestDay, activeDays, runrate: item.runrate, runrateAchievement, previousActual: item.previousActual, mom };
   }, [selectedBranch, product, asOfDay, data.meta.daysInMonth, remainingDays]);
 
   const personPositions = useMemo(
@@ -468,12 +488,14 @@ export default function Home() {
       name: `${product} Branch`,
       title: `${product} Performance by Branch`,
       subtitle: exportSubtitle,
-      headers: ["Rank", "Branch", "WW", "Product", "Period", "Target", "Actual", "Target by Period", "ACH by Period", "Status", "Runrate", "Runrate % Target", "July Actual", "%MOM", "Week", "Compared Days", "Current Week", "Base Week", `%WoW ${wowUnit}`, "WoW Unit", "Forecast", "Gap to Target", "Latest / Selected Day"],
+      headers: ["Rank", "Branch", "WW", "Product", "Metric", "Month", "Period", "Target", "Actual", "Target by Period", "ACH by Period", "Status", "Runrate", "Runrate % Target", `${data.meta.previousMonth} Actual`, "%MOM", "Week", "Compared Days", "Current Week", "Base Week", `%WoW ${wowUnit}`, "WoW Unit", "Forecast", "Gap to Target", "Latest / Selected Day"],
       rows: branchPerformance.map((branch, index) => [
         index + 1,
         branch.name,
         branch.ww ?? "",
         product,
+        data.meta.metric,
+        data.meta.month,
         analysisPeriod,
         branch.target,
         branch.mtd,
@@ -482,7 +504,7 @@ export default function Home() {
         status(branch.pace).label,
         branch.runrate,
         branch.runrateAchievement,
-        branch.julyActual,
+        branch.previousActual,
         branch.mom,
         selectedWowWeek.label,
         wowMetrics.usedDays,
@@ -494,8 +516,8 @@ export default function Home() {
         Math.max(0, branch.target - branch.mtd),
         branch.today,
       ]),
-      numberColumns: [0, 5, 6, 7, 10, 12, 15, 16, 17, 20, 21, 22],
-      percentageColumns: [8, 11, 13, 18],
+      numberColumns: [0, 7, 8, 9, 12, 14, 17, 18, 19, 22, 23, 24],
+      percentageColumns: [10, 13, 15, 20],
     };
     const trendSheet: ExcelSheet = {
       name: "Daily Trend",
@@ -565,6 +587,8 @@ export default function Home() {
 
   const reset = () => {
     setProduct("Device");
+    setMonthKey(dashboardDataset.latestMonthKey);
+    setMetric("Net");
     setSelectedBranchNames([]);
     setDateFilter(ALL_DAYS);
     setWeekFilter("auto");
@@ -582,9 +606,34 @@ export default function Home() {
   const toggleFocusCaptureMode = () => {
     if (!focusCaptureMode) {
       setProduct("Device");
+      setMonthKey("2026-08");
+      setMetric("Net");
       setSelectedBranchNames([]);
     }
     setFocusCaptureMode((current) => !current);
+  };
+
+  const changeProduct = (nextProduct: ProductName) => {
+    const options = availableMetricsFor(dashboardDataset, monthKey, nextProduct);
+    setProduct(nextProduct);
+    setMetric(options.includes(DEFAULT_METRIC_BY_PRODUCT[nextProduct])
+      ? DEFAULT_METRIC_BY_PRODUCT[nextProduct]
+      : options[0]);
+    setPersonSearch("");
+    setPositionFilters([]);
+    setShowNoSales(false);
+  };
+
+  const changeMonth = (nextMonthKey: string) => {
+    const options = availableMetricsFor(dashboardDataset, nextMonthKey, product);
+    setMonthKey(nextMonthKey);
+    if (!options.includes(metric)) {
+      setMetric(options.includes(DEFAULT_METRIC_BY_PRODUCT[product])
+        ? DEFAULT_METRIC_BY_PRODUCT[product]
+        : options[0]);
+    }
+    setDateFilter(ALL_DAYS);
+    setWeekFilter("auto");
   };
 
   return (
@@ -598,16 +647,22 @@ export default function Home() {
         <div className="hero-focus">
           <span>PRODUCT IN FOCUS</span>
           <strong>{product}</strong>
-          <small>{selectedBranchNames.length === 0 ? `${targetedBranches.length} สาขาที่มี Target` : branchSelectionLabel} • {syncSource === "sheet" ? "Google Sheet Live" : "ข้อมูลสำรอง"}</small>
+          <small>{selectedBranchNames.length === 0 ? `${targetedBranches.length} สาขาในขอบเขต` : branchSelectionLabel} • {data.meta.metric} • {syncSource === "sheet" ? "Google Sheet Live" : "ข้อมูลสำรอง"}</small>
         </div>
       </header>
 
       <section className="control-deck" aria-label="ตัวกรอง Dashboard">
         <div className="product-switch" role="group" aria-label="เลือก Product">
-          {productNames.map((name) => <button key={name} className={product === name ? "active" : ""} onClick={() => setProduct(name)}>
-            <i style={{ background: productMeta[name].color }}>{productMeta[name].short}</i><span>{name}{name === "TrueOnline" ? " (QTY)" : ""}</span>
+          {productNames.map((name) => <button key={name} className={product === name ? "active" : ""} onClick={() => changeProduct(name)}>
+            <i style={{ background: productMeta[name].color }}>{productMeta[name].short}</i><span>{name}</span>
           </button>)}
         </div>
+        <label><span>เลือกเดือน</span><select value={monthKey} onChange={(event) => changeMonth(event.target.value)}>
+          {monthOptions.map((month) => <option key={month.meta.monthKey} value={month.meta.monthKey}>{month.meta.month}</option>)}
+        </select></label>
+        <label><span>มุมยอดขาย</span><select value={data.meta.metric} onChange={(event) => setMetric(event.target.value as MetricName)}>
+          {metricOptions.map((name) => <option key={name} value={name}>{name === "Qty" ? "QTY / จำนวน Sub" : "Net Amount / Revenue"}</option>)}
+        </select></label>
         <div className="branch-multiselect">
           <span className="control-label">สาขา</span>
           <details>
@@ -615,7 +670,7 @@ export default function Home() {
             <div className="branch-options">
               <label className={selectedBranchNames.length === 0 ? "selected" : ""}>
                 <input type="checkbox" checked={selectedBranchNames.length === 0} onChange={() => setSelectedBranchNames([])} />
-                <span>{ALL_BRANCHES}</span><small>{targetedBranches.length} สาขาที่มี Target</small>
+                <span>{ALL_BRANCHES}</span><small>{targetedBranches.length} สาขาในขอบเขต</small>
               </label>
               {targetedBranches.map((branch) => <label className={selectedBranchNames.includes(branch.name) ? "selected" : ""} key={branch.name}>
                 <input type="checkbox" checked={selectedBranchNames.includes(branch.name)} onChange={() => toggleBranch(branch.name)} />
@@ -625,14 +680,14 @@ export default function Home() {
           </details>
         </div>
         <label><span>เลือก Week • WoW {wowUnit}</span><select value={weekFilter} onChange={(event) => setWeekFilter(event.target.value)}><option value="auto">Week ปัจจุบัน ({defaultWowWeek.label})</option>{WOW_WEEKS.map((week) => <option key={week.id} value={week.id}>{week.label} • {formatWowRange(week.start, week.end)}</option>)}</select></label>
-        <label><span>เลือกวันที่</span><select value={dateFilter} onChange={(event) => setDateFilter(event.target.value)}><option value={ALL_DAYS}>ทุกวัน (ยอดสะสมถึง {String(asOfDay).padStart(2, "0")} {shortMonth})</option>{Array.from({ length: asOfDay }, (_, index) => <option key={index + 1} value={String(index + 1)}>เฉพาะวันที่ {String(index + 1).padStart(2, "0")} {shortMonth} {asOfDate.getFullYear()}</option>)}</select></label>
+        <label><span>เลือกวันที่</span><select value={dateFilter} onChange={(event) => setDateFilter(event.target.value)}><option value={ALL_DAYS}>{asOfDay > 0 ? `ทุกวัน (ยอดสะสมถึง ${String(asOfDay).padStart(2, "0")} ${shortMonth})` : "รอข้อมูลเดือนนี้"}</option>{Array.from({ length: asOfDay }, (_, index) => <option key={index + 1} value={String(index + 1)}>เฉพาะวันที่ {String(index + 1).padStart(2, "0")} {shortMonth} {asOfDate.getFullYear()}</option>)}</select></label>
         <div className="download-menu">
           <span className="control-label">ดาวน์โหลด</span>
           <details>
             <summary>Download Excel</summary>
             <div className="download-options">
               <button onClick={(event) => { downloadProductExcel(); event.currentTarget.closest("details")?.removeAttribute("open"); }}><b>{product} มุมมองปัจจุบัน</b><small>สรุปรายสาขา + Daily Trend</small></button>
-              {product === "Device" && <button onClick={(event) => { downloadFocusExcel(); event.currentTarget.closest("details")?.removeAttribute("open"); }}><b>Focus Honor X5C Plus</b><small>Target และยอดขายรายสาขา</small></button>}
+              {product === "Device" && monthKey === "2026-08" && data.meta.metric === "Net" && <button onClick={(event) => { downloadFocusExcel(); event.currentTarget.closest("details")?.removeAttribute("open"); }}><b>Focus Honor X5C Plus</b><small>Target และยอดขายรายสาขา</small></button>}
               {personData && <button onClick={(event) => { downloadPeopleExcel(); event.currentTarget.closest("details")?.removeAttribute("open"); }}><b>Performance Indy</b><small>รายบุคคลตามตัวกรองปัจจุบัน</small></button>}
             </div>
           </details>
@@ -641,9 +696,9 @@ export default function Home() {
       </section>
 
       <section className="scope-strip">
-        <div><span>มุมมองปัจจุบัน</span><strong>{product} • {branchSelectionLabel}</strong></div>
-        <div><span>ช่วงวันที่</span><strong>{isDailyView ? `เฉพาะวันที่ ${String(periodDay).padStart(2, "0")} ${monthYear}` : `ทุกวัน • สะสมถึง ${String(asOfDay).padStart(2, "0")} ${monthYear}`}</strong></div>
-        <div><span>หลักการคำนวณ</span><strong>เฉพาะ {product} เท่านั้น{isQtyProduct ? " • มุม QTY" : ""}</strong></div>
+        <div><span>มุมมองปัจจุบัน</span><strong>{product} • {data.meta.metric} • {branchSelectionLabel}</strong></div>
+        <div><span>ช่วงวันที่</span><strong>{isDailyView ? `เฉพาะวันที่ ${String(periodDay).padStart(2, "0")} ${monthYear}` : asOfDay > 0 ? `ทุกวัน • สะสมถึง ${String(asOfDay).padStart(2, "0")} ${monthYear}` : `${monthYear} • รอข้อมูล`}</strong></div>
+        <div><span>หลักการคำนวณ</span><strong>เฉพาะ {product} • {isQtyProduct ? "QTY / จำนวน Sub" : "Net Amount / Revenue"}</strong></div>
       </section>
 
       <section className="panel wow-panel" aria-label="Performance WoW">
@@ -661,12 +716,12 @@ export default function Home() {
 
       <section className="kpi-grid" aria-label="KPI ของ Product ที่เลือก">
         <article className="kpi hero-kpi"><span>{isDailyView ? `ยอดวันที่ ${String(periodDay).padStart(2, "0")} ${shortMonth}` : "ยอดสะสม MTD"}</span><strong>{displayValue(metrics.mtd)}</strong><small>{isDailyView ? "ยอดเฉพาะวันที่เลือก" : `ยอดวันที่ ${String(asOfDay).padStart(2, "0")} ${shortMonth} ${displayValue(metrics.today)}`}</small></article>
-        <article className="kpi"><span>Target</span><strong>{displayValue(metrics.target)}</strong><small>เฉลี่ย {displayValue(metrics.dailyTarget)} / วัน</small></article>
-        <article className="kpi"><span>%ACH</span><strong>{percent(metrics.achievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, metrics.achievement * 100)}%` }} /></div></article>
-        <article className={`kpi pace ${status(metrics.pace).key}`}><span>{isDailyView ? "ACH Daily" : "ACH MTD"}</span><strong>{percent(metrics.pace)}</strong><small>{status(metrics.pace).label}</small></article>
+        <article className="kpi"><span>Target</span><strong>{hasMetricTargets ? displayValue(metrics.target) : "รอ Target"}</strong><small>{hasMetricTargets ? `เฉลี่ย ${displayValue(metrics.dailyTarget)} / วัน` : `ยังไม่กำหนด Target ${data.meta.metric}`}</small></article>
+        <article className="kpi"><span>%ACH</span><strong>{hasMetricTargets ? percent(metrics.achievement) : "N/A"}</strong><div className="meter"><i style={{ width: `${hasMetricTargets ? Math.min(100, metrics.achievement * 100) : 0}%` }} /></div></article>
+        <article className={`kpi pace ${hasMetricTargets ? status(metrics.pace).key : "notarget"}`}><span>{isDailyView ? "ACH Daily" : "ACH MTD"}</span><strong>{hasMetricTargets ? percent(metrics.pace) : "N/A"}</strong><small>{hasMetricTargets ? status(metrics.pace).label : "No Target"}</small></article>
         <article className="kpi runrate-kpi"><span>Runrate</span><strong>{displayValue(metrics.runrate)}</strong><small>จาก {isQtyProduct ? "RR QTY" : "RR Net Amount"} ในไฟล์ต้นฉบับ</small></article>
         <article className="kpi"><span>Runrate % เทียบเป้า</span><strong>{percent(metrics.runrateAchievement)}</strong><div className="meter"><i style={{ width: `${Math.min(100, metrics.runrateAchievement * 100)}%` }} /></div></article>
-        <article className={`kpi mom-kpi ${momTone(metrics.mom)}`}><span>%MOM</span><strong>{momPercent(metrics.mom)}</strong><small>Runrate เทียบ July Actual {displayValue(metrics.julyActual)}</small></article>
+        <article className={`kpi mom-kpi ${momTone(metrics.mom)}`}><span>%MOM</span><strong>{momPercent(metrics.mom)}</strong><small>Runrate เทียบ {data.meta.previousMonth} Actual {displayValue(metrics.previousActual)}</small></article>
         <article className="kpi"><span>Forecast สิ้นเดือน</span><strong>{displayValue(metrics.forecast)}</strong><small>{percent(metrics.target ? metrics.forecast / metrics.target : 0)} ของเป้า</small></article>
         <article className="kpi"><span>Gap ถึงเป้าเดือน</span><strong>{displayValue(Math.max(0, metrics.target - metrics.mtd))}</strong><small>ยอดที่ยังต้องปิด</small></article>
       </section>
@@ -675,18 +730,18 @@ export default function Home() {
         <article className="panel insight-panel">
           <div className="section-head"><div><span>PRODUCT INTELLIGENCE</span><h2>Executive Infographic</h2></div><b>{product} • {isDailyView ? `วันที่ ${periodDay}` : `สะสม ${asOfDay} วัน`}</b></div>
           <div className="insight-grid">
-            <div className="insight major"><i>01</i><div><span>ภาพรวม Product</span><strong>%Achieve {percent(metrics.pace)}</strong><p>ทำได้ {displayValue(metrics.mtd)} จากเป้าที่ควรได้ {displayValue(metrics.targetMtd)}</p></div></div>
-            <div className="insight"><i>02</i><div><span>Shop Top Ranking</span><strong>{leader ? shortShop(leader.name) : "—"}</strong><p>{leader ? `%Achieve ${percent(leader.pace)} • ${displayValue(leader.mtd)}` : "ยังไม่มีเป้าหมาย"}</p></div></div>
-            <div className="insight"><i>03</i><div><span>On Track</span><strong>{onTrack.length} สาขา</strong><p>{activeBranches.length ? `${Math.round(onTrack.length / activeBranches.length * 100)}% ของสาขาที่มีเป้า` : "ไม่มีสาขาที่มีเป้า"}</p></div></div>
-            <div className="insight"><i>04</i><div><span>ต้องเร่ง</span><strong>{atRisk.length} สาขา</strong><p>%Achieve ต่ำกว่า 85% ของเป้าตามวัน</p></div></div>
+            <div className="insight major"><i>01</i><div><span>ภาพรวม Product</span><strong>{hasMetricTargets ? `%Achieve ${percent(metrics.pace)}` : `Actual ${displayValue(metrics.mtd)}`}</strong><p>{hasMetricTargets ? `ทำได้ ${displayValue(metrics.mtd)} จากเป้าที่ควรได้ ${displayValue(metrics.targetMtd)}` : `Runrate ${displayValue(metrics.runrate)} • ${monthYear}`}</p></div></div>
+            <div className="insight"><i>02</i><div><span>Shop Top Ranking</span><strong>{leader ? shortShop(leader.name) : "—"}</strong><p>{leader ? `${hasMetricTargets ? `%Achieve ${percent(leader.pace)}` : "Actual"} • ${displayValue(leader.mtd)}` : "ยังไม่มีข้อมูล"}</p></div></div>
+            <div className="insight"><i>03</i><div><span>{hasMetricTargets ? "On Track" : "สาขาที่มียอด"}</span><strong>{hasMetricTargets ? onTrack.length : branchesWithActual.length} สาขา</strong><p>{activeBranches.length ? `${Math.round((hasMetricTargets ? onTrack.length : branchesWithActual.length) / activeBranches.length * 100)}% ของสาขาในมุมมอง` : "ยังไม่มีข้อมูล"}</p></div></div>
+            <div className="insight"><i>04</i><div><span>{hasMetricTargets ? "ต้องเร่ง" : "ยังไม่มียอด"}</span><strong>{hasMetricTargets ? atRisk.length : activeBranches.length - branchesWithActual.length} สาขา</strong><p>{hasMetricTargets ? "%Achieve ต่ำกว่า 85% ของเป้าตามวัน" : `Actual ${data.meta.metric} = 0`}</p></div></div>
           </div>
           <div className="product-lens">
             <div><span>PRODUCT EXECUTIVE LENS • {product}</span><strong>{productFocus.title}</strong><p>{productFocus.description}</p></div>
             <div className="lens-kpis">
               <div><small>สถานะเทียบแผน</small><b>{planSignal}</b></div>
               <div><small>Top 3 Contribution</small><b>{percent(topThreeShare)}</b></div>
-              <div><small>ต้องปิดต่อวัน</small><b>{displayValue(requiredPerDay)}</b></div>
-              <div><small>%MOM เทียบ July</small><b className={`mom-text ${momTone(metrics.mom)}`}>{momPercent(metrics.mom)}</b></div>
+              <div><small>{hasMetricTargets ? "ต้องปิดต่อวัน" : "Runrate"}</small><b>{displayValue(hasMetricTargets ? requiredPerDay : metrics.runrate)}</b></div>
+              <div><small>%MOM เทียบ {data.meta.previousMonth}</small><b className={`mom-text ${momTone(metrics.mom)}`}>{momPercent(metrics.mom)}</b></div>
             </div>
             <p className="lens-action"><b>Management Action:</b> {productFocus.action}</p>
           </div>
@@ -694,19 +749,19 @@ export default function Home() {
 
         <aside className="mission-card">
           <span>DAILY MISSION</span>
-          <h2>{metrics.pace >= 1 ? "รักษาจังหวะเหนือเป้า" : "เร่งปิด Gap รายวัน"}</h2>
-          <div className="mission-number"><small>เป้าต่อวัน</small><strong>{displayValue(metrics.dailyTarget)}</strong></div>
+          <h2>{hasMetricTargets ? metrics.pace >= 1 ? "รักษาจังหวะเหนือเป้า" : "เร่งปิด Gap รายวัน" : "ติดตาม Actual และ Momentum"}</h2>
+          <div className="mission-number"><small>{hasMetricTargets ? "เป้าต่อวัน" : "ยอดเฉลี่ยต่อวัน"}</small><strong>{displayValue(hasMetricTargets ? metrics.dailyTarget : asOfDay > 0 ? metrics.mtd / asOfDay : 0)}</strong></div>
           <ul>
-            <li><b>วันนี้</b><span>{displayValue(metrics.today)} • {percent(metrics.dailyTarget ? metrics.today / metrics.dailyTarget : 0)}</span></li>
-            <li><b>Runrate</b><span>{displayValue(metrics.runrate)} • {percent(metrics.runrateAchievement)}</span></li>
-            <li><b>%MOM</b><span>{momPercent(metrics.mom)} • July {displayValue(metrics.julyActual)}</span></li>
+            <li><b>วันนี้</b><span>{displayValue(metrics.today)}{hasMetricTargets ? ` • ${percent(metrics.dailyTarget ? metrics.today / metrics.dailyTarget : 0)}` : ""}</span></li>
+            <li><b>Runrate</b><span>{displayValue(metrics.runrate)}{hasMetricTargets ? ` • ${percent(metrics.runrateAchievement)}` : ""}</span></li>
+            <li><b>%MOM</b><span>{momPercent(metrics.mom)} • {data.meta.previousMonth} {displayValue(metrics.previousActual)}</span></li>
             <li><b>Forecast</b><span>{displayValue(metrics.forecast)}</span></li>
             <li><b>Priority</b><span>{atRisk[0] ? shortShop(atRisk[0].name) : "รักษาทุกสาขา"}</span></li>
           </ul>
         </aside>
       </section>
 
-      {branchExecutive && selectedBranch && <section className="panel branch-analysis">
+      {branchExecutive && selectedBranch && hasMetricTargets && <section className="panel branch-analysis">
         <div className="section-head"><div><span>BRANCH EXECUTIVE ANALYSIS</span><h2>{shortShop(selectedBranch.name)} • {product}</h2></div><b>สะสมถึง {String(asOfDay).padStart(2, "0")} {shortMonth}</b></div>
         <div className="branch-summary">
           <div><span>EXECUTIVE SIGNAL</span><strong>{branchExecutive.pace >= 1 ? "สาขาเดินหน้าเหนือแผน" : branchExecutive.pace >= .85 ? "สาขาใกล้แผน ต้องคุมยอดปิด" : "สาขาต่ำกว่าแผน ต้องเร่งทันที"}</strong></div>
@@ -721,7 +776,7 @@ export default function Home() {
         <div className="branch-action"><span>ข้อเสนอแนะสำหรับสาขา</span><p>{branchExecutive.pace >= 1 ? `รักษาจังหวะ ${product} ให้ต่อเนื่อง และใช้วันที่ทำยอดสูงสุดเป็นต้นแบบการปิดยอด` : `${productFocus.action} สาขานี้ต้องทำเพิ่มเฉลี่ย ${displayValue(branchExecutive.requiredDaily)} ต่อวันในวันที่เหลือ`}</p></div>
       </section>}
 
-      {product === "Device" && <section className="panel focus-device-monitor">
+      {product === "Device" && monthKey === "2026-08" && data.meta.metric === "Net" && <section className="panel focus-device-monitor">
         <div className="section-head focus-device-head"><div><span>FOCUS DEVICE MODEL</span><h2>{focusData.meta.model}</h2><p>ติดตามยอดขาย QTY และ Target รายสาขา • เริ่มนับตั้งแต่ 1 Aug 2026</p></div><div className="focus-device-actions"><b>{focusSyncSource === "sheet" ? "Google Sheet Live" : "ข้อมูลสำรอง"} • ถึง {String(focusAsOfDay).padStart(2, "0")} Aug</b><button className="capture-toggle" onClick={toggleFocusCaptureMode}>{focusCaptureMode ? "กลับ Dashboard" : "ดูครบ 15 สาขา / Copy รูป"}</button></div></div>
         <div className="focus-device-kpis">
           <article><span>{isDailyView ? `ยอดวันที่ ${String(focusPeriodDay).padStart(2, "0")} Aug` : "ยอดสะสม"}</span><strong>{money(focusMetrics.actual)} QTY</strong><small>{focusMetrics.branchesWithSales} สาขามียอด</small></article>
@@ -794,7 +849,7 @@ export default function Home() {
             </div>)}
           </div>
           <div className="trend-scorebar">
-            <div className="trend-score-head"><span>BRANCH HEALTH SCORE</span><strong>{Math.round(branchHealthScore)} / 100</strong></div>
+            <div className="trend-score-head"><span>{hasMetricTargets ? "BRANCH HEALTH SCORE" : "ACTUAL PERFORMANCE"}</span><strong>{hasMetricTargets ? `${Math.round(branchHealthScore)} / 100` : `${activeBranches.length} สาขา`}</strong></div>
             <div className="trend-score-track">
               {onTrack.length > 0 && <i className="ontrack" style={{ width: `${onTrack.length / activeBranches.length * 100}%` }} />}
               {watch.length > 0 && <i className="watch" style={{ width: `${watch.length / activeBranches.length * 100}%` }} />}
@@ -805,24 +860,26 @@ export default function Home() {
         </article>
 
         <article className="panel ranking-panel">
-          <div className="section-head"><div><span>SHOP RANKING</span><h2>Ranking Shop</h2></div><b>{activeBranches.length} สาขาที่มี Target</b></div>
+          <div className="section-head"><div><span>SHOP RANKING</span><h2>Ranking Shop</h2></div><b>{activeBranches.length} สาขา • {hasMetricTargets ? "เรียงตาม ACH" : "เรียงตาม Actual"}</b></div>
           <div className="rank-list">{activeBranches.map((branch, index) => {
-            const currentStatus = status(branch.pace);
+            const currentStatus = hasMetricTargets ? status(branch.pace) : { key: "notarget", label: "Actual" };
+            const rankingMaximum = Math.max(1, ...activeBranches.map((item) => item.mtd));
             return <div className="rank-row" key={branch.name}>
               <span className="rank-no">{String(index + 1).padStart(2, "0")}</span>
-              <div><div className="rank-label"><strong>{shortShop(branch.name)}</strong><span>{currentStatus.label}</span></div><div className="rank-track"><i className={currentStatus.key} style={{ width: `${Math.min(100, branch.pace / maxPace * 100)}%` }} /></div></div>
-              <b>{percent(branch.pace)}</b>
+              <div><div className="rank-label"><strong>{shortShop(branch.name)}</strong><span>{currentStatus.label}</span></div><div className="rank-track"><i className={currentStatus.key} style={{ width: `${hasMetricTargets ? Math.min(100, branch.pace / maxPace * 100) : Math.min(100, branch.mtd / rankingMaximum * 100)}%` }} /></div></div>
+              <b>{hasMetricTargets ? percent(branch.pace) : displayValue(branch.mtd)}</b>
             </div>;
           })}</div>
         </article>
       </section>
 
       <section className="panel table-panel">
-        <div className="section-head"><div><span>BRANCH MONITOR</span><h2>{product} Performance by Branch</h2></div><div className="table-actions"><b>หน่วย: {isQtyProduct ? "QTY" : "Net"} • {isDailyView ? `เฉพาะวันที่ ${String(periodDay).padStart(2, "0")} Aug` : "ยอดสะสมทุกวัน"}</b><button className="capture-toggle" onClick={toggleCaptureMode}>{captureMode ? "กลับ Dashboard" : "ดูครบทุกสาขา / Copy รูป"}</button></div></div>
+        <div className="section-head"><div><span>BRANCH MONITOR</span><h2>{product} Performance by Branch</h2></div><div className="table-actions"><b>หน่วย: {data.meta.metric} • {isDailyView ? `เฉพาะวันที่ ${String(periodDay).padStart(2, "0")} ${shortMonth}` : `ยอดสะสม ${monthYear}`}</b><button className="capture-toggle" onClick={toggleCaptureMode}>{captureMode ? "กลับ Dashboard" : "ดูครบทุกสาขา / Copy รูป"}</button></div></div>
         <div className="table-wrap"><table><thead><tr><th>สาขา</th><th>{isDailyView ? `ยอดวันที่ ${String(periodDay).padStart(2, "0")}` : "ยอด MTD"}</th><th>Target</th><th>%ACH</th><th>{isDailyView ? "Target Daily" : "Target MTD"}</th><th>{isDailyView ? "ACH Daily" : "ACH MTD"}</th><th>Runrate</th><th>Runrate %</th><th>MoM / WoW</th><th>Forecast</th><th>สถานะ</th></tr></thead>
           <tbody>{branchPerformance.map((branch) => {
-            const currentStatus = status(branch.pace);
-            return <tr key={branch.name}><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "ไม่มีรหัสสาขา"}</small></td><td><b>{displayValue(branch.mtd)}</b><small>{isDailyView ? "เฉพาะวันที่เลือก" : `วันที่ ${String(asOfDay).padStart(2, "0")} ${shortMonth} ${displayValue(branch.today)}`}</small></td><td>{displayValue(branch.target)}</td><td>{percent(branch.target ? branch.mtd / branch.target : 0)}</td><td>{displayValue(branch.targetMtd)}</td><td><strong>{percent(branch.pace)}</strong></td><td><b className="rr-value">{displayValue(branch.runrate)}</b></td><td><strong className={`rr-percent ${status(branch.runrateAchievement).key}`}>{percent(branch.runrateAchievement)}</strong></td><td><div className="trend-badges"><strong className={`trend-badge ${momTone(branch.mom)}`}><small>MoM</small>{momPercent(branch.mom)}</strong><strong className={`trend-badge ${wowTone(branch.wow)}`}><small>WoW {wowUnit}</small>{momPercent(branch.wow)}</strong></div></td><td>{displayValue(branch.forecast)}</td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
+            const hasBranchTarget = branch.target > 0;
+            const currentStatus = hasBranchTarget ? status(branch.pace) : { key: "notarget", label: "No Target" };
+            return <tr key={branch.name}><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "ไม่มีรหัสสาขา"}</small></td><td><b>{displayValue(branch.mtd)}</b><small>{isDailyView ? "เฉพาะวันที่เลือก" : `วันที่ ${String(asOfDay).padStart(2, "0")} ${shortMonth} ${displayValue(branch.today)}`}</small></td><td>{hasBranchTarget ? displayValue(branch.target) : "—"}</td><td>{hasBranchTarget ? percent(branch.mtd / branch.target) : "N/A"}</td><td>{hasBranchTarget ? displayValue(branch.targetMtd) : "—"}</td><td><strong>{hasBranchTarget ? percent(branch.pace) : "N/A"}</strong></td><td><b className="rr-value">{displayValue(branch.runrate)}</b></td><td><strong className={`rr-percent ${hasBranchTarget ? status(branch.runrateAchievement).key : "notarget"}`}>{hasBranchTarget ? percent(branch.runrateAchievement) : "N/A"}</strong></td><td><div className="trend-badges"><strong className={`trend-badge ${momTone(branch.mom)}`}><small>MoM</small>{momPercent(branch.mom)}</strong><strong className={`trend-badge ${wowTone(branch.wow)}`}><small>WoW {wowUnit}</small>{momPercent(branch.wow)}</strong></div></td><td>{displayValue(branch.forecast)}</td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
           })}</tbody></table></div>
       </section>
 
@@ -830,8 +887,8 @@ export default function Home() {
         <div className="analysis-heading"><div><span>AUTO-GENERATED EXECUTIVE INSIGHT</span><h2>ข้อมูลเชิงลึกสำหรับผู้บริหาร</h2><p>วิเคราะห์อัตโนมัติตาม {product} • {analysisScope} • {analysisPeriod}</p></div><b>{planSignal}</b></div>
         <div className="analysis-lead">
           <span>EXECUTIVE SUMMARY</span>
-          <strong>{metrics.pace >= 1 ? `${product} เดินหน้าเหนือเป้าตามเวลา` : metrics.pace >= .85 ? `${product} อยู่ใกล้เป้า แต่ต้องคุมยอดปิดทุกวัน` : `${product} ต่ำกว่าแผนและต้องเร่งแก้ Gap`}</strong>
-          <p>{analysisScope} ทำยอด {displayValue(metrics.mtd)} เทียบ Target MTD {displayValue(metrics.targetMtd)} คิดเป็น ACH MTD {percent(metrics.pace)} ขณะที่ Runrate อยู่ที่ {displayValue(metrics.runrate)} หรือ {percent(metrics.runrateAchievement)} ของ Target เดือน และแนวโน้มเทียบเดือนก่อนอยู่ที่ {momPercent(metrics.mom)}</p>
+          <strong>{!hasMetricTargets ? `${product} มุม ${data.meta.metric} แสดง Actual, MoM และ WoW` : metrics.pace >= 1 ? `${product} เดินหน้าเหนือเป้าตามเวลา` : metrics.pace >= .85 ? `${product} อยู่ใกล้เป้า แต่ต้องคุมยอดปิดทุกวัน` : `${product} ต่ำกว่าแผนและต้องเร่งแก้ Gap`}</strong>
+          <p>{hasMetricTargets ? `${analysisScope} ทำยอด ${displayValue(metrics.mtd)} เทียบ Target MTD ${displayValue(metrics.targetMtd)} คิดเป็น ACH MTD ${percent(metrics.pace)} ขณะที่ Runrate อยู่ที่ ${displayValue(metrics.runrate)} หรือ ${percent(metrics.runrateAchievement)} ของ Target เดือน` : `${analysisScope} ทำยอดสะสม ${displayValue(metrics.mtd)} และ Runrate ${displayValue(metrics.runrate)} โดย Target ของมุม ${data.meta.metric} ยังไม่ถูกกำหนด`} • แนวโน้มเทียบเดือนก่อน {momPercent(metrics.mom)}</p>
         </div>
         <div className="analysis-grid">
           <article><span>01 • PERFORMANCE POSITION</span><h3>ตำแหน่งเทียบแผน</h3><ul><li><b>%ACH เดือน</b><strong>{percent(metrics.achievement)}</strong></li><li><b>ACH MTD</b><strong>{percent(metrics.pace)}</strong></li><li><b>Forecast</b><strong>{displayValue(metrics.forecast)}</strong></li><li><b>Gap เดือน</b><strong>{displayValue(monthlyGap)}</strong></li></ul></article>
@@ -843,11 +900,8 @@ export default function Home() {
         <p className="analysis-footnote">บทวิเคราะห์นี้สร้างจากข้อมูล Dashboard ปัจจุบันโดยอัตโนมัติ และจะคำนวณใหม่ทันทีเมื่อเปลี่ยน Product, สาขา, วันที่ หรือ Type ตำแหน่ง</p>
       </section>
 
-      <section className="method-note"><div><strong>หลักการแยก Product</strong><p>ทุก KPI, กราฟ, อันดับ และตารางคำนวณจาก Product ที่เลือกเพียงรายการเดียว พร้อมซ่อนสาขาที่ไม่มี Target ของ Product นั้น</p></div><div><strong>Runrate จากไฟล์ต้นฉบับ</strong><p>ใช้ค่า {isQtyProduct ? "RR QTY สำหรับ TOL" : "RR Net Amount"} แยกตาม Product และสาขา • Runrate % = Runrate ÷ Target รายเดือน</p></div></section>
-      <footer><span>BMAV-Central Product Performance Monitor</span><b>Source: 8778 Aug 2026 V1.xlsx • As of {String(asOfDay).padStart(2, "0")} {shortMonth} {asOfDate.getFullYear()}</b></footer>
+      <section className="method-note"><div><strong>หลักการแยก Product และ Metric</strong><p>ทุก KPI, กราฟ, อันดับ และตารางคำนวณจาก Product, เดือน และมุม {data.meta.metric} ที่เลือก โดยไม่รวมยอดข้ามมุม</p></div><div><strong>MoM / WoW ต่อเนื่อง</strong><p>MoM เทียบ Actual เดือนก่อน และ WoW เทียบสัปดาห์ต่อเนื่อง Week 32–40 โดยจำกัดจำนวนวันให้เท่ากันอัตโนมัติ</p></div></section>
+      <footer><span>BMAV-Central Product Performance Monitor</span><b>Source: Google Sheet Live • {monthYear} • As of {asOfDay > 0 ? `${String(asOfDay).padStart(2, "0")} ${shortMonth} ${asOfDate.getFullYear()}` : "รอข้อมูล"}</b></footer>
     </main>
   );
 }
-
-
-

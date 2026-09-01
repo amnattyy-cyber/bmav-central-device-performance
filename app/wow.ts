@@ -1,7 +1,7 @@
-import type { Branch, DashboardData, ProductName, ProductValue } from "./google-sheet-data";
+import type { Branch, DashboardData, ProductName, ProductValue } from "./dashboard-data";
 
 export type WowWeek = {
-  id: "W32" | "W33" | "W34" | "W35" | "W36";
+  id: `W${number}`;
   label: string;
   start: string;
   end: string;
@@ -15,6 +15,10 @@ export const WOW_WEEKS: WowWeek[] = [
   { id: "W34", label: "Week 34", start: "2026-08-17", end: "2026-08-23", baseStart: "2026-08-10", baseEnd: "2026-08-16" },
   { id: "W35", label: "Week 35", start: "2026-08-24", end: "2026-08-30", baseStart: "2026-08-17", baseEnd: "2026-08-23" },
   { id: "W36", label: "Week 36", start: "2026-08-31", end: "2026-09-06", baseStart: "2026-08-24", baseEnd: "2026-08-30" },
+  { id: "W37", label: "Week 37", start: "2026-09-07", end: "2026-09-13", baseStart: "2026-08-31", baseEnd: "2026-09-06" },
+  { id: "W38", label: "Week 38", start: "2026-09-14", end: "2026-09-20", baseStart: "2026-09-07", baseEnd: "2026-09-13" },
+  { id: "W39", label: "Week 39", start: "2026-09-21", end: "2026-09-27", baseStart: "2026-09-14", baseEnd: "2026-09-20" },
+  { id: "W40", label: "Week 40", start: "2026-09-28", end: "2026-10-04", baseStart: "2026-09-21", baseEnd: "2026-09-27" },
 ];
 
 const THAI_MONTHS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
