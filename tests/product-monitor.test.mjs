@@ -7,6 +7,7 @@ import {
   dashboardDatasetFromCsv,
   selectDashboardData,
 } from "../app/dashboard-data.ts";
+import { isQtyNoSales, personPerformanceFromCsv } from "../app/google-person-data.ts";
 
 const root = new URL("../", import.meta.url);
 
@@ -34,6 +35,33 @@ test("provides Google Sheet individual performance for Postpay and TOL", async (
   assert.equal(tol.meta.product, "TrueOnline");
   assert.equal(tol.people.length, 130);
   assert.equal(new Set(tol.people.map((person) => person.shopName)).size, 15);
+});
+
+test("person performance deduplicates Amount and QTY rows and uses QTY only for No Sales", () => {
+  const header = "AsOf,Product,EmployeeID,EmployeeName,Position,ShopName,Area,Unit,Target,Actual,ActualRunrate,RunrateAchievement,Tenure,UpdatedAt,Active";
+  const postpay = personPerformanceFromCsv([
+    header,
+    "2026-09-06,Postpay,E001,Employee One,RR_Multi,True Shop Terminal 21,BMA V - Central,Amount,12000,0,0,0,1 year,2026-09-06,TRUE",
+    "2026-09-06,Postpay,E001,Employee One,RR_Multi,True Shop Terminal 21,BMA V - Central,QTY,15,2,10,0.67,1 year,2026-09-06,TRUE",
+    "2026-09-06,Postpay,E002,Employee Two,RR_Multi,True Shop Terminal 21,BMA V - Central,Amount,12000,5000,25000,2.08,1 year,2026-09-06,TRUE",
+    "2026-09-06,Postpay,E002,Employee Two,RR_Multi,True Shop Terminal 21,BMA V - Central,QTY,15,0,0,0,1 year,2026-09-06,TRUE",
+  ].join("\n"), "Postpay");
+
+  assert.equal(postpay.people.length, 2);
+  assert.equal(postpay.people[0].actual, 5000);
+  assert.equal(postpay.people.find((person) => person.id === "E001").qtyActual, 2);
+  assert.equal(isQtyNoSales(postpay.people.find((person) => person.id === "E001")), false);
+  assert.equal(isQtyNoSales(postpay.people.find((person) => person.id === "E002")), true);
+
+  const tol = personPerformanceFromCsv([
+    header,
+    "2026-09-06,TrueOnline,E001,Employee One,RR_Multi,True Shop Terminal 21,BMA V - Central,Amount,4000,599,2995,0.75,1 year,2026-09-06,TRUE",
+    "2026-09-06,TrueOnline,E001,Employee One,RR_Multi,True Shop Terminal 21,BMA V - Central,QTY,6,0,0,0,1 year,2026-09-06,TRUE",
+  ].join("\n"), "TrueOnline");
+
+  assert.equal(tol.people.length, 1);
+  assert.equal(tol.people[0].actual, 0);
+  assert.equal(isQtyNoSales(tol.people[0]), true);
 });
 
 test("multi-month parser exposes Net and Qty while preserving prior-month history", () => {
