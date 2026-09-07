@@ -15,7 +15,7 @@ import {
   type ProductName,
   selectDashboardData,
 } from "./dashboard-data";
-import { loadGooglePersonPerformance, PERSON_PERFORMANCE_SHEET_URL, type PersonPerformanceData } from "./google-person-data";
+import { isQtyNoSales, loadGooglePersonPerformance, PERSON_PERFORMANCE_SHEET_URL, type PersonPerformanceData } from "./google-person-data";
 import { createFocusDeviceFallback, FOCUS_DEVICE_SHEET_URL, loadFocusDeviceData, type FocusDeviceData } from "./focus-device-data";
 import { downloadExcelWorkbook, type ExcelSheet } from "./excel-export";
 import { calculateWow, findDefaultWowWeek, formatWowRange, WOW_WEEKS, wowTone } from "./wow";
@@ -475,8 +475,9 @@ export default function Home() {
   const peopleWatch = peopleWithTarget.filter((person) => person.runrateAchievement >= .85 && person.runrateAchievement < 1);
   const peopleAtRisk = peopleWithTarget.filter((person) => person.runrateAchievement < .85);
   const topPerson = filteredPeople[0];
-  const noSalesPeople = positionScopedPeople.filter((person) => person.actual <= 0);
-  const noSalesRate = positionScopedPeople.length > 0 ? noSalesPeople.length / positionScopedPeople.length : 0;
+  const qtyEvaluatedPeople = positionScopedPeople.filter((person) => typeof person.qtyActual === "number");
+  const noSalesPeople = qtyEvaluatedPeople.filter(isQtyNoSales);
+  const noSalesRate = qtyEvaluatedPeople.length > 0 ? noSalesPeople.length / qtyEvaluatedPeople.length : 0;
   const noSalesGroups = useMemo(() => {
     const groups = new Map<string, typeof noSalesPeople>();
     for (const person of noSalesPeople) {
@@ -629,7 +630,7 @@ export default function Home() {
         person.actualRunrate,
         person.runrateAchievement,
         person.tenure,
-        person.actual <= 0 ? "Yes" : "No",
+        isQtyNoSales(person) ? "Yes" : "No",
       ]),
       numberColumns: [0, 6, 7, 9],
       percentageColumns: [8, 10],
@@ -905,11 +906,11 @@ export default function Home() {
           <div className="people-executive-note"><span>EXECUTIVE TAKEAWAY</span><strong>{peopleOnTrack.length >= peopleAtRisk.length ? "กำลังหลักส่วนใหญ่เดินหน้าได้ตามแผน" : "ต้องเร่ง Coaching รายบุคคลในกลุ่ม At Risk"}</strong><p>{peopleAtRisk.length ? `มี ${peopleAtRisk.length} คนต่ำกว่า 85% ของ RR Target ควรเริ่มจากผู้ที่ Actual ยังต่ำและมี Gap สูง` : "รักษาจังหวะการปิดยอดและถอดบทเรียนจาก Top RR Ranking"}</p></div>
         </div>
         <button className={`no-sales-focus ${showNoSales ? "open" : ""}`} onClick={() => setShowNoSales((current) => !current)} aria-expanded={showNoSales}>
-          <span><i>NO SALES FOCUS</i><strong>{noSalesPeople.length} คน</strong><small>{analysisScope} • {percent(noSalesRate)} ของพนักงาน {positionScopedPeople.length} คนใน Type ที่เลือก</small></span>
+          <span><i>NO SALES FOCUS</i><strong>{noSalesPeople.length} คน</strong><small>QTY Actual = 0 • {analysisScope} • {percent(noSalesRate)} ของพนักงาน {qtyEvaluatedPeople.length} คนที่มีข้อมูล QTY</small></span>
           <b>{showNoSales ? "ซ่อนรายชื่อ" : "ดูชื่อ • ตำแหน่ง • สาขา"}</b>
         </button>
         {showNoSales && <div className="no-sales-detail">
-          <div className="no-sales-title"><div><span>NO SALES PERSON DETAIL</span><h3>{analysisScope}</h3></div><b>Actual = 0 ณ {personAsOfDisplay}</b></div>
+          <div className="no-sales-title"><div><span>NO SALES PERSON DETAIL</span><h3>{analysisScope}</h3></div><b>QTY = 0 ณ {personAsOfDisplay}</b></div>
           {noSalesGroups.length > 0 ? <div className="no-sales-groups">{noSalesGroups.map((group) => <article key={group.shopName}>
             <header><strong>{shortShop(group.shopName)}</strong><b>{group.people.length} คน</b></header>
             <div>{group.people.map((person) => <p key={`${person.id}-${person.name}`}><span><strong>{person.name}</strong><small>ID {person.id || "—"}</small></span><b>{person.position}</b></p>)}</div>
@@ -929,7 +930,7 @@ export default function Home() {
           })}
           {!filteredPeople.length && <tr><td colSpan={10} className="people-empty">ไม่พบข้อมูลตามตัวกรองที่เลือก</td></tr>}
         </tbody></table></div>
-        <div className="people-source-note"><b>หมายเหตุ:</b> Target, Actual, {isQtyProduct ? "RR QTY" : "Actual-RR"} และ % RR ACH รายบุคคลมาจาก <a href={PERSON_PERFORMANCE_SHEET_URL} target="_blank" rel="noreferrer">BMAV Person Performance Daily Update</a> ณ {personAsOfDisplay} โดยตรง • แหล่งข้อมูลสาธารณะ • รีเฟรชอัตโนมัติทุก 5 นาที และแยกชุดคำนวณจากยอดระดับสาขา</div>
+        <div className="people-source-note"><b>หมายเหตุ:</b> Target, Actual, {isQtyProduct ? "RR QTY" : "Actual-RR"} และ % RR ACH รายบุคคลมาจาก <a href={PERSON_PERFORMANCE_SHEET_URL} target="_blank" rel="noreferrer">BMAV Person Performance Daily Update</a> ณ {personAsOfDisplay} โดยตรง • No Sales ใช้ QTY Actual = 0 เท่านั้น • รวมข้อมูลด้วย Employee ID เพื่อไม่ให้ชื่อซ้ำ • แหล่งข้อมูลสาธารณะ • รีเฟรชอัตโนมัติทุก 5 นาที และแยกชุดคำนวณจากยอดระดับสาขา</div>
       </section>}
 
       <section className="two-col">
@@ -1022,7 +1023,7 @@ export default function Home() {
         <div className="analysis-grid">
           <article><span>01 • PERFORMANCE POSITION</span><h3>ตำแหน่งเทียบแผน</h3><ul><li><b>%ACH เดือน</b><strong>{percent(metrics.achievement)}</strong></li><li><b>ACH MTD</b><strong>{percent(metrics.pace)}</strong></li><li><b>Forecast</b><strong>{displayValue(metrics.forecast)}</strong></li><li><b>Gap เดือน</b><strong>{displayValue(monthlyGap)}</strong></li></ul></article>
           <article><span>02 • SALES MOMENTUM</span><h3>คุณภาพและจังหวะยอด</h3><p>มียอด {analysisActiveDays}/{asOfDay} วัน โดยวันที่ดีที่สุดคือ {analysisBestDay ? `วันที่ ${analysisBestDay}` : "ยังไม่มียอด"} ทำได้ {displayValue(analysisBestValue)} ปัจจุบันต้องรักษาหรือเพิ่มยอดเฉลี่ย {displayValue(requiredPerDay)} ต่อวันในช่วงที่เหลือ</p><div className="analysis-signal"><b>%MOM</b><strong className={momTone(metrics.mom)}>{momPercent(metrics.mom)}</strong></div></article>
-          <article><span>03 • RISK & PEOPLE</span><h3>จุดเสี่ยงที่ต้องบริหาร</h3>{personData ? <><p>ใน Type ที่เลือกมี No Sales {noSalesPeople.length} คน จาก {positionScopedPeople.length} คน ({percent(noSalesRate)}) และกลุ่ม At Risk ตาม RR ACH จำนวน {peopleAtRisk.length} คน</p><div className="analysis-signal"><b>สาขา No Sales สูงสุด</b><strong>{noSalesGroups[0] ? `${shortShop(noSalesGroups[0].shopName)} • ${noSalesGroups[0].people.length} คน` : "ไม่มี No Sales"}</strong></div></> : <><p>มีสาขาต่ำกว่า 85% ของ Target MTD จำนวน {atRisk.length} สาขา จาก {activeBranches.length} สาขา โดยต้องติดตามความต่อเนื่องของยอดและ Gap รายวัน</p><div className="analysis-signal"><b>สาขาที่ต้องเร่ง</b><strong>{weakestBranch ? `${shortShop(weakestBranch.name)} • ${percent(weakestBranch.pace)}` : "—"}</strong></div></>}</article>
+          <article><span>03 • RISK & PEOPLE</span><h3>จุดเสี่ยงที่ต้องบริหาร</h3>{personData ? <><p>ใน Type ที่เลือกมี No Sales จาก QTY {noSalesPeople.length} คน จาก {qtyEvaluatedPeople.length} คนที่มีข้อมูล QTY ({percent(noSalesRate)}) และกลุ่ม At Risk ตาม RR ACH จำนวน {peopleAtRisk.length} คน</p><div className="analysis-signal"><b>สาขา No Sales สูงสุด</b><strong>{noSalesGroups[0] ? `${shortShop(noSalesGroups[0].shopName)} • ${noSalesGroups[0].people.length} คน` : "ไม่มี No Sales"}</strong></div></> : <><p>มีสาขาต่ำกว่า 85% ของ Target MTD จำนวน {atRisk.length} สาขา จาก {activeBranches.length} สาขา โดยต้องติดตามความต่อเนื่องของยอดและ Gap รายวัน</p><div className="analysis-signal"><b>สาขาที่ต้องเร่ง</b><strong>{weakestBranch ? `${shortShop(weakestBranch.name)} • ${percent(weakestBranch.pace)}` : "—"}</strong></div></>}</article>
           <article><span>04 • OPPORTUNITY</span><h3>โอกาสขยายผล</h3><p>{strongestBranch ? `${shortShop(strongestBranch.name)} เป็น Benchmark ของมุมมองนี้ที่ ACH MTD ${percent(strongestBranch.pace)} ควรถอดวิธีสร้างยอดและส่งต่อให้สาขาที่ต่ำกว่าแผน` : "ยังไม่มีข้อมูลสาขาสำหรับวิเคราะห์"}</p><div className="analysis-signal"><b>Top Contribution</b><strong>{strongestBranch ? `${shortShop(strongestBranch.name)} • ${displayValue(strongestBranch.mtd)}` : "—"}</strong></div></article>
         </div>
         <div className="management-actions"><span>MANAGEMENT PRIORITIES</span><div>{executiveActions.map((action, index) => <p key={action}><b>{String(index + 1).padStart(2, "0")}</b><span>{action}</span></p>)}</div></div>

@@ -9,6 +9,7 @@ export type PersonPerformance = {
   actual: number;
   actualRunrate: number;
   runrateAchievement: number;
+  qtyActual: number | null;
   tenure: string;
   id: string;
 };
@@ -92,7 +93,21 @@ export function personPerformanceFromCsv(csv: string, product: "Postpay" | "True
   const latestRows = rows.filter((row) => toIsoDate(row[0]) === asOf && isActive(row[14] ?? ""));
   const area = latestRows.find((row) => row[6]?.trim())?.[6].trim() || "BMA V - Central";
 
-  const people = latestRows.map((row) => {
+  const rowsByPerson = new Map<string, string[][]>();
+  for (const row of latestRows) {
+    const id = (row[2] ?? "").trim();
+    const fallbackKey = `${(row[3] ?? "").trim()}|${normalizeShop(row[5] ?? "")}`;
+    const key = id || fallbackKey;
+    const personRows = rowsByPerson.get(key) ?? [];
+    personRows.push(row);
+    rowsByPerson.set(key, personRows);
+  }
+
+  const preferredUnit = product === "Postpay" ? "AMOUNT" : "QTY";
+  const people = [...rowsByPerson.values()].map((personRows) => {
+    const unitOf = (row: string[]) => (row[7] ?? "").trim().toUpperCase();
+    const qtyRow = personRows.find((row) => unitOf(row) === "QTY");
+    const row = personRows.find((candidate) => unitOf(candidate) === preferredUnit) ?? qtyRow ?? personRows[0];
     const target = toNumber(row[8] ?? "");
     const actualRunrate = toNumber(row[10] ?? "");
     return {
@@ -105,6 +120,7 @@ export function personPerformanceFromCsv(csv: string, product: "Postpay" | "True
       actual: toNumber(row[9] ?? ""),
       actualRunrate,
       runrateAchievement: target > 0 ? actualRunrate / target : 0,
+      qtyActual: qtyRow ? toNumber(qtyRow[9] ?? "") : null,
       tenure: (row[12] ?? "").trim(),
     };
   }).filter((person) => person.name && person.shopName)
@@ -112,6 +128,10 @@ export function personPerformanceFromCsv(csv: string, product: "Postpay" | "True
 
   if (!people.length) throw new Error(`Google Sheet returned no active ${product} people`);
   return { meta: { product, asOf, area, source: PERSON_CSV_URLS[product] }, people };
+}
+
+export function isQtyNoSales(person: Pick<PersonPerformance, "qtyActual">) {
+  return typeof person.qtyActual === "number" && person.qtyActual <= 0;
 }
 
 async function loadProduct(product: "Postpay" | "TrueOnline", signal?: AbortSignal) {
