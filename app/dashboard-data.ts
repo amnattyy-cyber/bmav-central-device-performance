@@ -65,6 +65,10 @@ export const DEFAULT_METRIC_BY_PRODUCT: Record<ProductName, MetricName> = {
   TrueOnline: "Qty",
 };
 
+export function calculateRunrateAchievement(runrate: number, target: number) {
+  return target > 0 ? runrate / target : 0;
+}
+
 const ENGLISH_MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
 
 function parseCsv(text: string) {
