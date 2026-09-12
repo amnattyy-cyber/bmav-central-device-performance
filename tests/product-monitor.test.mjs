@@ -4,12 +4,19 @@ import test from "node:test";
 
 import {
   availableMetricsFor,
+  calculateRunrateAchievement,
   dashboardDatasetFromCsv,
   selectDashboardData,
 } from "../app/dashboard-data.ts";
 import { isQtyNoSales, personPerformanceFromCsv } from "../app/google-person-data.ts";
 
 const root = new URL("../", import.meta.url);
+
+test("calculates runrate achievement from monthly target", () => {
+  assert.equal(calculateRunrateAchievement(75, 100), 0.75);
+  assert.equal(calculateRunrateAchievement(125, 100), 1.25);
+  assert.equal(calculateRunrateAchievement(50, 0), 0);
+});
 
 test("provides four independent product datasets", async () => {
   const data = JSON.parse(await readFile(new URL("app/sales-product-data.json", root), "utf8"));
@@ -114,4 +121,12 @@ test("dashboard exposes month, metric, branch, date, WoW, and Excel controls in 
   assert.match(wow, /W40/);
   assert.match(css, /grid-template-columns: 1\.7fr/);
   assert.doesNotMatch([page, sheetSync, wow].join("\n"), /�/);
+
+  const branchMonitor = page.slice(
+    page.indexOf('<section className="panel table-panel">'),
+    page.indexOf('<section className="panel branch-product-summary"'),
+  );
+  assert.match(branchMonitor, /%Runrate = Runrate ÷ Target เดือน/);
+  assert.match(branchMonitor, /status\(branch\.runrateAchievement\)/);
+  assert.doesNotMatch(branchMonitor, /Target MTD|ACH MTD|Forecast/);
 });
