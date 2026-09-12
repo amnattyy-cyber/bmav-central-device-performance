@@ -7,6 +7,7 @@ import tolPersonData from "./tol-person-performance.json";
 import {
   availableMetricsFor,
   type Branch,
+  calculateRunrateAchievement,
   type DashboardData,
   dashboardDatasetFromData,
   DEFAULT_METRIC_BY_PRODUCT,
@@ -275,7 +276,7 @@ export default function Home() {
     const forecast = periodDays > 0 ? mtd / periodDays * data.meta.daysInMonth : 0;
     const achievement = target > 0 ? mtd / target : 0;
     const runrate = selectedBranches.reduce((sum, branch) => sum + branch.products[product].runrate, 0);
-    const runrateAchievement = target > 0 ? runrate / target : 0;
+    const runrateAchievement = calculateRunrateAchievement(runrate, target);
     const previousActual = selectedBranches.reduce((sum, branch) => sum + branch.products[product].previousActual, 0);
     const mom = previousActual > 0 ? runrate / previousActual - 1 : null;
     return { target, daily, mtd, today, targetMtd, pace, forecast, achievement, runrate, runrateAchievement, previousActual, mom, dailyTarget: target / data.meta.daysInMonth };
@@ -358,12 +359,20 @@ export default function Home() {
     const targetMtd = item.target * periodDays / data.meta.daysInMonth;
     const pace = targetMtd > 0 ? mtd / targetMtd : 0;
     const forecast = periodDays > 0 ? mtd / periodDays * data.meta.daysInMonth : 0;
-    const runrateAchievement = item.target > 0 ? item.runrate / item.target : 0;
+    const runrateAchievement = calculateRunrateAchievement(item.runrate, item.target);
     const mom = item.previousActual > 0 ? item.runrate / item.previousActual - 1 : null;
     const branchWow = calculateWow([branch], product, data, selectedWowWeek);
     return { ...branch, target: item.target, mtd, targetMtd, pace, forecast, runrate: item.runrate, runrateAchievement, previousActual: item.previousActual, mom, wow: branchWow.wow, wowCurrent: branchWow.currentTotal, wowBase: branchWow.baseTotal, today: item.daily[periodDay - 1] ?? 0 };
   }).filter((branch) => selectedBranchNames.length === 0 || selectedBranchNames.includes(branch.name))
     .sort((a, b) => a.target > 0 || b.target > 0 ? b.pace - a.pace : b.mtd - a.mtd), [targetedBranches, product, data, selectedWowWeek, selectedBranchNames, isDailyView, periodDay, periodDays, asOfDay]);
+
+  const branchMonitorRows = useMemo(() => [...branchPerformance].sort((a, b) => {
+    if (a.target > 0 && b.target <= 0) return -1;
+    if (a.target <= 0 && b.target > 0) return 1;
+    return a.target > 0
+      ? b.runrateAchievement - a.runrateAchievement
+      : b.runrate - a.runrate;
+  }), [branchPerformance]);
 
   const focusBranchPerformance = useMemo(() => focusData.branches
     .filter((branch) => branch.dailyTarget > 0)
@@ -443,7 +452,7 @@ export default function Home() {
     const bestValue = Math.max(...dailyValues, 0);
     const bestDay = bestValue > 0 ? dailyValues.indexOf(bestValue) + 1 : 0;
     const activeDays = dailyValues.filter((value) => value > 0).length;
-    const runrateAchievement = item.target > 0 ? item.runrate / item.target : 0;
+    const runrateAchievement = calculateRunrateAchievement(item.runrate, item.target);
     const mom = item.previousActual > 0 ? item.runrate / item.previousActual - 1 : null;
     return { mtd, pace, achievement, forecast, gap, requiredDaily, bestValue, bestDay, activeDays, runrate: item.runrate, runrateAchievement, previousActual: item.previousActual, mom };
   }, [selectedBranch, product, asOfDay, data.meta.daysInMonth, remainingDays]);
@@ -541,8 +550,8 @@ export default function Home() {
       name: `${product} Branch`,
       title: `${product} Performance by Branch`,
       subtitle: exportSubtitle,
-      headers: ["Rank", "Branch", "WW", "Product", "Metric", "Month", "Period", "Target", "Actual", "Target by Period", "ACH by Period", "Status", "Runrate", "Runrate % Target", `${data.meta.previousMonth} Actual`, "%MOM", "Week", "Compared Days", "Current Week", "Base Week", `%WoW ${wowUnit}`, "WoW Unit", "Forecast", "Gap to Target", "Latest / Selected Day"],
-      rows: branchPerformance.map((branch, index) => [
+      headers: ["Rank", "Branch", "WW", "Product", "Metric", "Month", "Period", "Target", "Actual", "%ACH", "Status by Runrate", "Runrate", "%Runrate", `${data.meta.previousMonth} Actual`, "%MOM", "Week", "Compared Days", "Current Week", "Base Week", `%WoW ${wowUnit}`, "WoW Unit", "Gap to Target", "Latest / Selected Day"],
+      rows: branchMonitorRows.map((branch, index) => [
         index + 1,
         branch.name,
         branch.ww ?? "",
@@ -552,9 +561,8 @@ export default function Home() {
         analysisPeriod,
         branch.target,
         branch.mtd,
-        branch.targetMtd,
-        branch.pace,
-        status(branch.pace).label,
+        branch.target > 0 ? branch.mtd / branch.target : 0,
+        branch.target > 0 ? status(branch.runrateAchievement).label : "No Target",
         branch.runrate,
         branch.runrateAchievement,
         branch.previousActual,
@@ -565,12 +573,11 @@ export default function Home() {
         branch.wowBase,
         branch.wow,
         wowUnit,
-        branch.forecast,
         Math.max(0, branch.target - branch.mtd),
         branch.today,
       ]),
-      numberColumns: [0, 7, 8, 9, 12, 14, 17, 18, 19, 22, 23, 24],
-      percentageColumns: [10, 13, 15, 20],
+      numberColumns: [0, 7, 8, 11, 13, 16, 17, 18, 21, 22],
+      percentageColumns: [9, 12, 14, 19],
     };
     const trendSheet: ExcelSheet = {
       name: "Daily Trend",
@@ -968,12 +975,12 @@ export default function Home() {
       </section>
 
       <section className="panel table-panel">
-        <div className="section-head"><div><span>BRANCH MONITOR</span><h2>{product} Performance by Branch</h2></div><div className="table-actions"><b>หน่วย: {data.meta.metric} • {isDailyView ? `เฉพาะวันที่ ${String(periodDay).padStart(2, "0")} ${shortMonth}` : `ยอดสะสม ${monthYear}`}</b><button className="capture-toggle" onClick={toggleCaptureMode}>{captureMode ? "กลับ Dashboard" : "ดูครบทุกสาขา / Copy รูป"}</button></div></div>
-        <div className="table-wrap"><table><thead><tr><th>สาขา</th><th>{isDailyView ? `ยอดวันที่ ${String(periodDay).padStart(2, "0")}` : "ยอด MTD"}</th><th>Target</th><th>%ACH</th><th>{isDailyView ? "Target Daily" : "Target MTD"}</th><th>{isDailyView ? "ACH Daily" : "ACH MTD"}</th><th>Runrate</th><th>Runrate %</th><th>MoM / WoW</th><th>Forecast</th><th>สถานะ</th></tr></thead>
-          <tbody>{branchPerformance.map((branch) => {
+        <div className="section-head"><div><span>BRANCH MONITOR</span><h2>{product} Performance by Branch</h2><p>%Runrate = Runrate ÷ Target เดือน</p></div><div className="table-actions"><b>หน่วย: {data.meta.metric} • {isDailyView ? `เฉพาะวันที่ ${String(periodDay).padStart(2, "0")} ${shortMonth}` : `ยอดสะสม ${monthYear}`}</b><button className="capture-toggle" onClick={toggleCaptureMode}>{captureMode ? "กลับ Dashboard" : "ดูครบทุกสาขา / Copy รูป"}</button></div></div>
+        <div className="table-wrap"><table className="branch-monitor-table"><thead><tr><th>สาขา</th><th>{isDailyView ? `ยอดวันที่ ${String(periodDay).padStart(2, "0")}` : "ยอด MTD"}</th><th>Target</th><th>%ACH</th><th>Runrate</th><th>%Runrate</th><th>MoM / WoW</th><th>สถานะ</th></tr></thead>
+          <tbody>{branchMonitorRows.map((branch) => {
             const hasBranchTarget = branch.target > 0;
-            const currentStatus = hasBranchTarget ? status(branch.pace) : { key: "notarget", label: "No Target" };
-            return <tr key={branch.name}><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "ไม่มีรหัสสาขา"}</small></td><td><b>{displayValue(branch.mtd)}</b><small>{isDailyView ? "เฉพาะวันที่เลือก" : `วันที่ ${String(asOfDay).padStart(2, "0")} ${shortMonth} ${displayValue(branch.today)}`}</small></td><td>{hasBranchTarget ? displayValue(branch.target) : "—"}</td><td>{hasBranchTarget ? percent(branch.mtd / branch.target) : "N/A"}</td><td>{hasBranchTarget ? displayValue(branch.targetMtd) : "—"}</td><td><strong>{hasBranchTarget ? percent(branch.pace) : "N/A"}</strong></td><td><b className="rr-value">{displayValue(branch.runrate)}</b></td><td><strong className={`rr-percent ${hasBranchTarget ? status(branch.runrateAchievement).key : "notarget"}`}>{hasBranchTarget ? percent(branch.runrateAchievement) : "N/A"}</strong></td><td><div className="trend-badges"><strong className={`trend-badge ${momTone(branch.mom)}`}><small>MoM</small>{momPercent(branch.mom)}</strong><strong className={`trend-badge ${wowTone(branch.wow)}`}><small>WoW {wowUnit}</small>{momPercent(branch.wow)}</strong></div></td><td>{displayValue(branch.forecast)}</td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
+            const currentStatus = hasBranchTarget ? status(branch.runrateAchievement) : { key: "notarget", label: "No Target" };
+            return <tr key={branch.name}><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "ไม่มีรหัสสาขา"}</small></td><td><b>{displayValue(branch.mtd)}</b><small>{isDailyView ? "เฉพาะวันที่เลือก" : `วันที่ ${String(asOfDay).padStart(2, "0")} ${shortMonth} ${displayValue(branch.today)}`}</small></td><td>{hasBranchTarget ? displayValue(branch.target) : "—"}</td><td>{hasBranchTarget ? percent(branch.mtd / branch.target) : "N/A"}</td><td><b className="rr-value">{displayValue(branch.runrate)}</b></td><td><strong className={`rr-percent ${hasBranchTarget ? currentStatus.key : "notarget"}`}>{hasBranchTarget ? percent(branch.runrateAchievement) : "N/A"}</strong></td><td><div className="trend-badges"><strong className={`trend-badge ${momTone(branch.mom)}`}><small>MoM</small>{momPercent(branch.mom)}</strong><strong className={`trend-badge ${wowTone(branch.wow)}`}><small>WoW {wowUnit}</small>{momPercent(branch.wow)}</strong></div></td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
           })}</tbody></table></div>
       </section>
 
