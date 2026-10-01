@@ -89,6 +89,38 @@ test("Week 36 supports equal-day comparison across August and September", () => 
   assert.equal(wowTone(result.wow), "positive");
 });
 
+test("Week 40 supports an equal-day comparison across September and October", () => {
+  const dated = {
+    "2026-09-21": 4,
+    "2026-09-22": 5,
+    "2026-09-23": 6,
+    "2026-09-24": 7,
+    "2026-09-28": 8,
+    "2026-09-29": 9,
+    "2026-09-30": 10,
+    "2026-10-01": 11,
+  };
+  const selected = branch("October Shop", [11], dated);
+  const data = dashboard("2026-10-01", [selected]);
+  const result = calculateWow([selected], "Device", data, WOW_WEEKS[8]);
+
+  assert.equal(result.usedDays, 4);
+  assert.equal(result.currentEnd, "2026-10-01");
+  assert.equal(result.baseEnd, "2026-09-24");
+  assert.equal(result.currentTotal, 38);
+  assert.equal(result.baseTotal, 22);
+  assert.equal(result.wow, 38 / 22 - 1);
+});
+
+test("October weeks continue through Week 44", () => {
+  assert.deepEqual(WOW_WEEKS.slice(-4).map((week) => [week.id, week.start, week.end]), [
+    ["W41", "2026-10-05", "2026-10-11"],
+    ["W42", "2026-10-12", "2026-10-18"],
+    ["W43", "2026-10-19", "2026-10-25"],
+    ["W44", "2026-10-26", "2026-11-01"],
+  ]);
+});
+
 test("future selected week waits without manufacturing a comparison", () => {
   const data = dashboard("2026-08-12", [branch("A", Array(12).fill(1))]);
   const result = calculateWow(data.branches, "Device", data, WOW_WEEKS[2]);
