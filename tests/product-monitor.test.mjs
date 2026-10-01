@@ -119,6 +119,7 @@ test("dashboard exposes month, metric, branch, date, WoW, and Excel controls in 
   assert.match(sheetSync, /dashboardDatasetFromCsv/);
   assert.match(sheetSync, /PreviousActual/);
   assert.match(wow, /W40/);
+  assert.match(wow, /W44/);
   assert.match(css, /grid-template-columns: 1\.7fr/);
   assert.doesNotMatch([page, sheetSync, wow].join("\n"), /�/);
 
