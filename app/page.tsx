@@ -1037,7 +1037,7 @@ export default function Home() {
         <p className="analysis-footnote">บทวิเคราะห์นี้สร้างจากข้อมูล Dashboard ปัจจุบันโดยอัตโนมัติ และจะคำนวณใหม่ทันทีเมื่อเปลี่ยน Product, สาขา, วันที่ หรือ Type ตำแหน่ง</p>
       </section>
 
-      <section className="method-note"><div><strong>หลักการแยก Product และ Metric</strong><p>ทุก KPI, กราฟ, อันดับ และตารางคำนวณจาก Product, เดือน และมุม {data.meta.metric} ที่เลือก โดยไม่รวมยอดข้ามมุม</p></div><div><strong>MoM / WoW ต่อเนื่อง</strong><p>MoM เทียบ Actual เดือนก่อน และ WoW เทียบสัปดาห์ต่อเนื่อง Week 32–40 โดยจำกัดจำนวนวันให้เท่ากันอัตโนมัติ</p></div></section>
+      <section className="method-note"><div><strong>หลักการแยก Product และ Metric</strong><p>ทุก KPI, กราฟ, อันดับ และตารางคำนวณจาก Product, เดือน และมุม {data.meta.metric} ที่เลือก โดยไม่รวมยอดข้ามมุม</p></div><div><strong>MoM / WoW ต่อเนื่อง</strong><p>MoM เทียบ Actual เดือนก่อน และ WoW เทียบสัปดาห์ต่อเนื่อง Week 32–44 โดยจำกัดจำนวนวันให้เท่ากันอัตโนมัติ</p></div></section>
       <footer><span>BMAV-Central Product Performance Monitor</span><b>Source: Google Sheet Live • {monthYear} • As of {asOfDay > 0 ? `${String(asOfDay).padStart(2, "0")} ${shortMonth} ${asOfDate.getFullYear()}` : "รอข้อมูล"}</b></footer>
     </main>
   );
