@@ -19,6 +19,10 @@ export const WOW_WEEKS: WowWeek[] = [
   { id: "W38", label: "Week 38", start: "2026-09-14", end: "2026-09-20", baseStart: "2026-09-07", baseEnd: "2026-09-13" },
   { id: "W39", label: "Week 39", start: "2026-09-21", end: "2026-09-27", baseStart: "2026-09-14", baseEnd: "2026-09-20" },
   { id: "W40", label: "Week 40", start: "2026-09-28", end: "2026-10-04", baseStart: "2026-09-21", baseEnd: "2026-09-27" },
+  { id: "W41", label: "Week 41", start: "2026-10-05", end: "2026-10-11", baseStart: "2026-09-28", baseEnd: "2026-10-04" },
+  { id: "W42", label: "Week 42", start: "2026-10-12", end: "2026-10-18", baseStart: "2026-10-05", baseEnd: "2026-10-11" },
+  { id: "W43", label: "Week 43", start: "2026-10-19", end: "2026-10-25", baseStart: "2026-10-12", baseEnd: "2026-10-18" },
+  { id: "W44", label: "Week 44", start: "2026-10-26", end: "2026-11-01", baseStart: "2026-10-19", baseEnd: "2026-10-25" },
 ];
 
 const THAI_MONTHS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
