@@ -32,7 +32,10 @@ export default function MongkolDashboard() {
     <section className="panel mongkol-panel" aria-label="Dashboard เบอร์มงคล">
       <div className="section-head mongkol-heading">
         <div><span>OCTOBER 2026 • SPECIAL NUMBER PERFORMANCE</span><h1>Dashboard เบอร์มงคล</h1><p>{data.meta.area} • ข้อมูล ณ {asOfDisplay} • Snapshot จากไฟล์ต้นทาง</p></div>
-        <a href={backHref}>← กลับ Dashboard หลัก</a>
+        <div className="mongkol-actions">
+          <a href="https://docs.google.com/spreadsheets/d/1HnloV7TpFMWDrHgcCEUTaJKKDz2Zgb8WjQPCSvfn-Ns/edit">Google Sheet</a>
+          <a href={backHref}>กลับ Dashboard หลัก</a>
+        </div>
       </div>
       <div className="mongkol-kpis">
         <article><span>Target เดือน</span><strong>{money(totals.target)} QTY</strong></article>
