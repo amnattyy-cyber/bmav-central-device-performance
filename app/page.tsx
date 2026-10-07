@@ -1,14 +1,12 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import fallbackData from "./sales-product-data.json";
 import postpayPersonData from "./postpay-person-performance.json";
 import tolPersonData from "./tol-person-performance.json";
-import mongkolFallback from "./mongkol-data.json";
 import {
   availableMetricsFor,
   type Branch,
-  calculateRunrateAchievement,
   type DashboardData,
   dashboardDatasetFromData,
   DEFAULT_METRIC_BY_PRODUCT,
@@ -17,12 +15,10 @@ import {
   type ProductName,
   selectDashboardData,
 } from "./dashboard-data";
-import { isQtyNoSales, loadGooglePersonPerformance, PERSON_PERFORMANCE_SHEET_URL, type PersonPerformanceData } from "./google-person-data";
+import { loadGooglePersonPerformance, PERSON_PERFORMANCE_SHEET_URL, type PersonPerformanceData } from "./google-person-data";
 import { createFocusDeviceFallback, FOCUS_DEVICE_SHEET_URL, loadFocusDeviceData, type FocusDeviceData } from "./focus-device-data";
 import { downloadExcelWorkbook, type ExcelSheet } from "./excel-export";
-import type { MongkolData } from "./mongkol-data";
 import { calculateWow, findDefaultWowWeek, formatWowRange, WOW_WEEKS, wowTone } from "./wow";
-import { calculateMomActual } from "./mom";
 
 const ALL_BRANCHES = "ทุกสาขา";
 const ALL_DAYS = "all";
@@ -86,8 +82,6 @@ export default function Home() {
   const [peopleSyncSource, setPeopleSyncSource] = useState<"sheet" | "fallback">("fallback");
   const [focusData, setFocusData] = useState<FocusDeviceData>(fallbackFocusDeviceData);
   const [focusSyncSource, setFocusSyncSource] = useState<"sheet" | "fallback">("fallback");
-  const mongkolData = mongkolFallback as MongkolData;
-  const [mongkolMode, setMongkolMode] = useState<"area" | "indy">("area");
   const [product, setProduct] = useState<ProductName>("Device");
   const [monthKey, setMonthKey] = useState(fallbackDashboardDataset.latestMonthKey);
   const [metric, setMetric] = useState<MetricName>("Net");
@@ -136,15 +130,6 @@ export default function Home() {
   const focusAsOfDay = Number(focusData.meta.asOf.slice(-2));
   const focusPeriodDay = selectedDay ?? focusAsOfDay;
   const focusPeriodDays = selectedDay === null ? focusAsOfDay : 1;
-  const mongkolTotals = useMemo(() => mongkolData.areas.reduce((total, area) => ({
-    target: total.target + area.target,
-    actual: total.actual + area.actual,
-    forecast: total.forecast + area.rrEndMonth,
-    noSale: total.noSale + area.noSaleCount,
-    indyCount: total.indyCount + area.indyCount,
-  }), { target: 0, actual: 0, forecast: 0, noSale: 0, indyCount: 0 }), [mongkolData]);
-  const mongkolAsOfDate = new Date(`${mongkolData.meta.asOf}T00:00:00+07:00`);
-  const mongkolAsOfDisplay = Number.isNaN(mongkolAsOfDate.valueOf()) ? "—" : mongkolAsOfDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 
   const targetedBranches = useMemo(
     () => branches.filter((branch) => branch.products[product].target > 0 || branch.products[product].eligible),
@@ -289,7 +274,7 @@ export default function Home() {
     const forecast = periodDays > 0 ? mtd / periodDays * data.meta.daysInMonth : 0;
     const achievement = target > 0 ? mtd / target : 0;
     const runrate = selectedBranches.reduce((sum, branch) => sum + branch.products[product].runrate, 0);
-    const runrateAchievement = calculateRunrateAchievement(runrate, target);
+    const runrateAchievement = target > 0 ? runrate / target : 0;
     const previousActual = selectedBranches.reduce((sum, branch) => sum + branch.products[product].previousActual, 0);
     const mom = previousActual > 0 ? runrate / previousActual - 1 : null;
     return { target, daily, mtd, today, targetMtd, pace, forecast, achievement, runrate, runrateAchievement, previousActual, mom, dailyTarget: target / data.meta.daysInMonth };
@@ -312,58 +297,6 @@ export default function Home() {
       ? "ฐานเปรียบเทียบเป็น 0 จึงไม่คำนวณเปอร์เซ็นต์"
       : `เปรียบเทียบจำนวนวันเท่ากัน ${wowMetrics.usedDays} วัน`;
 
-  const metricForProduct = (productName: ProductName): MetricName => {
-    const options = availableMetricsFor(dashboardDataset, selectedMonthKey, productName);
-    const desired = productName === product ? metric : DEFAULT_METRIC_BY_PRODUCT[productName];
-    return options.includes(desired) ? desired : options[0];
-  };
-  const formatByMetric = (value: number, metricName: MetricName) => `${money(value)}${metricName === "Qty" ? " QTY" : ""}`;
-
-  const momAnalysis = useMemo(() => productNames.map((productName) => {
-    const eligible = branches.filter((branch) => branch.products[productName].target > 0 || branch.products[productName].eligible);
-    const scoped = selectedBranchNames.length === 0 ? eligible : eligible.filter((branch) => selectedBranchNames.includes(branch.name));
-    const metricName = metricForProduct(productName);
-    const mtd = scoped.reduce((sum, branch) => sum + branch.products[productName].daily.slice(0, asOfDay).reduce((s, v) => s + v, 0), 0);
-    const runrate = scoped.reduce((sum, branch) => sum + branch.products[productName].runrate, 0);
-    const previousActual = scoped.reduce((sum, branch) => sum + branch.products[productName].previousActual, 0);
-    const momRunrate = previousActual > 0 ? runrate / previousActual - 1 : null;
-    const actualWindow = calculateMomActual(scoped, productName, data);
-    const branchMoms = scoped
-      .map((branch) => {
-        const item = branch.products[productName];
-        return { name: branch.name, mom: item.previousActual > 0 ? item.runrate / item.previousActual - 1 : null };
-      })
-      .filter((entry): entry is { name: string; mom: number } => entry.mom !== null);
-    const up = branchMoms.filter((entry) => entry.mom > 0).length;
-    const down = branchMoms.filter((entry) => entry.mom < 0).length;
-    const noData = scoped.length - branchMoms.length;
-    const best = branchMoms.length ? branchMoms.reduce((a, b) => (b.mom > a.mom ? b : a)) : null;
-    const worst = branchMoms.length ? branchMoms.reduce((a, b) => (b.mom < a.mom ? b : a)) : null;
-    return { productName, metricName, mtd, runrate, previousActual, momRunrate, actualWindow, up, down, noData, best, worst, branchCount: scoped.length };
-  }), [productNames, branches, selectedBranchNames, asOfDay, data, product, metric, dashboardDataset, selectedMonthKey]);
-
-  const allProductSummary = useMemo(() => {
-    const scope = selectedBranchNames.length === 0 ? branches : branches.filter((branch) => selectedBranchNames.includes(branch.name));
-    const rows = scope.map((branch) => ({
-      name: branch.name,
-      ww: branch.ww,
-      products: productNames.map((productName) => {
-        const item = branch.products[productName];
-        const mtd = item.daily.slice(0, asOfDay).reduce((sum, value) => sum + value, 0);
-        const mom = item.previousActual > 0 ? item.runrate / item.previousActual - 1 : null;
-        return { productName, mtd, runrate: item.runrate, mom, hasData: item.target > 0 || !!item.eligible };
-      }),
-    }));
-    const totals = productNames.map((productName) => {
-      const mtd = rows.reduce((sum, row) => sum + (row.products.find((cell) => cell.productName === productName)?.mtd ?? 0), 0);
-      const runrate = rows.reduce((sum, row) => sum + (row.products.find((cell) => cell.productName === productName)?.runrate ?? 0), 0);
-      const previousActual = scope.reduce((sum, branch) => sum + branch.products[productName].previousActual, 0);
-      const mom = previousActual > 0 ? runrate / previousActual - 1 : null;
-      return { productName, mtd, mom };
-    });
-    return { rows, totals };
-  }, [branches, selectedBranchNames, asOfDay, productNames]);
-
   const branchPerformance = useMemo(() => targetedBranches.map((branch) => {
     const item = branch.products[product];
     const mtd = isDailyView
@@ -372,20 +305,12 @@ export default function Home() {
     const targetMtd = item.target * periodDays / data.meta.daysInMonth;
     const pace = targetMtd > 0 ? mtd / targetMtd : 0;
     const forecast = periodDays > 0 ? mtd / periodDays * data.meta.daysInMonth : 0;
-    const runrateAchievement = calculateRunrateAchievement(item.runrate, item.target);
+    const runrateAchievement = item.target > 0 ? item.runrate / item.target : 0;
     const mom = item.previousActual > 0 ? item.runrate / item.previousActual - 1 : null;
     const branchWow = calculateWow([branch], product, data, selectedWowWeek);
     return { ...branch, target: item.target, mtd, targetMtd, pace, forecast, runrate: item.runrate, runrateAchievement, previousActual: item.previousActual, mom, wow: branchWow.wow, wowCurrent: branchWow.currentTotal, wowBase: branchWow.baseTotal, today: item.daily[periodDay - 1] ?? 0 };
   }).filter((branch) => selectedBranchNames.length === 0 || selectedBranchNames.includes(branch.name))
     .sort((a, b) => a.target > 0 || b.target > 0 ? b.pace - a.pace : b.mtd - a.mtd), [targetedBranches, product, data, selectedWowWeek, selectedBranchNames, isDailyView, periodDay, periodDays, asOfDay]);
-
-  const branchMonitorRows = useMemo(() => [...branchPerformance].sort((a, b) => {
-    if (a.target > 0 && b.target <= 0) return -1;
-    if (a.target <= 0 && b.target > 0) return 1;
-    return a.target > 0
-      ? b.runrateAchievement - a.runrateAchievement
-      : b.runrate - a.runrate;
-  }), [branchPerformance]);
 
   const focusBranchPerformance = useMemo(() => focusData.branches
     .filter((branch) => branch.dailyTarget > 0)
@@ -465,7 +390,7 @@ export default function Home() {
     const bestValue = Math.max(...dailyValues, 0);
     const bestDay = bestValue > 0 ? dailyValues.indexOf(bestValue) + 1 : 0;
     const activeDays = dailyValues.filter((value) => value > 0).length;
-    const runrateAchievement = calculateRunrateAchievement(item.runrate, item.target);
+    const runrateAchievement = item.target > 0 ? item.runrate / item.target : 0;
     const mom = item.previousActual > 0 ? item.runrate / item.previousActual - 1 : null;
     return { mtd, pace, achievement, forecast, gap, requiredDaily, bestValue, bestDay, activeDays, runrate: item.runrate, runrateAchievement, previousActual: item.previousActual, mom };
   }, [selectedBranch, product, asOfDay, data.meta.daysInMonth, remainingDays]);
@@ -497,9 +422,8 @@ export default function Home() {
   const peopleWatch = peopleWithTarget.filter((person) => person.runrateAchievement >= .85 && person.runrateAchievement < 1);
   const peopleAtRisk = peopleWithTarget.filter((person) => person.runrateAchievement < .85);
   const topPerson = filteredPeople[0];
-  const qtyEvaluatedPeople = positionScopedPeople.filter((person) => typeof person.qtyActual === "number");
-  const noSalesPeople = qtyEvaluatedPeople.filter(isQtyNoSales);
-  const noSalesRate = qtyEvaluatedPeople.length > 0 ? noSalesPeople.length / qtyEvaluatedPeople.length : 0;
+  const noSalesPeople = positionScopedPeople.filter((person) => person.actual <= 0);
+  const noSalesRate = positionScopedPeople.length > 0 ? noSalesPeople.length / positionScopedPeople.length : 0;
   const noSalesGroups = useMemo(() => {
     const groups = new Map<string, typeof noSalesPeople>();
     for (const person of noSalesPeople) {
@@ -563,8 +487,8 @@ export default function Home() {
       name: `${product} Branch`,
       title: `${product} Performance by Branch`,
       subtitle: exportSubtitle,
-      headers: ["Rank", "Branch", "WW", "Product", "Metric", "Month", "Period", "Target", "Actual", "%ACH", "Status by Runrate", "Runrate", "%Runrate", `${data.meta.previousMonth} Actual`, "%MOM", "Week", "Compared Days", "Current Week", "Base Week", `%WoW ${wowUnit}`, "WoW Unit", "Gap to Target", "Latest / Selected Day"],
-      rows: branchMonitorRows.map((branch, index) => [
+      headers: ["Rank", "Branch", "WW", "Product", "Metric", "Month", "Period", "Target", "Actual", "Target by Period", "ACH by Period", "Status", "Runrate", "Runrate % Target", `${data.meta.previousMonth} Actual`, "%MOM", "Week", "Compared Days", "Current Week", "Base Week", `%WoW ${wowUnit}`, "WoW Unit", "Forecast", "Gap to Target", "Latest / Selected Day"],
+      rows: branchPerformance.map((branch, index) => [
         index + 1,
         branch.name,
         branch.ww ?? "",
@@ -574,8 +498,9 @@ export default function Home() {
         analysisPeriod,
         branch.target,
         branch.mtd,
-        branch.target > 0 ? branch.mtd / branch.target : 0,
-        branch.target > 0 ? status(branch.runrateAchievement).label : "No Target",
+        branch.targetMtd,
+        branch.pace,
+        status(branch.pace).label,
         branch.runrate,
         branch.runrateAchievement,
         branch.previousActual,
@@ -586,11 +511,12 @@ export default function Home() {
         branch.wowBase,
         branch.wow,
         wowUnit,
+        branch.forecast,
         Math.max(0, branch.target - branch.mtd),
         branch.today,
       ]),
-      numberColumns: [0, 7, 8, 11, 13, 16, 17, 18, 21, 22],
-      percentageColumns: [9, 12, 14, 19],
+      numberColumns: [0, 7, 8, 9, 12, 14, 17, 18, 19, 22, 23, 24],
+      percentageColumns: [10, 13, 15, 20],
     };
     const trendSheet: ExcelSheet = {
       name: "Daily Trend",
@@ -650,7 +576,7 @@ export default function Home() {
         person.actualRunrate,
         person.runrateAchievement,
         person.tenure,
-        isQtyNoSales(person) ? "Yes" : "No",
+        person.actual <= 0 ? "Yes" : "No",
       ]),
       numberColumns: [0, 6, 7, 9],
       percentageColumns: [8, 10],
@@ -732,6 +658,7 @@ export default function Home() {
           {productNames.map((name) => <button key={name} className={product === name ? "active" : ""} onClick={() => changeProduct(name)}>
             <i style={{ background: productMeta[name].color }}>{productMeta[name].short}</i><span>{name}</span>
           </button>)}
+          <a className="mongkol-nav-link" href="#/mongkol" aria-label="เปิดหน้า Dashboard เบอร์มงคล">เบอร์มงคล</a>
         </div>
         <label><span>เลือกเดือน</span><select value={monthKey} onChange={(event) => changeMonth(event.target.value)}>
           {monthOptions.map((month) => <option key={month.meta.monthKey} value={month.meta.monthKey}>{month.meta.month}</option>)}
@@ -777,36 +704,6 @@ export default function Home() {
         <div><span>หลักการคำนวณ</span><strong>เฉพาะ {product} • {isQtyProduct ? "QTY / จำนวน Sub" : "Net Amount / Revenue"}</strong></div>
       </section>
 
-      <section className="panel mongkol-panel" aria-label="Dashboard เบอร์มงคล">
-        <div className="section-head mongkol-heading">
-          <div><span>OCTOBER 2026 • SPECIAL NUMBER PERFORMANCE</span><h2>Dashboard เบอร์มงคล</h2><p>BMA V - Central • ข้อมูล ณ {mongkolAsOfDisplay} • Snapshot จากไฟล์ต้นทาง</p></div>
-        </div>
-        <div className="mongkol-kpis">
-          <article><span>Target เดือน</span><strong>{money(mongkolTotals.target)} QTY</strong></article>
-          <article><span>Actual ถึง 6 ต.ค.</span><strong>{money(mongkolTotals.actual)} QTY</strong></article>
-          <article><span>%ACH</span><strong>{percent(mongkolTotals.target ? mongkolTotals.actual / mongkolTotals.target : 0)}</strong></article>
-          <article><span>Forecast สิ้นเดือน</span><strong>{money(mongkolTotals.forecast)} QTY</strong></article>
-          <article><span>No Sale</span><strong>{money(mongkolTotals.noSale)} / {money(mongkolTotals.indyCount)}</strong><small>Indy</small></article>
-        </div>
-        <div className="mongkol-toolbar">
-          <div className="mongkol-tabs" role="group" aria-label="เลือกมุมมองเบอร์มงคล">
-            <button type="button" className={mongkolMode === "area" ? "active" : ""} onClick={() => setMongkolMode("area")}>มุม AREA</button>
-            <button type="button" className={mongkolMode === "indy" ? "active" : ""} onClick={() => setMongkolMode("indy")}>ราย Indy (สรุป)</button>
-          </div>
-          <small>{mongkolMode === "area" ? `${mongkolData.areas.length} สาขา • สรุปยอดรายสาขา` : `${mongkolData.indySummary.count} Indy • สรุปจำนวนตามสถานะ`}</small>
-        </div>
-        {mongkolMode === "area" ? <div className="table-wrap mongkol-table-wrap"><table className="mongkol-table"><thead><tr><th>Rank</th><th>สาขา</th><th>Target</th><th>Actual MTD</th><th>%ACH</th><th>RR สิ้นเดือน</th><th>Indy</th><th>No Sale</th></tr></thead><tbody>
-          {[...mongkolData.areas].sort((a, b) => b.achievement - a.achievement || b.actual - a.actual || a.branch.localeCompare(b.branch, "th")).map((area, index) => <tr key={area.branch}><td>{String(index + 1).padStart(2, "0")}</td><td><strong>{shortShop(area.branch)}</strong></td><td>{money(area.target)} QTY</td><td><b>{money(area.actual)} QTY</b></td><td><strong>{percent(area.achievement)}</strong></td><td>{money(area.rrEndMonth)} QTY</td><td>{area.indyCount}</td><td>{area.noSaleCount}</td></tr>)}
-        </tbody><tfoot><tr><th colSpan={2}>รวม BMA V - Central</th><td>{money(mongkolTotals.target)} QTY</td><td>{money(mongkolTotals.actual)} QTY</td><td>{percent(mongkolTotals.target ? mongkolTotals.actual / mongkolTotals.target : 0)}</td><td>{money(mongkolTotals.forecast)} QTY</td><td>{mongkolTotals.indyCount}</td><td>{mongkolTotals.noSale}</td></tr></tfoot></table><p className="mongkol-privacy-note">ตาราง AREA สรุปยอดรายสาขา โดยรวม Target 1,905 QTY จากข้อมูลราย Indy ครบ 16 สาขา</p></div> : <div className="mongkol-indy-summary">
-          <article className="indy-total"><span>Indy ทั้งหมด</span><strong>{mongkolData.indySummary.count}</strong><small>Target รวม {money(mongkolTotals.target)} QTY • Actual {money(mongkolTotals.actual)} QTY</small></article>
-          <article className="indy-no-sale"><span>No Sale</span><strong>{mongkolData.indySummary.noSale}</strong><small>Indy ที่ยังไม่มียอด</small></article>
-          <article className="indy-risk"><span>At Risk</span><strong>{mongkolData.indySummary.atRisk}</strong><small>มียอด แต่ Forecast ต่ำกว่า 85% ของ Target</small></article>
-          <article className="indy-watch"><span>Watch</span><strong>{mongkolData.indySummary.watch}</strong><small>Forecast 85–99.9% ของ Target</small></article>
-          <article className="indy-track"><span>On Track</span><strong>{mongkolData.indySummary.onTrack}</strong><small>Forecast ถึง Target</small></article>
-          <p className="mongkol-privacy-note">มุมนี้แสดงจำนวน Indy ตามสถานะรวม ไม่แสดงยอดหรืออันดับรายบุคคล</p>
-        </div>}
-      </section>
-
       <section className="panel wow-panel" aria-label="Performance WoW">
         <div className="wow-heading">
           <div><span>PERFORMANCE WOW</span><h2>{product === "TrueOnline" ? "TOL" : product === "Postpay" ? "Post" : product} Performance WoW</h2><p>{selectedWowWeek.label} • ช่วง Week {formatWowRange(selectedWowWeek.start, selectedWowWeek.end)} • ช่วงคำนวณ {wowCurrentRange} • ฐาน {wowBaseRange}</p></div>
@@ -818,44 +715,6 @@ export default function Home() {
           <article className={`wow-result ${wowTone(wowMetrics.wow)}`}><span>WoW {wowUnit}</span><strong>{momPercent(wowMetrics.wow)}</strong><small>{wowAvailabilityText}</small></article>
         </div>
         <p className="wow-footnote">สูตร WoW: (ยอดช่วงปัจจุบัน ÷ ยอดช่วงฐาน) − 1 • ระบบจำกัดวันให้เท่ากันอัตโนมัติตามข้อมูลจริง และคำนวณใหม่เมื่อเลือก Product, Week และ Shop ที่ต้องการ</p>
-      </section>
-
-      <section className="panel mom-panel" aria-label="MoM Analysis ทุก Product">
-        <div className="section-head">
-          <div><span>MOM ANALYSIS</span><h2>เปรียบเทียบยอดขายเทียบเดือนก่อนหน้า</h2><p>{branchSelectionLabel} • เทียบ {data.meta.previousMonth} • แยกตาม Product และสาขา ไม่ขึ้นกับ Product ที่เลือกด้านบน</p></div>
-          <b>{monthYear}</b>
-        </div>
-        <div className="mom-product-grid">
-          {momAnalysis.map((item) => {
-            const cardTheme = productMeta[item.productName];
-            const fmt = (value: number) => formatByMetric(value, item.metricName);
-            return (
-              <article key={item.productName} className="mom-product-card" style={{ "--card-color": cardTheme.color, "--card-soft": cardTheme.accent } as React.CSSProperties}>
-                <header><i style={{ background: cardTheme.color }}>{cardTheme.short}</i><div><strong>{item.productName}</strong><small>{item.branchCount} สาขา • {item.metricName === "Qty" ? "QTY" : "Net Amount"}</small></div></header>
-                <div className="mom-card-row">
-                  <div><span>MTD เดือนนี้ ({item.actualWindow.usedDays} วัน)</span><b>{fmt(item.mtd)}</b></div>
-                  <div><span>ช่วงเดียวกันเดือนก่อน ({item.actualWindow.baseDays} วัน)</span><b>{item.actualWindow.baseComplete ? fmt(item.actualWindow.baseTotal) : "ไม่มีข้อมูล"}</b></div>
-                </div>
-                <div className={`mom-card-result ${momTone(item.actualWindow.momActual)}`}><span>%MoM Actual (จำนวนวันเท่ากัน)</span><strong>{momPercent(item.actualWindow.momActual)}</strong></div>
-                <div className="mom-card-row">
-                  <div><span>Runrate คาดการณ์สิ้นเดือนนี้</span><b>{fmt(item.runrate)}</b></div>
-                  <div><span>Actual เต็มเดือน {data.meta.previousMonth}</span><b>{item.previousActual > 0 ? fmt(item.previousActual) : "ไม่มีข้อมูล"}</b></div>
-                </div>
-                <div className={`mom-card-result ${momTone(item.momRunrate)}`}><span>%MoM Runrate (คาดการณ์สิ้นเดือน)</span><strong>{momPercent(item.momRunrate)}</strong></div>
-                <div className="mom-branch-trend">
-                  <span className="up">▲ {item.up} สาขาโต</span>
-                  <span className="down">▼ {item.down} สาขาลด</span>
-                  {item.noData > 0 && <span className="nodata">{item.noData} สาขาไม่มีข้อมูลเทียบ</span>}
-                </div>
-                {(item.best || item.worst) && <div className="mom-branch-highlight">
-                  {item.best && <p><b>โตสูงสุด</b><span>{shortShop(item.best.name)} • {momPercent(item.best.mom)}</span></p>}
-                  {item.worst && <p><b>ลดลงมากสุด</b><span>{shortShop(item.worst.name)} • {momPercent(item.worst.mom)}</span></p>}
-                </div>}
-              </article>
-            );
-          })}
-        </div>
-        <p className="mom-footnote">%MoM Actual เทียบยอดสะสมจำนวนวันเท่ากันของเดือนนี้กับเดือนก่อนหน้าโดยตรงจากข้อมูลรายวัน ส่วน %MoM Runrate เทียบ Runrate คาดการณ์สิ้นเดือนนี้กับยอด Actual เต็มเดือนก่อนหน้า • สาขาโต/ลดนับจาก %MoM Runrate รายสาขา</p>
       </section>
 
       <section className="kpi-grid" aria-label="KPI ของ Product ที่เลือก">
@@ -956,11 +815,11 @@ export default function Home() {
           <div className="people-executive-note"><span>EXECUTIVE TAKEAWAY</span><strong>{peopleOnTrack.length >= peopleAtRisk.length ? "กำลังหลักส่วนใหญ่เดินหน้าได้ตามแผน" : "ต้องเร่ง Coaching รายบุคคลในกลุ่ม At Risk"}</strong><p>{peopleAtRisk.length ? `มี ${peopleAtRisk.length} คนต่ำกว่า 85% ของ RR Target ควรเริ่มจากผู้ที่ Actual ยังต่ำและมี Gap สูง` : "รักษาจังหวะการปิดยอดและถอดบทเรียนจาก Top RR Ranking"}</p></div>
         </div>
         <button className={`no-sales-focus ${showNoSales ? "open" : ""}`} onClick={() => setShowNoSales((current) => !current)} aria-expanded={showNoSales}>
-          <span><i>NO SALES FOCUS</i><strong>{noSalesPeople.length} คน</strong><small>QTY Actual = 0 • {analysisScope} • {percent(noSalesRate)} ของพนักงาน {qtyEvaluatedPeople.length} คนที่มีข้อมูล QTY</small></span>
+          <span><i>NO SALES FOCUS</i><strong>{noSalesPeople.length} คน</strong><small>{analysisScope} • {percent(noSalesRate)} ของพนักงาน {positionScopedPeople.length} คนใน Type ที่เลือก</small></span>
           <b>{showNoSales ? "ซ่อนรายชื่อ" : "ดูชื่อ • ตำแหน่ง • สาขา"}</b>
         </button>
         {showNoSales && <div className="no-sales-detail">
-          <div className="no-sales-title"><div><span>NO SALES PERSON DETAIL</span><h3>{analysisScope}</h3></div><b>QTY = 0 ณ {personAsOfDisplay}</b></div>
+          <div className="no-sales-title"><div><span>NO SALES PERSON DETAIL</span><h3>{analysisScope}</h3></div><b>Actual = 0 ณ {personAsOfDisplay}</b></div>
           {noSalesGroups.length > 0 ? <div className="no-sales-groups">{noSalesGroups.map((group) => <article key={group.shopName}>
             <header><strong>{shortShop(group.shopName)}</strong><b>{group.people.length} คน</b></header>
             <div>{group.people.map((person) => <p key={`${person.id}-${person.name}`}><span><strong>{person.name}</strong><small>ID {person.id || "—"}</small></span><b>{person.position}</b></p>)}</div>
@@ -980,7 +839,7 @@ export default function Home() {
           })}
           {!filteredPeople.length && <tr><td colSpan={10} className="people-empty">ไม่พบข้อมูลตามตัวกรองที่เลือก</td></tr>}
         </tbody></table></div>
-        <div className="people-source-note"><b>หมายเหตุ:</b> Target, Actual, {isQtyProduct ? "RR QTY" : "Actual-RR"} และ % RR ACH รายบุคคลมาจาก <a href={PERSON_PERFORMANCE_SHEET_URL} target="_blank" rel="noreferrer">BMAV Person Performance Daily Update</a> ณ {personAsOfDisplay} โดยตรง • No Sales ใช้ QTY Actual = 0 เท่านั้น • รวมข้อมูลด้วย Employee ID เพื่อไม่ให้ชื่อซ้ำ • แหล่งข้อมูลสาธารณะ • รีเฟรชอัตโนมัติทุก 5 นาที และแยกชุดคำนวณจากยอดระดับสาขา</div>
+        <div className="people-source-note"><b>หมายเหตุ:</b> Target, Actual, {isQtyProduct ? "RR QTY" : "Actual-RR"} และ % RR ACH รายบุคคลมาจาก <a href={PERSON_PERFORMANCE_SHEET_URL} target="_blank" rel="noreferrer">BMAV Person Performance Daily Update</a> ณ {personAsOfDisplay} โดยตรง • แหล่งข้อมูลสาธารณะ • รีเฟรชอัตโนมัติทุก 5 นาที และแยกชุดคำนวณจากยอดระดับสาขา</div>
       </section>}
 
       <section className="two-col">
@@ -1018,49 +877,13 @@ export default function Home() {
       </section>
 
       <section className="panel table-panel">
-        <div className="section-head"><div><span>BRANCH MONITOR</span><h2>{product} Performance by Branch</h2><p>%Runrate = Runrate ÷ Target เดือน</p></div><div className="table-actions"><b>หน่วย: {data.meta.metric} • {isDailyView ? `เฉพาะวันที่ ${String(periodDay).padStart(2, "0")} ${shortMonth}` : `ยอดสะสม ${monthYear}`}</b><button className="capture-toggle" onClick={toggleCaptureMode}>{captureMode ? "กลับ Dashboard" : "ดูครบทุกสาขา / Copy รูป"}</button></div></div>
-        <div className="table-wrap"><table className="branch-monitor-table"><thead><tr><th>สาขา</th><th>{isDailyView ? `ยอดวันที่ ${String(periodDay).padStart(2, "0")}` : "ยอด MTD"}</th><th>Target</th><th>%ACH</th><th>Runrate</th><th>%Runrate</th><th>MoM / WoW</th><th>สถานะ</th></tr></thead>
-          <tbody>{branchMonitorRows.map((branch) => {
+        <div className="section-head"><div><span>BRANCH MONITOR</span><h2>{product} Performance by Branch</h2></div><div className="table-actions"><b>หน่วย: {data.meta.metric} • {isDailyView ? `เฉพาะวันที่ ${String(periodDay).padStart(2, "0")} ${shortMonth}` : `ยอดสะสม ${monthYear}`}</b><button className="capture-toggle" onClick={toggleCaptureMode}>{captureMode ? "กลับ Dashboard" : "ดูครบทุกสาขา / Copy รูป"}</button></div></div>
+        <div className="table-wrap"><table><thead><tr><th>สาขา</th><th>{isDailyView ? `ยอดวันที่ ${String(periodDay).padStart(2, "0")}` : "ยอด MTD"}</th><th>Target</th><th>%ACH</th><th>{isDailyView ? "Target Daily" : "Target MTD"}</th><th>{isDailyView ? "ACH Daily" : "ACH MTD"}</th><th>Runrate</th><th>Runrate %</th><th>MoM / WoW</th><th>Forecast</th><th>สถานะ</th></tr></thead>
+          <tbody>{branchPerformance.map((branch) => {
             const hasBranchTarget = branch.target > 0;
-            const currentStatus = hasBranchTarget ? status(branch.runrateAchievement) : { key: "notarget", label: "No Target" };
-            return <tr key={branch.name}><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "ไม่มีรหัสสาขา"}</small></td><td><b>{displayValue(branch.mtd)}</b><small>{isDailyView ? "เฉพาะวันที่เลือก" : `วันที่ ${String(asOfDay).padStart(2, "0")} ${shortMonth} ${displayValue(branch.today)}`}</small></td><td>{hasBranchTarget ? displayValue(branch.target) : "—"}</td><td>{hasBranchTarget ? percent(branch.mtd / branch.target) : "N/A"}</td><td><b className="rr-value">{displayValue(branch.runrate)}</b></td><td><strong className={`rr-percent ${hasBranchTarget ? currentStatus.key : "notarget"}`}>{hasBranchTarget ? percent(branch.runrateAchievement) : "N/A"}</strong></td><td><div className="trend-badges"><strong className={`trend-badge ${momTone(branch.mom)}`}><small>MoM</small>{momPercent(branch.mom)}</strong><strong className={`trend-badge ${wowTone(branch.wow)}`}><small>WoW {wowUnit}</small>{momPercent(branch.wow)}</strong></div></td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
+            const currentStatus = hasBranchTarget ? status(branch.pace) : { key: "notarget", label: "No Target" };
+            return <tr key={branch.name}><td><strong>{shortShop(branch.name)}</strong><small>{branch.ww ? `WW ${branch.ww}` : "ไม่มีรหัสสาขา"}</small></td><td><b>{displayValue(branch.mtd)}</b><small>{isDailyView ? "เฉพาะวันที่เลือก" : `วันที่ ${String(asOfDay).padStart(2, "0")} ${shortMonth} ${displayValue(branch.today)}`}</small></td><td>{hasBranchTarget ? displayValue(branch.target) : "—"}</td><td>{hasBranchTarget ? percent(branch.mtd / branch.target) : "N/A"}</td><td>{hasBranchTarget ? displayValue(branch.targetMtd) : "—"}</td><td><strong>{hasBranchTarget ? percent(branch.pace) : "N/A"}</strong></td><td><b className="rr-value">{displayValue(branch.runrate)}</b></td><td><strong className={`rr-percent ${hasBranchTarget ? status(branch.runrateAchievement).key : "notarget"}`}>{hasBranchTarget ? percent(branch.runrateAchievement) : "N/A"}</strong></td><td><div className="trend-badges"><strong className={`trend-badge ${momTone(branch.mom)}`}><small>MoM</small>{momPercent(branch.mom)}</strong><strong className={`trend-badge ${wowTone(branch.wow)}`}><small>WoW {wowUnit}</small>{momPercent(branch.wow)}</strong></div></td><td>{displayValue(branch.forecast)}</td><td><span className={`status ${currentStatus.key}`}>{currentStatus.label}</span></td></tr>;
           })}</tbody></table></div>
-      </section>
-
-      <section className="panel branch-product-summary" aria-label="สรุปทุกสาขาแยกตาม Product">
-        <div className="section-head"><div><span>ALL BRANCHES • ALL PRODUCTS</span><h2>สรุปยอดทุกสาขา แยกตาม Product</h2><p>{branchSelectionLabel} • สะสมถึง {String(asOfDay).padStart(2, "0")} {shortMonth} • รวมทุก Product ในตารางเดียว ไม่ขึ้นกับปุ่มเลือก Product ด้านบน</p></div><b>{allProductSummary.rows.length} สาขา</b></div>
-        <div className="table-wrap">
-          <table className="summary-table">
-            <thead>
-              <tr>
-                <th rowSpan={2}>สาขา</th>
-                {productNames.map((productName) => <th key={productName} colSpan={2} className="summary-product-head" style={{ "--head-color": productMeta[productName].color } as React.CSSProperties}>{productName}<small>{metricForProduct(productName) === "Qty" ? "QTY" : "Net Amount"}</small></th>)}
-              </tr>
-              <tr>
-                {productNames.map((productName) => <Fragment key={productName}><th>MTD</th><th>%MoM</th></Fragment>)}
-              </tr>
-            </thead>
-            <tbody>
-              {allProductSummary.rows.map((row) => <tr key={row.name}>
-                <td><strong>{shortShop(row.name)}</strong><small>{row.ww ? `WW ${row.ww}` : "ไม่มีรหัสสาขา"}</small></td>
-                {row.products.map((cell) => <Fragment key={cell.productName}>
-                  <td>{cell.hasData ? formatByMetric(cell.mtd, metricForProduct(cell.productName)) : "—"}</td>
-                  <td><span className={`mom-cell ${momTone(cell.mom)}`}>{momPercent(cell.mom)}</span></td>
-                </Fragment>)}
-              </tr>)}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td><strong>รวมทุกสาขา</strong></td>
-                {allProductSummary.totals.map((total) => <Fragment key={total.productName}>
-                  <td><strong>{formatByMetric(total.mtd, metricForProduct(total.productName))}</strong></td>
-                  <td><span className={`mom-cell ${momTone(total.mom)}`}>{momPercent(total.mom)}</span></td>
-                </Fragment>)}
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-        <p className="summary-footnote">ตารางนี้รวมทุก Product ของทุกสาขาในหน้าเดียว โดยไม่ขึ้นกับปุ่มเลือก Product ด้านบน • %MoM คำนวณจาก Runrate คาดการณ์สิ้นเดือนเทียบ Actual เต็มเดือนก่อนหน้า (สูตรเดียวกับ MoM Analysis ด้านบน) • เลื่อนตารางในแนวนอนเพื่อดูครบทุก Product</p>
       </section>
 
       <section className="panel auto-executive-analysis">
@@ -1073,14 +896,14 @@ export default function Home() {
         <div className="analysis-grid">
           <article><span>01 • PERFORMANCE POSITION</span><h3>ตำแหน่งเทียบแผน</h3><ul><li><b>%ACH เดือน</b><strong>{percent(metrics.achievement)}</strong></li><li><b>ACH MTD</b><strong>{percent(metrics.pace)}</strong></li><li><b>Forecast</b><strong>{displayValue(metrics.forecast)}</strong></li><li><b>Gap เดือน</b><strong>{displayValue(monthlyGap)}</strong></li></ul></article>
           <article><span>02 • SALES MOMENTUM</span><h3>คุณภาพและจังหวะยอด</h3><p>มียอด {analysisActiveDays}/{asOfDay} วัน โดยวันที่ดีที่สุดคือ {analysisBestDay ? `วันที่ ${analysisBestDay}` : "ยังไม่มียอด"} ทำได้ {displayValue(analysisBestValue)} ปัจจุบันต้องรักษาหรือเพิ่มยอดเฉลี่ย {displayValue(requiredPerDay)} ต่อวันในช่วงที่เหลือ</p><div className="analysis-signal"><b>%MOM</b><strong className={momTone(metrics.mom)}>{momPercent(metrics.mom)}</strong></div></article>
-          <article><span>03 • RISK & PEOPLE</span><h3>จุดเสี่ยงที่ต้องบริหาร</h3>{personData ? <><p>ใน Type ที่เลือกมี No Sales จาก QTY {noSalesPeople.length} คน จาก {qtyEvaluatedPeople.length} คนที่มีข้อมูล QTY ({percent(noSalesRate)}) และกลุ่ม At Risk ตาม RR ACH จำนวน {peopleAtRisk.length} คน</p><div className="analysis-signal"><b>สาขา No Sales สูงสุด</b><strong>{noSalesGroups[0] ? `${shortShop(noSalesGroups[0].shopName)} • ${noSalesGroups[0].people.length} คน` : "ไม่มี No Sales"}</strong></div></> : <><p>มีสาขาต่ำกว่า 85% ของ Target MTD จำนวน {atRisk.length} สาขา จาก {activeBranches.length} สาขา โดยต้องติดตามความต่อเนื่องของยอดและ Gap รายวัน</p><div className="analysis-signal"><b>สาขาที่ต้องเร่ง</b><strong>{weakestBranch ? `${shortShop(weakestBranch.name)} • ${percent(weakestBranch.pace)}` : "—"}</strong></div></>}</article>
+          <article><span>03 • RISK & PEOPLE</span><h3>จุดเสี่ยงที่ต้องบริหาร</h3>{personData ? <><p>ใน Type ที่เลือกมี No Sales {noSalesPeople.length} คน จาก {positionScopedPeople.length} คน ({percent(noSalesRate)}) และกลุ่ม At Risk ตาม RR ACH จำนวน {peopleAtRisk.length} คน</p><div className="analysis-signal"><b>สาขา No Sales สูงสุด</b><strong>{noSalesGroups[0] ? `${shortShop(noSalesGroups[0].shopName)} • ${noSalesGroups[0].people.length} คน` : "ไม่มี No Sales"}</strong></div></> : <><p>มีสาขาต่ำกว่า 85% ของ Target MTD จำนวน {atRisk.length} สาขา จาก {activeBranches.length} สาขา โดยต้องติดตามความต่อเนื่องของยอดและ Gap รายวัน</p><div className="analysis-signal"><b>สาขาที่ต้องเร่ง</b><strong>{weakestBranch ? `${shortShop(weakestBranch.name)} • ${percent(weakestBranch.pace)}` : "—"}</strong></div></>}</article>
           <article><span>04 • OPPORTUNITY</span><h3>โอกาสขยายผล</h3><p>{strongestBranch ? `${shortShop(strongestBranch.name)} เป็น Benchmark ของมุมมองนี้ที่ ACH MTD ${percent(strongestBranch.pace)} ควรถอดวิธีสร้างยอดและส่งต่อให้สาขาที่ต่ำกว่าแผน` : "ยังไม่มีข้อมูลสาขาสำหรับวิเคราะห์"}</p><div className="analysis-signal"><b>Top Contribution</b><strong>{strongestBranch ? `${shortShop(strongestBranch.name)} • ${displayValue(strongestBranch.mtd)}` : "—"}</strong></div></article>
         </div>
         <div className="management-actions"><span>MANAGEMENT PRIORITIES</span><div>{executiveActions.map((action, index) => <p key={action}><b>{String(index + 1).padStart(2, "0")}</b><span>{action}</span></p>)}</div></div>
         <p className="analysis-footnote">บทวิเคราะห์นี้สร้างจากข้อมูล Dashboard ปัจจุบันโดยอัตโนมัติ และจะคำนวณใหม่ทันทีเมื่อเปลี่ยน Product, สาขา, วันที่ หรือ Type ตำแหน่ง</p>
       </section>
 
-      <section className="method-note"><div><strong>หลักการแยก Product และ Metric</strong><p>ทุก KPI, กราฟ, อันดับ และตารางคำนวณจาก Product, เดือน และมุม {data.meta.metric} ที่เลือก โดยไม่รวมยอดข้ามมุม</p></div><div><strong>MoM / WoW ต่อเนื่อง</strong><p>MoM เทียบ Actual เดือนก่อน และ WoW เทียบสัปดาห์ต่อเนื่อง Week 32–44 โดยจำกัดจำนวนวันให้เท่ากันอัตโนมัติ</p></div></section>
+      <section className="method-note"><div><strong>หลักการแยก Product และ Metric</strong><p>ทุก KPI, กราฟ, อันดับ และตารางคำนวณจาก Product, เดือน และมุม {data.meta.metric} ที่เลือก โดยไม่รวมยอดข้ามมุม</p></div><div><strong>MoM / WoW ต่อเนื่อง</strong><p>MoM เทียบ Actual เดือนก่อน และ WoW เทียบสัปดาห์ต่อเนื่อง Week 32–40 โดยจำกัดจำนวนวันให้เท่ากันอัตโนมัติ</p></div></section>
       <footer><span>BMAV-Central Product Performance Monitor</span><b>Source: Google Sheet Live • {monthYear} • As of {asOfDay > 0 ? `${String(asOfDay).padStart(2, "0")} ${shortMonth} ${asOfDate.getFullYear()}` : "รอข้อมูล"}</b></footer>
     </main>
   );
