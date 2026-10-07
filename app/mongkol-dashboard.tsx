@@ -15,6 +15,7 @@ const shortShop = (name: string) => name
 
 export default function MongkolDashboard() {
   const [mode, setMode] = useState<"area" | "indy">("area");
+  const [captureMode, setCaptureMode] = useState(false);
   const totals = data.areas.reduce((total, area) => ({
     target: total.target + area.target,
     actual: total.actual + area.actual,
@@ -28,7 +29,7 @@ export default function MongkolDashboard() {
     ? "/bmav-central-device-performance/#/"
     : "/";
 
-  return <main className="mongkol-page">
+  return <main className={`mongkol-page${captureMode ? " mongkol-capture-mode" : ""}`}>
     <section className="panel mongkol-panel" aria-label="Dashboard เบอร์มงคล">
       <div className="section-head mongkol-heading">
         <div><span>OCTOBER 2026 • SPECIAL NUMBER PERFORMANCE</span><h1>Dashboard เบอร์มงคล</h1><p>{data.meta.area} • ข้อมูล ณ {asOfDisplay} • Snapshot จากไฟล์ต้นทาง</p></div>
@@ -50,6 +51,7 @@ export default function MongkolDashboard() {
           <button type="button" className={mode === "indy" ? "active" : ""} onClick={() => setMode("indy")}>ราย Indy (สรุป)</button>
         </div>
         <small>{mode === "area" ? `${data.areas.length} สาขา • สรุปยอดรายสาขา` : `${data.indySummary.count} Indy • สรุปจำนวนตามสถานะ`}</small>
+        {mode === "area" && <button type="button" className="capture-toggle mongkol-capture-toggle" aria-pressed={captureMode} onClick={() => setCaptureMode((value) => !value)}>{captureMode ? "กลับหน้าปกติ" : "Capture ครบทุกสาขา"}</button>}
       </div>
       {mode === "area" ? <div className="table-wrap mongkol-table-wrap"><table className="mongkol-table"><thead><tr><th>Rank</th><th>สาขา</th><th>Target</th><th>Actual MTD</th><th>%ACH</th><th>RR สิ้นเดือน</th><th>Indy</th><th>No Sale</th></tr></thead><tbody>
         {[...data.areas].sort((a, b) => b.achievement - a.achievement || b.actual - a.actual || a.branch.localeCompare(b.branch, "th")).map((area, index) => <tr key={area.branch}><td>{String(index + 1).padStart(2, "0")}</td><td><strong>{shortShop(area.branch)}</strong></td><td>{money(area.target)} QTY</td><td><b>{money(area.actual)} QTY</b></td><td><strong>{percent(area.achievement)}</strong></td><td>{money(area.rrEndMonth)} QTY</td><td>{area.indyCount}</td><td>{area.noSaleCount}</td></tr>)}
