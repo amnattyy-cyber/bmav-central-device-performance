@@ -171,6 +171,15 @@ footer { display: flex; justify-content: space-between; gap: 18px; padding: 22px
 .mongkol-indy-summary .indy-risk { border-color: #f3d3b0; background: #fffaf2; }.mongkol-indy-summary .indy-risk strong { color: #bb6b0b; }
 .mongkol-indy-summary .indy-track { border-color: #c5e8d4; background: #f7fff9; }.mongkol-indy-summary .indy-track strong { color: #16834b; }
 .mongkol-indy-summary .mongkol-privacy-note { grid-column: 1 / -1; }
+.mongkol-indy-directory { margin-top: 14px; border: 1px solid #eee1c4; border-radius: 14px; background: #fff; overflow: hidden; }
+.mongkol-indy-directory-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-bottom: 1px solid #eee1c4; }
+.mongkol-indy-directory-head h2 { margin: 0; color: var(--navy); font-size: 15px; }
+.mongkol-indy-directory-head input { width: min(260px,45vw); padding: 8px 11px; border: 1px solid #ded5c3; border-radius: 9px; color: var(--navy); background: #fffdf7; font: inherit; font-size: 12px; }
+.mongkol-indy-name-wrap { max-height: 420px; overflow: auto; }
+.mongkol-indy-name-table { width: 100%; min-width: 0; }
+.mongkol-indy-name-table th { position: sticky; top: 0; z-index: 1; color: #624400; background: #fff1c7; text-align: left; }
+.mongkol-indy-name-table td,.mongkol-indy-name-table th { padding: 8px 14px; }
+.mongkol-indy-name-table tbody tr:nth-child(even) { background: #fffdf8; }
 .mongkol-capture-toggle { margin-left: auto; }
 .mongkol-capture-mode .mongkol-table-wrap { max-height: none; overflow: visible; }
 .mongkol-capture-mode .mongkol-table td,.mongkol-capture-mode .mongkol-table th { padding: 6px 9px; }
