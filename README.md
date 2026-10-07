@@ -26,6 +26,8 @@ Dashboard ดึงข้อมูลจาก Google Sheet `BMAV-Central Dashbo
 - ห้ามเปลี่ยนชื่อแท็บหรือชื่อหัวคอลัมน์
 - หาก Google Sheet ใช้งานไม่ได้ Dashboard จะใช้ `app/sales-product-data.json` เป็นข้อมูลสำรอง
 
+ตารางเบอร์มงคลแสดง BMA V - Central จาก snapshot วันที่ 6 Oct 2026 แยกมุม AREA รายสาขาและ Indy summary ตามสถานะ โดยไม่แสดงผลรายบุคคล
+
 ## ตรวจสอบก่อนเผยแพร่
 
 ```bash

@@ -4,6 +4,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import fallbackData from "./sales-product-data.json";
 import postpayPersonData from "./postpay-person-performance.json";
 import tolPersonData from "./tol-person-performance.json";
+import mongkolFallback from "./mongkol-data.json";
 import {
   availableMetricsFor,
   type Branch,
@@ -19,6 +20,7 @@ import {
 import { isQtyNoSales, loadGooglePersonPerformance, PERSON_PERFORMANCE_SHEET_URL, type PersonPerformanceData } from "./google-person-data";
 import { createFocusDeviceFallback, FOCUS_DEVICE_SHEET_URL, loadFocusDeviceData, type FocusDeviceData } from "./focus-device-data";
 import { downloadExcelWorkbook, type ExcelSheet } from "./excel-export";
+import type { MongkolData } from "./mongkol-data";
 import { calculateWow, findDefaultWowWeek, formatWowRange, WOW_WEEKS, wowTone } from "./wow";
 import { calculateMomActual } from "./mom";
 
@@ -84,6 +86,8 @@ export default function Home() {
   const [peopleSyncSource, setPeopleSyncSource] = useState<"sheet" | "fallback">("fallback");
   const [focusData, setFocusData] = useState<FocusDeviceData>(fallbackFocusDeviceData);
   const [focusSyncSource, setFocusSyncSource] = useState<"sheet" | "fallback">("fallback");
+  const mongkolData = mongkolFallback as MongkolData;
+  const [mongkolMode, setMongkolMode] = useState<"area" | "indy">("area");
   const [product, setProduct] = useState<ProductName>("Device");
   const [monthKey, setMonthKey] = useState(fallbackDashboardDataset.latestMonthKey);
   const [metric, setMetric] = useState<MetricName>("Net");
@@ -132,6 +136,15 @@ export default function Home() {
   const focusAsOfDay = Number(focusData.meta.asOf.slice(-2));
   const focusPeriodDay = selectedDay ?? focusAsOfDay;
   const focusPeriodDays = selectedDay === null ? focusAsOfDay : 1;
+  const mongkolTotals = useMemo(() => mongkolData.areas.reduce((total, area) => ({
+    target: total.target + area.target,
+    actual: total.actual + area.actual,
+    forecast: total.forecast + area.rrEndMonth,
+    noSale: total.noSale + area.noSaleCount,
+    indyCount: total.indyCount + area.indyCount,
+  }), { target: 0, actual: 0, forecast: 0, noSale: 0, indyCount: 0 }), [mongkolData]);
+  const mongkolAsOfDate = new Date(`${mongkolData.meta.asOf}T00:00:00+07:00`);
+  const mongkolAsOfDisplay = Number.isNaN(mongkolAsOfDate.valueOf()) ? "—" : mongkolAsOfDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 
   const targetedBranches = useMemo(
     () => branches.filter((branch) => branch.products[product].target > 0 || branch.products[product].eligible),
@@ -762,6 +775,36 @@ export default function Home() {
         <div><span>มุมมองปัจจุบัน</span><strong>{product} • {data.meta.metric} • {branchSelectionLabel}</strong></div>
         <div><span>ช่วงวันที่</span><strong>{isDailyView ? `เฉพาะวันที่ ${String(periodDay).padStart(2, "0")} ${monthYear}` : asOfDay > 0 ? `ทุกวัน • สะสมถึง ${String(asOfDay).padStart(2, "0")} ${monthYear}` : `${monthYear} • รอข้อมูล`}</strong></div>
         <div><span>หลักการคำนวณ</span><strong>เฉพาะ {product} • {isQtyProduct ? "QTY / จำนวน Sub" : "Net Amount / Revenue"}</strong></div>
+      </section>
+
+      <section className="panel mongkol-panel" aria-label="Dashboard เบอร์มงคล">
+        <div className="section-head mongkol-heading">
+          <div><span>OCTOBER 2026 • SPECIAL NUMBER PERFORMANCE</span><h2>Dashboard เบอร์มงคล</h2><p>BMA V - Central • ข้อมูล ณ {mongkolAsOfDisplay} • Snapshot จากไฟล์ต้นทาง</p></div>
+        </div>
+        <div className="mongkol-kpis">
+          <article><span>Target เดือน</span><strong>{money(mongkolTotals.target)} QTY</strong></article>
+          <article><span>Actual ถึง 6 ต.ค.</span><strong>{money(mongkolTotals.actual)} QTY</strong></article>
+          <article><span>%ACH</span><strong>{percent(mongkolTotals.target ? mongkolTotals.actual / mongkolTotals.target : 0)}</strong></article>
+          <article><span>Forecast สิ้นเดือน</span><strong>{money(mongkolTotals.forecast)} QTY</strong></article>
+          <article><span>No Sale</span><strong>{money(mongkolTotals.noSale)} / {money(mongkolTotals.indyCount)}</strong><small>Indy</small></article>
+        </div>
+        <div className="mongkol-toolbar">
+          <div className="mongkol-tabs" role="group" aria-label="เลือกมุมมองเบอร์มงคล">
+            <button type="button" className={mongkolMode === "area" ? "active" : ""} onClick={() => setMongkolMode("area")}>มุม AREA</button>
+            <button type="button" className={mongkolMode === "indy" ? "active" : ""} onClick={() => setMongkolMode("indy")}>ราย Indy (สรุป)</button>
+          </div>
+          <small>{mongkolMode === "area" ? `${mongkolData.areas.length} สาขา • สรุปยอดรายสาขา` : `${mongkolData.indySummary.count} Indy • สรุปจำนวนตามสถานะ`}</small>
+        </div>
+        {mongkolMode === "area" ? <div className="table-wrap mongkol-table-wrap"><table className="mongkol-table"><thead><tr><th>Rank</th><th>สาขา</th><th>Target</th><th>Actual MTD</th><th>%ACH</th><th>RR สิ้นเดือน</th><th>Indy</th><th>No Sale</th></tr></thead><tbody>
+          {[...mongkolData.areas].sort((a, b) => b.achievement - a.achievement || b.actual - a.actual || a.branch.localeCompare(b.branch, "th")).map((area, index) => <tr key={area.branch}><td>{String(index + 1).padStart(2, "0")}</td><td><strong>{shortShop(area.branch)}</strong></td><td>{money(area.target)} QTY</td><td><b>{money(area.actual)} QTY</b></td><td><strong>{percent(area.achievement)}</strong></td><td>{money(area.rrEndMonth)} QTY</td><td>{area.indyCount}</td><td>{area.noSaleCount}</td></tr>)}
+        </tbody><tfoot><tr><th colSpan={2}>รวม BMA V - Central</th><td>{money(mongkolTotals.target)} QTY</td><td>{money(mongkolTotals.actual)} QTY</td><td>{percent(mongkolTotals.target ? mongkolTotals.actual / mongkolTotals.target : 0)}</td><td>{money(mongkolTotals.forecast)} QTY</td><td>{mongkolTotals.indyCount}</td><td>{mongkolTotals.noSale}</td></tr></tfoot></table><p className="mongkol-privacy-note">ตาราง AREA สรุปยอดรายสาขา โดยรวม Target 1,905 QTY จากข้อมูลราย Indy ครบ 16 สาขา</p></div> : <div className="mongkol-indy-summary">
+          <article className="indy-total"><span>Indy ทั้งหมด</span><strong>{mongkolData.indySummary.count}</strong><small>Target รวม {money(mongkolTotals.target)} QTY • Actual {money(mongkolTotals.actual)} QTY</small></article>
+          <article className="indy-no-sale"><span>No Sale</span><strong>{mongkolData.indySummary.noSale}</strong><small>Indy ที่ยังไม่มียอด</small></article>
+          <article className="indy-risk"><span>At Risk</span><strong>{mongkolData.indySummary.atRisk}</strong><small>มียอด แต่ Forecast ต่ำกว่า 85% ของ Target</small></article>
+          <article className="indy-watch"><span>Watch</span><strong>{mongkolData.indySummary.watch}</strong><small>Forecast 85–99.9% ของ Target</small></article>
+          <article className="indy-track"><span>On Track</span><strong>{mongkolData.indySummary.onTrack}</strong><small>Forecast ถึง Target</small></article>
+          <p className="mongkol-privacy-note">มุมนี้แสดงจำนวน Indy ตามสถานะรวม ไม่แสดงยอดหรืออันดับรายบุคคล</p>
+        </div>}
       </section>
 
       <section className="panel wow-panel" aria-label="Performance WoW">

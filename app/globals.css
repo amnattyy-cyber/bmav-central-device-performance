@@ -160,3 +160,41 @@ footer { display: flex; justify-content: space-between; gap: 18px; padding: 22px
   main { width: min(100% - 18px,1480px); padding-top: 9px; }.hero { min-height: 220px; padding: 27px 22px; border-radius: 23px; }.hero h1 { font-size: 43px; letter-spacing: -1.8px; }.hero p { font-size: 12px; }.control-deck { margin: -12px 9px 12px; grid-template-columns: 1fr; }.product-switch { grid-column: auto; grid-template-columns: 1fr 1fr; }.download-menu { width: 100%; }.download-options { right: auto; left: 0; width: min(285px,calc(100vw - 54px)); }.scope-strip { grid-template-columns: 1fr; }.scope-strip div:nth-child(2),.scope-strip div:nth-child(3) { display: none; }.wow-heading { flex-direction: column; }.wow-status { align-self: flex-start; }.wow-summary { grid-template-columns: 1fr; }.kpi-grid { grid-template-columns: 1fr 1fr; }.kpi { min-height: 115px; padding: 16px; }.hero-kpi { grid-column: 1 / -1; }.insight-grid,.lens-kpis,.branch-analysis-grid,.people-kpis,.people-controls,.analysis-grid,.focus-device-kpis,.mom-product-grid,.mom-card-row { grid-template-columns: 1fr; }.people-distribution { grid-template-columns: repeat(3,1fr); }.insight.major { grid-column: auto; }.panel,.mission-card { padding: 17px; }.branch-summary { align-items: flex-start; flex-direction: column; }.branch-summary p { text-align: left; }.branch-action { grid-template-columns: 1fr; gap: 5px; }.section-head > b { display: none; }.table-actions { width: 100%; align-items: flex-end; flex-direction: column; }.daily-chart { overflow-x: auto; grid-template-columns: repeat(31,18px); }.rank-list,.no-sales-groups,.management-actions > div { grid-template-columns: 1fr; }.no-sales-focus,.no-sales-title,.analysis-heading { align-items: flex-start; flex-direction: column; }.no-sales-focus > b { align-self: stretch; text-align: center; }.analysis-grid article { min-height: 0; }.management-actions { grid-template-columns: 1fr; }.focus-target-rule { align-items: flex-start; flex-direction: column; }.focus-target-rule span { padding: 0; border: 0; }.rank-row:nth-last-child(-n+2) { border-bottom-color: #edf1f5; }.rank-row:last-child { border-bottom-color: transparent; }.method-note { grid-template-columns: 1fr; }footer { flex-direction: column; }
 }
 
+
+
+.mongkol-panel { margin: 16px 0; border-color: #e8d5a7; background: linear-gradient(180deg,#fffaf0,#fff 32%); }
+.mongkol-heading { align-items: center; margin-bottom: 14px; }
+.mongkol-heading h2 { margin: 4px 0; }
+.mongkol-heading p { margin: 0; color: var(--muted); font-size: 10px; }
+.mongkol-heading > a { display: inline-flex; align-items: center; padding: 9px 12px; border-radius: 10px; color: #7b4c00; background: #fff0c2; font-size: 10px; font-weight: 900; text-decoration: none; white-space: nowrap; }
+.mongkol-kpis { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 8px; margin-bottom: 12px; }
+.mongkol-kpis article { min-height: 76px; padding: 11px 13px; border: 1px solid #eee1c4; border-radius: 12px; background: rgba(255,255,255,.92); }
+.mongkol-kpis span,.mongkol-kpis strong,.mongkol-kpis small { display: block; }
+.mongkol-kpis span { color: var(--muted); font-size: 9px; font-weight: 800; }
+.mongkol-kpis strong { margin-top: 8px; color: #7b4c00; font-size: 20px; line-height: 1; }
+.mongkol-kpis small { margin-top: 4px; color: var(--muted); font-size: 9px; }
+.mongkol-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 10px 0 8px; }
+.mongkol-toolbar > small { color: var(--muted); font-size: 9px; }
+.mongkol-tabs { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid #eadbb9; border-radius: 11px; background: #fff6dc; }
+.mongkol-tabs button { border: 0; border-radius: 8px; padding: 8px 13px; color: #796b4e; background: transparent; font: inherit; font-size: 10px; font-weight: 900; cursor: pointer; }
+.mongkol-tabs button.active { color: #fff; background: #9a6700; box-shadow: 0 2px 7px rgba(80,55,0,.18); }
+.mongkol-table-wrap { max-height: 440px; overflow: auto; }
+.mongkol-table { min-width: 760px; }
+.mongkol-table thead th { position: sticky; top: 0; z-index: 2; background: #fff1c7; color: #624400; }
+.mongkol-table td,.mongkol-table th { padding: 8px 10px; }
+.mongkol-table tbody tr:hover { background: #fff9e9; }
+.mongkol-table tfoot th,.mongkol-table tfoot td { position: sticky; bottom: 0; background: #f7e8bc; color: #513900; font-weight: 900; }
+.mongkol-indy-table { min-width: 650px; }
+.mongkol-privacy-note { margin: 8px 2px 0; color: var(--muted); font-size: 9px; }
+.mongkol-indy-summary { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 9px; }
+.mongkol-indy-summary article { min-height: 118px; padding: 16px; border: 1px solid #eee1c4; border-radius: 14px; background: #fff; }
+.mongkol-indy-summary article span,.mongkol-indy-summary article strong,.mongkol-indy-summary article small { display: block; }
+.mongkol-indy-summary article span { color: var(--muted); font-size: 10px; font-weight: 900; }
+.mongkol-indy-summary article strong { margin: 15px 0 7px; color: #7b4c00; font-size: 28px; line-height: 1; }
+.mongkol-indy-summary article small { color: var(--muted); font-size: 9px; line-height: 1.4; }
+.mongkol-indy-summary .indy-no-sale { border-color: #f4c8cc; background: #fff8f8; }.mongkol-indy-summary .indy-no-sale strong { color: #bd3347; }
+.mongkol-indy-summary .indy-risk { border-color: #f3d3b0; background: #fffaf2; }.mongkol-indy-summary .indy-risk strong { color: #bb6b0b; }
+.mongkol-indy-summary .indy-track { border-color: #c5e8d4; background: #f7fff9; }.mongkol-indy-summary .indy-track strong { color: #16834b; }
+.mongkol-indy-summary .mongkol-privacy-note { grid-column: 1 / -1; }
+@media (max-width: 1150px) {.mongkol-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.mongkol-indy-summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width: 720px) {.mongkol-heading{align-items:flex-start;flex-direction:column}.mongkol-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.mongkol-toolbar{align-items:flex-start;flex-direction:column}.mongkol-indy-summary{grid-template-columns:1fr 1fr}}
