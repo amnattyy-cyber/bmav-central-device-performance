@@ -72,7 +72,7 @@ select { width: 100%; height: 46px; padding: 0 35px 0 12px; border: 1px solid va
 select:focus { border-color: var(--product); box-shadow: 0 0 0 3px color-mix(in srgb, var(--product) 12%, transparent); }
 .reset { height: 44px; padding: 0 17px; border: 1px solid #ffd0cd; border-radius: 12px; color: #b42318; font-weight: 700; background: #fff1f0; cursor: pointer; }
 
-@media (max-width: 1450px) and (min-width: 1151px) {
+@media (min-width: 1151px) {
   .control-deck { grid-template-columns: repeat(12,minmax(0,1fr)); gap: 10px; }
   .product-switch { grid-column: span 6; }
   .control-deck > label:nth-of-type(1) { grid-column: span 2; }
