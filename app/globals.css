@@ -31,7 +31,7 @@ main { --product: #2563eb; --product-soft: #dbeafe; width: min(1480px, calc(100%
 .hero-focus span,.hero-focus small { display: block; color: #cbd7e8; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; }.hero-focus strong { display: block; margin: 4px 0; color: #fff; font-size: 34px; }.hero-focus small { color: #ffb8b4; letter-spacing: 0; }
 
 .control-deck { position: relative; z-index: 3; display: grid; grid-template-columns: 1.7fr .65fr .78fr 1fr .72fr .72fr auto auto; gap: 10px; align-items: end; margin: -18px 24px 14px; padding: 16px; border: 1px solid rgba(214,224,237,.9); border-radius: 20px; background: rgba(255,255,255,.97); box-shadow: 0 14px 36px rgba(36,59,87,.12); }
-.product-switch { display: grid; grid-template-columns: repeat(3,minmax(0,.9fr)) minmax(105px,1.4fr) minmax(118px,1.25fr); gap: 7px; min-width: 0; }
+.product-switch { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,.8fr) minmax(0,1.1fr) minmax(105px,1.4fr) minmax(118px,1.25fr); gap: 7px; min-width: 0; }
 .product-switch button { display: flex; min-width: 0; gap: 6px; align-items: center; padding: 7px; border: 1px solid var(--line); border-radius: 12px; color: #4c586a; font-weight: 700; background: #fff; cursor: pointer; transition: .2s ease; }
 .product-switch button { font-size: 12px; }.product-switch button i { width: 36px; height: 32px; display: grid; place-items: center; border-radius: 8px; color: white; font-size: 10px; font-style: normal; letter-spacing: .4px; flex: 0 0 36px; }
 .product-switch button span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
