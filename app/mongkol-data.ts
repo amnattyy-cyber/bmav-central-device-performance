@@ -14,5 +14,18 @@ export type MongkolData = {
   meta: { area: string; month: string; asOf: string; source: string };
   areas: MongkolArea[];
   indySummary: { count: number; noSale: number; atRisk: number; watch: number; onTrack: number };
-  indies: string[];
+  indies: MongkolIndy[];
+};
+
+export type MongkolIndy = {
+  firstName: string;
+  lastName: string;
+  employeeType: string;
+  shopCode: string;
+  shopName: string;
+  shopType: string;
+  target: number;
+  daily: number[];
+  actual: number;
+  achievement: number;
 };

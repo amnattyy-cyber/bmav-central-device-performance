@@ -9,7 +9,7 @@
     {
       "area": "BMA V - Central",
       "branch": "True Shop (dtac) Supreme Complex Samsen",
-      "target": 45,
+      "target": 45.0,
       "daily": [
         0,
         0,
@@ -43,23 +43,23 @@
         null,
         null
       ],
-      "actual": 0,
-      "rrEndMonth": 0,
+      "actual": 0.0,
+      "rrEndMonth": 0.0,
       "noSaleCount": 3,
       "indyCount": 3,
-      "achievement": 0
+      "achievement": 0.0
     },
     {
       "area": "BMA V - Central",
       "branch": "True Shop at Chamchuri Square 1",
-      "target": 75,
+      "target": 75.0,
       "daily": [
         0,
         0,
         0,
         0,
         0,
-        2,
+        2.0,
         null,
         null,
         null,
@@ -86,7 +86,7 @@
         null,
         null
       ],
-      "actual": 2,
+      "actual": 2.0,
       "rrEndMonth": 10.333333333333332,
       "noSaleCount": 4,
       "indyCount": 5,
@@ -95,13 +95,13 @@
     {
       "area": "BMA V - Central",
       "branch": "True Shop Central Festival East Ville",
-      "target": 240,
+      "target": 240.0,
       "daily": [
-        3,
-        1,
-        3,
-        1,
-        1,
+        3.0,
+        1.0,
+        3.0,
+        1.0,
+        1.0,
         0,
         null,
         null,
@@ -129,7 +129,7 @@
         null,
         null
       ],
-      "actual": 9,
+      "actual": 9.0,
       "rrEndMonth": 46.49999999999999,
       "noSaleCount": 10,
       "indyCount": 16,
@@ -138,14 +138,14 @@
     {
       "area": "BMA V - Central",
       "branch": "True Shop Central Rama 3",
-      "target": 210,
+      "target": 210.0,
       "daily": [
-        3,
-        4,
-        3,
+        3.0,
+        4.0,
+        3.0,
         0,
         0,
-        5,
+        5.0,
         null,
         null,
         null,
@@ -172,7 +172,7 @@
         null,
         null
       ],
-      "actual": 15,
+      "actual": 15.0,
       "rrEndMonth": 77.5,
       "noSaleCount": 7,
       "indyCount": 14,
@@ -181,13 +181,13 @@
     {
       "area": "BMA V - Central",
       "branch": "True Shop Central Rama 9",
-      "target": 105,
+      "target": 105.0,
       "daily": [
         0,
         0,
         0,
         0,
-        3,
+        3.0,
         0,
         null,
         null,
@@ -215,7 +215,7 @@
         null,
         null
       ],
-      "actual": 3,
+      "actual": 3.0,
       "rrEndMonth": 15.499999999999998,
       "noSaleCount": 5,
       "indyCount": 7,
@@ -224,14 +224,14 @@
     {
       "area": "BMA V - Central",
       "branch": "True Shop Central Rama 9 4Fl.",
-      "target": 240,
+      "target": 240.0,
       "daily": [
-        1,
-        1,
-        1,
-        2,
-        3,
-        3,
+        1.0,
+        1.0,
+        1.0,
+        2.0,
+        3.0,
+        3.0,
         null,
         null,
         null,
@@ -258,7 +258,7 @@
         null,
         null
       ],
-      "actual": 11,
+      "actual": 11.0,
       "rrEndMonth": 56.83333333333333,
       "noSaleCount": 9,
       "indyCount": 16,
@@ -267,14 +267,14 @@
     {
       "area": "BMA V - Central",
       "branch": "True Shop Central World Fl.4",
-      "target": 300,
+      "target": 300.0,
       "daily": [
         0,
-        5,
-        2,
+        5.0,
+        2.0,
         0,
-        1,
-        2,
+        1.0,
+        2.0,
         null,
         null,
         null,
@@ -301,7 +301,7 @@
         null,
         null
       ],
-      "actual": 10,
+      "actual": 10.0,
       "rrEndMonth": 51.666666666666664,
       "noSaleCount": 13,
       "indyCount": 20,
@@ -310,12 +310,12 @@
     {
       "area": "BMA V - Central",
       "branch": "True Shop Emquartier",
-      "target": 210,
+      "target": 210.0,
       "daily": [
-        3,
-        1,
+        3.0,
+        1.0,
         0,
-        1,
+        1.0,
         0,
         0,
         null,
@@ -344,7 +344,7 @@
         null,
         null
       ],
-      "actual": 5,
+      "actual": 5.0,
       "rrEndMonth": 25.83333333333333,
       "noSaleCount": 10,
       "indyCount": 14,
@@ -353,7 +353,7 @@
     {
       "area": "BMA V - Central",
       "branch": "True Shop Fortune Town 1Fl.",
-      "target": 45,
+      "target": 45.0,
       "daily": [
         0,
         0,
@@ -387,16 +387,16 @@
         null,
         null
       ],
-      "actual": 0,
-      "rrEndMonth": 0,
+      "actual": 0.0,
+      "rrEndMonth": 0.0,
       "noSaleCount": 3,
       "indyCount": 3,
-      "achievement": 0
+      "achievement": 0.0
     },
     {
       "area": "BMA V - Central",
       "branch": "True Shop Lotus's Ramindra",
-      "target": 30,
+      "target": 30.0,
       "daily": [
         0,
         0,
@@ -430,22 +430,22 @@
         null,
         null
       ],
-      "actual": 0,
-      "rrEndMonth": 0,
+      "actual": 0.0,
+      "rrEndMonth": 0.0,
       "noSaleCount": 2,
       "indyCount": 2,
-      "achievement": 0
+      "achievement": 0.0
     },
     {
       "area": "BMA V - Central",
       "branch": "True Shop Mahboon Krong 4Fl.",
-      "target": 75,
+      "target": 75.0,
       "daily": [
         0,
         0,
         0,
         0,
-        2,
+        2.0,
         0,
         null,
         null,
@@ -473,7 +473,7 @@
         null,
         null
       ],
-      "actual": 2,
+      "actual": 2.0,
       "rrEndMonth": 10.333333333333332,
       "noSaleCount": 4,
       "indyCount": 5,
@@ -482,7 +482,7 @@
     {
       "area": "BMA V - Central",
       "branch": "True Shop Makro Sri Ayutthaya",
-      "target": 30,
+      "target": 30.0,
       "daily": [
         0,
         0,
@@ -516,22 +516,22 @@
         null,
         null
       ],
-      "actual": 0,
-      "rrEndMonth": 0,
+      "actual": 0.0,
+      "rrEndMonth": 0.0,
       "noSaleCount": 2,
       "indyCount": 2,
-      "achievement": 0
+      "achievement": 0.0
     },
     {
       "area": "BMA V - Central",
       "branch": "True Shop Silom Complex",
-      "target": 120,
+      "target": 120.0,
       "daily": [
-        1,
+        1.0,
         0,
         0,
         0,
-        2,
+        2.0,
         0,
         null,
         null,
@@ -559,7 +559,7 @@
         null,
         null
       ],
-      "actual": 3,
+      "actual": 3.0,
       "rrEndMonth": 15.499999999999998,
       "noSaleCount": 5,
       "indyCount": 8,
@@ -568,14 +568,14 @@
     {
       "area": "BMA V - Central",
       "branch": "True Shop Station Lotus's Rama 4",
-      "target": 45,
+      "target": 45.0,
       "daily": [
         0,
         0,
         0,
         0,
         0,
-        1,
+        1.0,
         null,
         null,
         null,
@@ -602,7 +602,7 @@
         null,
         null
       ],
-      "actual": 1,
+      "actual": 1.0,
       "rrEndMonth": 5.166666666666666,
       "noSaleCount": 2,
       "indyCount": 3,
@@ -611,11 +611,11 @@
     {
       "area": "BMA V - Central",
       "branch": "True Shop Terminal 21",
-      "target": 120,
+      "target": 120.0,
       "daily": [
         0,
-        2,
-        1,
+        2.0,
+        1.0,
         0,
         0,
         0,
@@ -645,7 +645,7 @@
         null,
         null
       ],
-      "actual": 3,
+      "actual": 3.0,
       "rrEndMonth": 15.499999999999998,
       "noSaleCount": 6,
       "indyCount": 8,
@@ -654,7 +654,7 @@
     {
       "area": "BMA V - Central",
       "branch": "True Shop U Chu Liang Building",
-      "target": 15,
+      "target": 15.0,
       "daily": [
         0,
         0,
@@ -688,11 +688,11 @@
         null,
         null
       ],
-      "actual": 0,
-      "rrEndMonth": 0,
+      "actual": 0.0,
+      "rrEndMonth": 0.0,
       "noSaleCount": 1,
       "indyCount": 1,
-      "achievement": 0
+      "achievement": 0.0
     }
   ],
   "indySummary": {
@@ -703,132 +703,2418 @@
     "onTrack": 3
   },
   "indies": [
-    "วรัญญา แคหอม",
-    "เปศล คงเจริญวงศ์",
-    "กนกอร นรนิ่ม",
-    "ซารีป๊ะ สาและ",
-    "ณัฐกานต์ สีบูจันดี",
-    "นันทพร วัชระมนตรีสกุล",
-    "อรดา นาคหล่อ",
-    "สุวิมล วงษ์เขียน",
-    "กฤตเมธ แข็งค้า",
-    "ชัยมงคล เชตุพันธุ์",
-    "เบญญา เหรียญนุกูล",
-    "ปรมะ แก้ววิเชียร",
-    "มัลลิกา ปิ่นทอง",
-    "ฤทธิชัย จันต๊ะนาเขต",
-    "วรรณิดา อยู่คง",
-    "กฤศกร ยวงจันทร์",
-    "คฑาวุต ประกอบบุญ",
-    "อุไรพร แก่นท้าว",
-    "วรเมธ สุภัทร์วัน",
-    "กฤษณี อ่อนจันทร์",
-    "นาคินทร์ แสนสองแคว",
-    "เสฎฐวุฒิ เพียซ้าย",
-    "พิชญาภัค แซ่ลิ้ม",
-    "นันทพัทธ์ อ้นเพ็ง",
-    "ณัชพล เจริญวิวัฒน์สกุล",
-    "ถนัตกิต แก้วสม",
-    "ศุภกฤต โรจนทรานนท์",
-    "เกศษ์เกล้า ตันติวัฒนพงศ์",
-    "ธรรมธร ภราดร",
-    "สุพัตรา วงศ์สุวรรณ",
-    "จารณ อุททา",
-    "ณัฐภษรณ์ โสภณ",
-    "กนกพร กลางนอก",
-    "นุจรี มานะกุล",
-    "ธีรพงษ์ สนทาหงส์",
-    "ภานุวัฒน์ คุณทะวงษ์",
-    "วันเฉลิม ทองใบ",
-    "สพัชญ์นนทน์ จีรธนธัช",
-    "วุฒิชัย ยาวิละชัย",
-    "พสิษฐ์ ทองนุ่ม",
-    "ชัชวาลย์ วงศ์วิเศษ",
-    "วัชระ รอดอ่อน",
-    "ธนโชติ ปัญจพรรุ่งโรจน์",
-    "มนทนา เกษสุวรรณ์",
-    "อรัญญา อินทรมาตร",
-    "มงคลชัย โปสะวุฑฒะ",
-    "ณัฐกร กลมลี",
-    "ณัฐวุฒิ จากที่",
-    "ภราดร จามจุรีรักษ์",
-    "อนุสรณ์ ทองดี",
-    "ฉันชนก วงศ์เสถียร",
-    "กันต์ณพัชญ์ เชิดชู",
-    "เสฏฐพัฒน์ ถนอมพิชัย",
-    "ภคพร ติรไพโรจน์",
-    "สรยุทธ อิทธิรัตนโชติ",
-    "วิทวัส พฤกษ์มหาชัยกุล",
-    "อภัสนันท์ เจียรประภัทธ์",
-    "กิจจา วีรพลังชัย",
-    "ปณิธิ ทิพย์ทวีชาญ",
-    "อธิกัญญ์ ศึกหาญ",
-    "ภาสวิชญ์ หาญศิริพงษ์สกุล",
-    "คุปต์ธนัฐ พิมพลา",
-    "กิตติภณ พิมพ์ทวี",
-    "จุรีพร แก้วบุตรดี",
-    "อลิษา ปัจจัย",
-    "เกริกเกียรติ เรืองคล้าย",
-    "อรุณี ปัญจกะบุตร",
-    "พิเชษฐ์ วิมลไชยพร",
-    "ปุณณดา ธาดาเกษมโสภณ",
-    "เศรษฐา ศุภณัฐกุล",
-    "เอกพล จงฟุ้งเฟื่อง",
-    "จันทิมา บุญโสม",
-    "คริสเตอเฟอร์ ภู่มาลี",
-    "ปวันรัตน์ เพ็ชรพงศ์",
-    "นิชาพัทศ์ งามสาย",
-    "กฤษตฤณ ดิษยามงคลสกุล",
-    "ศศิภารัตน์ ทองชนะ",
-    "มัลลิกา วัฒนโยธิน",
-    "นฤมล ยี่สุ่น",
-    "ณัฐกานต์ แสนทรัพย์",
-    "วิริทธิ คงเดชศักดา",
-    "สุภาพร แก้วเหม",
-    "เอกราช ทองมาเอง",
-    "ชนาภา กล่อมยงค์",
-    "กัญญาวีร์ นกอยู่",
-    "วรัญญู โกสินชูกิจ",
-    "รัชนา บุดดีเหลือ",
-    "อุ้มวงศ์ ศรีวะรมย์",
-    "ณัฎฐณิชา เทศประทีป",
-    "ปวันรัตน์ มุ่งแถมกลาง",
-    "ฐาคิวัธณ์ สุภาวัฒนพันธ์",
-    "ปาริชาติ พุทธศรี",
-    "จรัส เดชพรรณา",
-    "มนัธชนก นามมีชัย",
-    "วิรัตน์ กุมกร",
-    "พัชราวรรณ จันทร์เพชร",
-    "กิตติศักดิ์ สีนางแย้ม",
-    "สุทิศา ดาแก้ว",
-    "ชญาดา คงกระโฮ่",
-    "รัชชุดา ภาณุวรารัฐ",
-    "กรวิภา วุฒศรี",
-    "กรรณิการ์ อดุลประวิตรชัย",
-    "จุฑาทิพย์ สุวรรณธรรมา",
-    "สุธาสินี จันทะขาล",
-    "ธนาพัทธ์ วิญญูวิสิทธิรักษ์",
-    "อลงกรต สุขศรี",
-    "วลิกา มูลเงิน",
-    "พีรวิชญ์ ลาเตะ",
-    "ดำรงค์เกียรติ ภักดี",
-    "กมล เตชประสพชัย",
-    "ธนาอิชณน์ สุขไข่",
-    "จักรพันธ์ เจียรชัย",
-    "ธันญารัตน์ นิลเพชร",
-    "ลดาวรรณ์ เผ็ดกระโทก",
-    "กานต์ กลางเคื่อม",
-    "พงศ์ภัค เขียวโพธิ์",
-    "จุฑารัตน์ ดวงแก้ว",
-    "จันทร์ฉาย อินทร์หอม",
-    "ศราวุฒิ มุสิถาวร",
-    "ปิยฉัตร โตอินทร์",
-    "ธนวรันญ์ บุญชุ่ม",
-    "ธนพัฒน์ รัตนอยู่สุข",
-    "ชาตรี ธีรภาพรุ่งโรจน์",
-    "วาสินี อุดรทักษ์",
-    "ศิริวรรณ เอี่ยมสะอาด",
-    "ศิวกร สุขขีชล",
-    "เพชรดา ปู่สุข"
+    {
+      "firstName": "วรัญญา",
+      "lastName": "แคหอม",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101667",
+      "shopName": "True Shop (dtac) Supreme Complex Samsen",
+      "shopType": "COCO",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "เปศล",
+      "lastName": "คงเจริญวงศ์",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101667",
+      "shopName": "True Shop (dtac) Supreme Complex Samsen",
+      "shopType": "COCO",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "กนกอร",
+      "lastName": "นรนิ่ม",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101667",
+      "shopName": "True Shop (dtac) Supreme Complex Samsen",
+      "shopType": "COCO",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ซารีป๊ะ",
+      "lastName": "สาและ",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100478",
+      "shopName": "True Shop Terminal 21",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ณัฐกานต์",
+      "lastName": "สีบูจันดี",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100478",
+      "shopName": "True Shop Terminal 21",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "นันทพร",
+      "lastName": "วัชระมนตรีสกุล",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100478",
+      "shopName": "True Shop Terminal 21",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "อรดา",
+      "lastName": "นาคหล่อ",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100478",
+      "shopName": "True Shop Terminal 21",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "สุวิมล",
+      "lastName": "วงษ์เขียน",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100478",
+      "shopName": "True Shop Terminal 21",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "กฤตเมธ",
+      "lastName": "แข็งค้า",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100478",
+      "shopName": "True Shop Terminal 21",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ชัยมงคล",
+      "lastName": "เชตุพันธุ์",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80100478",
+      "shopName": "True Shop Terminal 21",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        2.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 2.0,
+      "achievement": 0.13333333333333333
+    },
+    {
+      "firstName": "เบญญา",
+      "lastName": "เหรียญนุกูล",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80100478",
+      "shopName": "True Shop Terminal 21",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "ปรมะ",
+      "lastName": "แก้ววิเชียร",
+      "employeeType": "RR_ITF",
+      "shopCode": "80100622",
+      "shopName": "True Shop Central Rama 9 4Fl.",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        3.0,
+        1.0
+      ],
+      "actual": 5.0,
+      "achievement": 0.3333333333333333
+    },
+    {
+      "firstName": "มัลลิกา",
+      "lastName": "ปิ่นทอง",
+      "employeeType": "RR_ITF",
+      "shopCode": "80100622",
+      "shopName": "True Shop Central Rama 9 4Fl.",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "ฤทธิชัย",
+      "lastName": "จันต๊ะนาเขต",
+      "employeeType": "RR_ITF",
+      "shopCode": "80100622",
+      "shopName": "True Shop Central Rama 9 4Fl.",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "วรรณิดา",
+      "lastName": "อยู่คง",
+      "employeeType": "RR_ITF_Apple",
+      "shopCode": "80100622",
+      "shopName": "True Shop Central Rama 9 4Fl.",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "กฤศกร",
+      "lastName": "ยวงจันทร์",
+      "employeeType": "RR_ITF_Apple",
+      "shopCode": "80100622",
+      "shopName": "True Shop Central Rama 9 4Fl.",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "คฑาวุต",
+      "lastName": "ประกอบบุญ",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100622",
+      "shopName": "True Shop Central Rama 9 4Fl.",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "อุไรพร",
+      "lastName": "แก่นท้าว",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100622",
+      "shopName": "True Shop Central Rama 9 4Fl.",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "วรเมธ",
+      "lastName": "สุภัทร์วัน",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100622",
+      "shopName": "True Shop Central Rama 9 4Fl.",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "กฤษณี",
+      "lastName": "อ่อนจันทร์",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100622",
+      "shopName": "True Shop Central Rama 9 4Fl.",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "นาคินทร์",
+      "lastName": "แสนสองแคว",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100622",
+      "shopName": "True Shop Central Rama 9 4Fl.",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "เสฎฐวุฒิ",
+      "lastName": "เพียซ้าย",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100622",
+      "shopName": "True Shop Central Rama 9 4Fl.",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "พิชญาภัค",
+      "lastName": "แซ่ลิ้ม",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80100622",
+      "shopName": "True Shop Central Rama 9 4Fl.",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "นันทพัทธ์",
+      "lastName": "อ้นเพ็ง",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80100622",
+      "shopName": "True Shop Central Rama 9 4Fl.",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ณัชพล",
+      "lastName": "เจริญวิวัฒน์สกุล",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80100622",
+      "shopName": "True Shop Central Rama 9 4Fl.",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "ถนัตกิต",
+      "lastName": "แก้วสม",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80100622",
+      "shopName": "True Shop Central Rama 9 4Fl.",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ศุภกฤต",
+      "lastName": "โรจนทรานนท์",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80100622",
+      "shopName": "True Shop Central Rama 9 4Fl.",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "เกศษ์เกล้า",
+      "lastName": "ตันติวัฒนพงศ์",
+      "employeeType": "RR_ITF",
+      "shopCode": "80100623",
+      "shopName": "True Shop Central Rama 9",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.0,
+        0.0
+      ],
+      "actual": 2.0,
+      "achievement": 0.13333333333333333
+    },
+    {
+      "firstName": "ธรรมธร",
+      "lastName": "ภราดร",
+      "employeeType": "RR_ITF",
+      "shopCode": "80100623",
+      "shopName": "True Shop Central Rama 9",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "สุพัตรา",
+      "lastName": "วงศ์สุวรรณ",
+      "employeeType": "RR_ITF",
+      "shopCode": "80100623",
+      "shopName": "True Shop Central Rama 9",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "จารณ",
+      "lastName": "อุททา",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100623",
+      "shopName": "True Shop Central Rama 9",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ณัฐภษรณ์",
+      "lastName": "โสภณ",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100623",
+      "shopName": "True Shop Central Rama 9",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "กนกพร",
+      "lastName": "กลางนอก",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80100623",
+      "shopName": "True Shop Central Rama 9",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "นุจรี",
+      "lastName": "มานะกุล",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80100623",
+      "shopName": "True Shop Central Rama 9",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ธีรพงษ์",
+      "lastName": "สนทาหงส์",
+      "employeeType": "RR_ITF",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "ภานุวัฒน์",
+      "lastName": "คุณทะวงษ์",
+      "employeeType": "RR_ITF",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "วันเฉลิม",
+      "lastName": "ทองใบ",
+      "employeeType": "RR_ITF",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        1.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 2.0,
+      "achievement": 0.13333333333333333
+    },
+    {
+      "firstName": "สพัชญ์นนทน์",
+      "lastName": "จีรธนธัช",
+      "employeeType": "RR_ITF",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "วุฒิชัย",
+      "lastName": "ยาวิละชัย",
+      "employeeType": "RR_ITF",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "พสิษฐ์",
+      "lastName": "ทองนุ่ม",
+      "employeeType": "RR_ITF_Apple",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ชัชวาลย์",
+      "lastName": "วงศ์วิเศษ",
+      "employeeType": "RR_ITF_Apple",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "วัชระ",
+      "lastName": "รอดอ่อน",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "ธนโชติ",
+      "lastName": "ปัญจพรรุ่งโรจน์",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "มนทนา",
+      "lastName": "เกษสุวรรณ์",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        3.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 3.0,
+      "achievement": 0.2
+    },
+    {
+      "firstName": "อรัญญา",
+      "lastName": "อินทรมาตร",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "มงคลชัย",
+      "lastName": "โปสะวุฑฒะ",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ณัฐกร",
+      "lastName": "กลมลี",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ณัฐวุฒิ",
+      "lastName": "จากที่",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ภราดร",
+      "lastName": "จามจุรีรักษ์",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "อนุสรณ์",
+      "lastName": "ทองดี",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ฉันชนก",
+      "lastName": "วงศ์เสถียร",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "กันต์ณพัชญ์",
+      "lastName": "เชิดชู",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "เสฏฐพัฒน์",
+      "lastName": "ถนอมพิชัย",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ภคพร",
+      "lastName": "ติรไพโรจน์",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80100836",
+      "shopName": "True Shop Central World Fl.4",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "สรยุทธ",
+      "lastName": "อิทธิรัตนโชติ",
+      "employeeType": "RR_ITF",
+      "shopCode": "80101068",
+      "shopName": "True Shop Central Rama 3",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "วิทวัส",
+      "lastName": "พฤกษ์มหาชัยกุล",
+      "employeeType": "RR_ITF",
+      "shopCode": "80101068",
+      "shopName": "True Shop Central Rama 3",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "อภัสนันท์",
+      "lastName": "เจียรประภัทธ์",
+      "employeeType": "RR_ITF_Apple",
+      "shopCode": "80101068",
+      "shopName": "True Shop Central Rama 3",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "กิจจา",
+      "lastName": "วีรพลังชัย",
+      "employeeType": "RR_ITF_Apple",
+      "shopCode": "80101068",
+      "shopName": "True Shop Central Rama 3",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        1.0,
+        3.0,
+        0.0,
+        0.0,
+        0.0,
+        2.0
+      ],
+      "actual": 6.0,
+      "achievement": 0.4
+    },
+    {
+      "firstName": "ปณิธิ",
+      "lastName": "ทิพย์ทวีชาญ",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101068",
+      "shopName": "True Shop Central Rama 3",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        1.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 2.0,
+      "achievement": 0.13333333333333333
+    },
+    {
+      "firstName": "อธิกัญญ์",
+      "lastName": "ศึกหาญ",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101068",
+      "shopName": "True Shop Central Rama 3",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ภาสวิชญ์",
+      "lastName": "หาญศิริพงษ์สกุล",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101068",
+      "shopName": "True Shop Central Rama 3",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "คุปต์ธนัฐ",
+      "lastName": "พิมพลา",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101068",
+      "shopName": "True Shop Central Rama 3",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "กิตติภณ",
+      "lastName": "พิมพ์ทวี",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101068",
+      "shopName": "True Shop Central Rama 3",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "จุรีพร",
+      "lastName": "แก้วบุตรดี",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101068",
+      "shopName": "True Shop Central Rama 3",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "อลิษา",
+      "lastName": "ปัจจัย",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101068",
+      "shopName": "True Shop Central Rama 3",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        2.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 2.0,
+      "achievement": 0.13333333333333333
+    },
+    {
+      "firstName": "เกริกเกียรติ",
+      "lastName": "เรืองคล้าย",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101068",
+      "shopName": "True Shop Central Rama 3",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.0
+      ],
+      "actual": 2.0,
+      "achievement": 0.13333333333333333
+    },
+    {
+      "firstName": "อรุณี",
+      "lastName": "ปัญจกะบุตร",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101068",
+      "shopName": "True Shop Central Rama 3",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "พิเชษฐ์",
+      "lastName": "วิมลไชยพร",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101068",
+      "shopName": "True Shop Central Rama 3",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ปุณณดา",
+      "lastName": "ธาดาเกษมโสภณ",
+      "employeeType": "RR_ITF",
+      "shopCode": "80101186",
+      "shopName": "True Shop Central Festival East Ville",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        1.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "actual": 2.0,
+      "achievement": 0.13333333333333333
+    },
+    {
+      "firstName": "เศรษฐา",
+      "lastName": "ศุภณัฐกุล",
+      "employeeType": "RR_ITF",
+      "shopCode": "80101186",
+      "shopName": "True Shop Central Festival East Ville",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      "actual": 2.0,
+      "achievement": 0.13333333333333333
+    },
+    {
+      "firstName": "เอกพล",
+      "lastName": "จงฟุ้งเฟื่อง",
+      "employeeType": "RR_ITF_Apple",
+      "shopCode": "80101186",
+      "shopName": "True Shop Central Festival East Ville",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "จันทิมา",
+      "lastName": "บุญโสม",
+      "employeeType": "RR_ITF_Apple",
+      "shopCode": "80101186",
+      "shopName": "True Shop Central Festival East Ville",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "คริสเตอเฟอร์",
+      "lastName": "ภู่มาลี",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101186",
+      "shopName": "True Shop Central Festival East Ville",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ปวันรัตน์",
+      "lastName": "เพ็ชรพงศ์",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101186",
+      "shopName": "True Shop Central Festival East Ville",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "นิชาพัทศ์",
+      "lastName": "งามสาย",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101186",
+      "shopName": "True Shop Central Festival East Ville",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "กฤษตฤณ",
+      "lastName": "ดิษยามงคลสกุล",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101186",
+      "shopName": "True Shop Central Festival East Ville",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "ศศิภารัตน์",
+      "lastName": "ทองชนะ",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101186",
+      "shopName": "True Shop Central Festival East Ville",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "มัลลิกา",
+      "lastName": "วัฒนโยธิน",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101186",
+      "shopName": "True Shop Central Festival East Ville",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "นฤมล",
+      "lastName": "ยี่สุ่น",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101186",
+      "shopName": "True Shop Central Festival East Ville",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ณัฐกานต์",
+      "lastName": "แสนทรัพย์",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101186",
+      "shopName": "True Shop Central Festival East Ville",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "วิริทธิ",
+      "lastName": "คงเดชศักดา",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101186",
+      "shopName": "True Shop Central Festival East Ville",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "สุภาพร",
+      "lastName": "แก้วเหม",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101186",
+      "shopName": "True Shop Central Festival East Ville",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        2.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 2.0,
+      "achievement": 0.13333333333333333
+    },
+    {
+      "firstName": "เอกราช",
+      "lastName": "ทองมาเอง",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101186",
+      "shopName": "True Shop Central Festival East Ville",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ชนาภา",
+      "lastName": "กล่อมยงค์",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101186",
+      "shopName": "True Shop Central Festival East Ville",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "กัญญาวีร์",
+      "lastName": "นกอยู่",
+      "employeeType": "RR_ITF",
+      "shopCode": "80101221",
+      "shopName": "True Shop Emquartier",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "วรัญญู",
+      "lastName": "โกสินชูกิจ",
+      "employeeType": "RR_ITF",
+      "shopCode": "80101221",
+      "shopName": "True Shop Emquartier",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "รัชนา",
+      "lastName": "บุดดีเหลือ",
+      "employeeType": "RR_ITF_Apple",
+      "shopCode": "80101221",
+      "shopName": "True Shop Emquartier",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "อุ้มวงศ์",
+      "lastName": "ศรีวะรมย์",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101221",
+      "shopName": "True Shop Emquartier",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ณัฎฐณิชา",
+      "lastName": "เทศประทีป",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101221",
+      "shopName": "True Shop Emquartier",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "ปวันรัตน์",
+      "lastName": "มุ่งแถมกลาง",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101221",
+      "shopName": "True Shop Emquartier",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        2.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 2.0,
+      "achievement": 0.13333333333333333
+    },
+    {
+      "firstName": "ฐาคิวัธณ์",
+      "lastName": "สุภาวัฒนพันธ์",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101221",
+      "shopName": "True Shop Emquartier",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ปาริชาติ",
+      "lastName": "พุทธศรี",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101221",
+      "shopName": "True Shop Emquartier",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "จรัส",
+      "lastName": "เดชพรรณา",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101221",
+      "shopName": "True Shop Emquartier",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "มนัธชนก",
+      "lastName": "นามมีชัย",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101221",
+      "shopName": "True Shop Emquartier",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "วิรัตน์",
+      "lastName": "กุมกร",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101221",
+      "shopName": "True Shop Emquartier",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "พัชราวรรณ",
+      "lastName": "จันทร์เพชร",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101221",
+      "shopName": "True Shop Emquartier",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "กิตติศักดิ์",
+      "lastName": "สีนางแย้ม",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101221",
+      "shopName": "True Shop Emquartier",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "สุทิศา",
+      "lastName": "ดาแก้ว",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101221",
+      "shopName": "True Shop Emquartier",
+      "shopType": "Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ชญาดา",
+      "lastName": "คงกระโฮ่",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100715",
+      "shopName": "True Shop Fortune Town 1Fl.",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "รัชชุดา",
+      "lastName": "ภาณุวรารัฐ",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100715",
+      "shopName": "True Shop Fortune Town 1Fl.",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "กรวิภา",
+      "lastName": "วุฒศรี",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100715",
+      "shopName": "True Shop Fortune Town 1Fl.",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "กรรณิการ์",
+      "lastName": "อดุลประวิตรชัย",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100729",
+      "shopName": "True Shop Station Lotus's Rama 4",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "จุฑาทิพย์",
+      "lastName": "สุวรรณธรรมา",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100729",
+      "shopName": "True Shop Station Lotus's Rama 4",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "สุธาสินี",
+      "lastName": "จันทะขาล",
+      "employeeType": "RR_Multi",
+      "shopCode": "80100729",
+      "shopName": "True Shop Station Lotus's Rama 4",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "ธนาพัทธ์",
+      "lastName": "วิญญูวิสิทธิรักษ์",
+      "employeeType": "RR_ITF",
+      "shopCode": "80101269",
+      "shopName": "True Shop Mahboon Krong 4Fl.",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "อลงกรต",
+      "lastName": "สุขศรี",
+      "employeeType": "RR_ITF",
+      "shopCode": "80101269",
+      "shopName": "True Shop Mahboon Krong 4Fl.",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.0,
+        0.0
+      ],
+      "actual": 2.0,
+      "achievement": 0.13333333333333333
+    },
+    {
+      "firstName": "วลิกา",
+      "lastName": "มูลเงิน",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101269",
+      "shopName": "True Shop Mahboon Krong 4Fl.",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "พีรวิชญ์",
+      "lastName": "ลาเตะ",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101269",
+      "shopName": "True Shop Mahboon Krong 4Fl.",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ดำรงค์เกียรติ",
+      "lastName": "ภักดี",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101269",
+      "shopName": "True Shop Mahboon Krong 4Fl.",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "กมล",
+      "lastName": "เตชประสพชัย",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101347",
+      "shopName": "True Shop U Chu Liang Building",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ธนาอิชณน์",
+      "lastName": "สุขไข่",
+      "employeeType": "RR_ITF",
+      "shopCode": "80101349",
+      "shopName": "True Shop Silom Complex",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "จักรพันธ์",
+      "lastName": "เจียรชัย",
+      "employeeType": "RR_ITF",
+      "shopCode": "80101349",
+      "shopName": "True Shop Silom Complex",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "ธันญารัตน์",
+      "lastName": "นิลเพชร",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101349",
+      "shopName": "True Shop Silom Complex",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ลดาวรรณ์",
+      "lastName": "เผ็ดกระโทก",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101349",
+      "shopName": "True Shop Silom Complex",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "กานต์",
+      "lastName": "กลางเคื่อม",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101349",
+      "shopName": "True Shop Silom Complex",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "พงศ์ภัค",
+      "lastName": "เขียวโพธิ์",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101349",
+      "shopName": "True Shop Silom Complex",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "จุฑารัตน์",
+      "lastName": "ดวงแก้ว",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101349",
+      "shopName": "True Shop Silom Complex",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "จันทร์ฉาย",
+      "lastName": "อินทร์หอม",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101349",
+      "shopName": "True Shop Silom Complex",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 1.0,
+      "achievement": 0.06666666666666667
+    },
+    {
+      "firstName": "ศราวุฒิ",
+      "lastName": "มุสิถาวร",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101363",
+      "shopName": "True Shop at Chamchuri Square 1",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ปิยฉัตร",
+      "lastName": "โตอินทร์",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101363",
+      "shopName": "True Shop at Chamchuri Square 1",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ธนวรันญ์",
+      "lastName": "บุญชุ่ม",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101363",
+      "shopName": "True Shop at Chamchuri Square 1",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ธนพัฒน์",
+      "lastName": "รัตนอยู่สุข",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101363",
+      "shopName": "True Shop at Chamchuri Square 1",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ชาตรี",
+      "lastName": "ธีรภาพรุ่งโรจน์",
+      "employeeType": "Ret_chpn_1",
+      "shopCode": "80101363",
+      "shopName": "True Shop at Chamchuri Square 1",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.0
+      ],
+      "actual": 2.0,
+      "achievement": 0.13333333333333333
+    },
+    {
+      "firstName": "วาสินี",
+      "lastName": "อุดรทักษ์",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101630",
+      "shopName": "True Shop Lotus's Ramindra",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ศิริวรรณ",
+      "lastName": "เอี่ยมสะอาด",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101630",
+      "shopName": "True Shop Lotus's Ramindra",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "ศิวกร",
+      "lastName": "สุขขีชล",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101633",
+      "shopName": "True Shop Makro Sri Ayutthaya",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    },
+    {
+      "firstName": "เพชรดา",
+      "lastName": "ปู่สุข",
+      "employeeType": "RR_Multi",
+      "shopCode": "80101633",
+      "shopName": "True Shop Makro Sri Ayutthaya",
+      "shopType": "Non_Matching",
+      "target": 15.0,
+      "daily": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "actual": 0.0,
+      "achievement": 0.0
+    }
   ]
 }

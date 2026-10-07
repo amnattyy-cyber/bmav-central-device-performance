@@ -7,6 +7,7 @@ import type { MongkolData } from "./mongkol-data";
 const data = mongkolFallback as MongkolData;
 const money = (value: number) => new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 }).format(value);
 const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
+const indyPercent = (value: number) => value === 0 ? "0%" : percent(value);
 const shortShop = (name: string) => name
   .replace("True Shop Station ", "Station ")
   .replace("True Shop at ", "")
@@ -17,7 +18,11 @@ export default function MongkolDashboard() {
   const [mode, setMode] = useState<"area" | "indy">("area");
   const [captureMode, setCaptureMode] = useState(false);
   const [nameQuery, setNameQuery] = useState("");
-  const filteredNames = useMemo(() => data.indies.filter((name) => name.includes(nameQuery.trim())), [nameQuery]);
+  const filteredIndies = useMemo(() => {
+    const query = nameQuery.trim().toLocaleLowerCase();
+    return data.indies.filter((indy) => [indy.firstName, indy.lastName, indy.employeeType, indy.shopCode, indy.shopName, indy.shopType]
+      .some((value) => value.toLocaleLowerCase().includes(query)));
+  }, [nameQuery]);
   const totals = data.areas.reduce((total, area) => ({
     target: total.target + area.target,
     actual: total.actual + area.actual,
@@ -36,7 +41,7 @@ export default function MongkolDashboard() {
       <div className="section-head mongkol-heading">
         <div><span>OCTOBER 2026 • SPECIAL NUMBER PERFORMANCE</span><h1>Dashboard เบอร์มงคล</h1><p>{data.meta.area} • ข้อมูล ณ {asOfDisplay} • Snapshot จากไฟล์ต้นทาง</p></div>
         <div className="mongkol-actions">
-          <a href="https://docs.google.com/spreadsheets/d/1HnloV7TpFMWDrHgcCEUTaJKKDz2Zgb8WjQPCSvfn-Ns/edit#gid=1992762098">Google Sheet</a>
+          <a href="https://docs.google.com/spreadsheets/d/1HnloV7TpFMWDrHgcCEUTaJKKDz2Zgb8WjQPCSvfn-Ns/edit">Google Sheet</a>
           <a href={backHref}>กลับ Dashboard หลัก</a>
         </div>
       </div>
@@ -66,9 +71,17 @@ export default function MongkolDashboard() {
         <article className="indy-track"><span>On Track</span><strong>{data.indySummary.onTrack}</strong><small>Forecast ถึง Target</small></article>
       </div>
       <div className="mongkol-indy-directory">
-        <div className="mongkol-indy-directory-head"><h2>รายชื่อ Indy</h2><label><span className="sr-only">ค้นหาชื่อ Indy</span><input aria-label="ค้นหาชื่อ Indy" placeholder="ค้นหาชื่อ" value={nameQuery} onChange={(event) => setNameQuery(event.target.value)} /></label></div>
-        <div className="table-wrap mongkol-indy-name-wrap"><table className="mongkol-indy-name-table"><thead><tr><th>ชื่อพนักงาน</th></tr></thead><tbody>
-          {filteredNames.map((name) => <tr key={name}><td>{name}</td></tr>)}
+        <div className="mongkol-indy-directory-head"><h2>ราย Indy • ข้อมูล 1–6 Oct</h2><label><span className="sr-only">ค้นหา Indy</span><input aria-label="ค้นหา Indy" placeholder="ค้นหาชื่อหรือสาขา" value={nameQuery} onChange={(event) => setNameQuery(event.target.value)} /></label></div>
+        <div className="table-wrap mongkol-indy-name-wrap"><table className="mongkol-indy-name-table"><thead><tr>
+          <th>name_eng</th><th>sname_eng</th><th>emp_type_2</th><th>shop_code</th><th>Shop Name</th><th>Shop Type</th><th>Target</th>
+          {Array.from({ length: 6 }, (_, index) => <th key={`d${index + 1}`}>D{index + 1}</th>)}
+          <th>Actual<br />1–6 Oct</th><th>%ACH</th>
+        </tr></thead><tbody>
+          {filteredIndies.map((indy, index) => <tr key={`${indy.firstName}-${indy.lastName}-${indy.shopCode}-${index}`}>
+            <td>{indy.firstName}</td><td>{indy.lastName}</td><td>{indy.employeeType}</td><td>{indy.shopCode}</td><td>{indy.shopName}</td><td>{indy.shopType}</td><td>{money(indy.target)}</td>
+            {indy.daily.map((qty, dayIndex) => <td key={`${indy.shopCode}-d${dayIndex + 1}`}>{qty ? money(qty) : "–"}</td>)}
+            <td>{indy.actual ? money(indy.actual) : "–"}</td><td><strong>{indyPercent(indy.achievement)}</strong></td>
+          </tr>)}
         </tbody></table></div>
       </div>
       </>}
