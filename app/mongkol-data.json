@@ -46,7 +46,8 @@
       "actual": 0.0,
       "rrEndMonth": 0.0,
       "noSaleCount": 3,
-      "indyCount": 3
+      "indyCount": 3,
+      "achievement": 0.0
     },
     {
       "area": "BMA V - Central",
@@ -88,7 +89,8 @@
       "actual": 2.0,
       "rrEndMonth": 10.333333333333332,
       "noSaleCount": 4,
-      "indyCount": 5
+      "indyCount": 5,
+      "achievement": 0.02666666666666667
     },
     {
       "area": "BMA V - Central",
@@ -130,7 +132,8 @@
       "actual": 9.0,
       "rrEndMonth": 46.49999999999999,
       "noSaleCount": 10,
-      "indyCount": 16
+      "indyCount": 16,
+      "achievement": 0.0375
     },
     {
       "area": "BMA V - Central",
@@ -172,7 +175,8 @@
       "actual": 15.0,
       "rrEndMonth": 77.5,
       "noSaleCount": 7,
-      "indyCount": 14
+      "indyCount": 14,
+      "achievement": 0.07142857142857142
     },
     {
       "area": "BMA V - Central",
@@ -214,7 +218,8 @@
       "actual": 3.0,
       "rrEndMonth": 15.499999999999998,
       "noSaleCount": 5,
-      "indyCount": 7
+      "indyCount": 7,
+      "achievement": 0.02857142857142857
     },
     {
       "area": "BMA V - Central",
@@ -256,7 +261,8 @@
       "actual": 11.0,
       "rrEndMonth": 56.83333333333333,
       "noSaleCount": 9,
-      "indyCount": 16
+      "indyCount": 16,
+      "achievement": 0.04583333333333333
     },
     {
       "area": "BMA V - Central",
@@ -298,7 +304,8 @@
       "actual": 10.0,
       "rrEndMonth": 51.666666666666664,
       "noSaleCount": 13,
-      "indyCount": 20
+      "indyCount": 20,
+      "achievement": 0.03333333333333333
     },
     {
       "area": "BMA V - Central",
@@ -340,7 +347,8 @@
       "actual": 5.0,
       "rrEndMonth": 25.83333333333333,
       "noSaleCount": 10,
-      "indyCount": 14
+      "indyCount": 14,
+      "achievement": 0.023809523809523808
     },
     {
       "area": "BMA V - Central",
@@ -382,7 +390,8 @@
       "actual": 0.0,
       "rrEndMonth": 0.0,
       "noSaleCount": 3,
-      "indyCount": 3
+      "indyCount": 3,
+      "achievement": 0.0
     },
     {
       "area": "BMA V - Central",
@@ -424,7 +433,8 @@
       "actual": 0.0,
       "rrEndMonth": 0.0,
       "noSaleCount": 2,
-      "indyCount": 2
+      "indyCount": 2,
+      "achievement": 0.0
     },
     {
       "area": "BMA V - Central",
@@ -466,7 +476,8 @@
       "actual": 2.0,
       "rrEndMonth": 10.333333333333332,
       "noSaleCount": 4,
-      "indyCount": 5
+      "indyCount": 5,
+      "achievement": 0.02666666666666667
     },
     {
       "area": "BMA V - Central",
@@ -508,7 +519,8 @@
       "actual": 0.0,
       "rrEndMonth": 0.0,
       "noSaleCount": 2,
-      "indyCount": 2
+      "indyCount": 2,
+      "achievement": 0.0
     },
     {
       "area": "BMA V - Central",
@@ -550,7 +562,8 @@
       "actual": 3.0,
       "rrEndMonth": 15.499999999999998,
       "noSaleCount": 5,
-      "indyCount": 8
+      "indyCount": 8,
+      "achievement": 0.025
     },
     {
       "area": "BMA V - Central",
@@ -592,7 +605,8 @@
       "actual": 1.0,
       "rrEndMonth": 5.166666666666666,
       "noSaleCount": 2,
-      "indyCount": 3
+      "indyCount": 3,
+      "achievement": 0.022222222222222223
     },
     {
       "area": "BMA V - Central",
@@ -634,7 +648,8 @@
       "actual": 3.0,
       "rrEndMonth": 15.499999999999998,
       "noSaleCount": 6,
-      "indyCount": 8
+      "indyCount": 8,
+      "achievement": 0.025
     },
     {
       "area": "BMA V - Central",
@@ -676,7 +691,8 @@
       "actual": 0.0,
       "rrEndMonth": 0.0,
       "noSaleCount": 1,
-      "indyCount": 1
+      "indyCount": 1,
+      "achievement": 0.0
     }
   ],
   "indySummary": {
