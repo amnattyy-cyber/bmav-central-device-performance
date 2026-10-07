@@ -15,5 +15,6 @@ test("auspicious-number snapshot reconciles area and summarized Indy totals with
   assert.equal(data.indySummary.noSale, 86);
   assert.equal(data.indySummary.atRisk + data.indySummary.watch + data.indySummary.onTrack + data.indySummary.noSale, 127);
   assert.ok(data.areas.every((area) => area.area === "BMA V - Central"));
+  assert.ok(data.areas.every((area) => Number.isFinite(area.achievement) && Math.abs(area.achievement - area.actual / area.target) < 1e-9));
   assert.equal("people" in data, false);
 });
