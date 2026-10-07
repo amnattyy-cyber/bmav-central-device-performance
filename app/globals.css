@@ -181,12 +181,19 @@ footer { display: flex; justify-content: space-between; gap: 18px; padding: 22px
 .mongkol-indy-directory-head h2 { margin: 0; color: var(--navy); font-size: 15px; }
 .mongkol-indy-directory-head input { width: min(260px,45vw); padding: 8px 11px; border: 1px solid #ded5c3; border-radius: 9px; color: var(--navy); background: #fffdf7; font: inherit; font-size: 12px; }
 .mongkol-indy-name-wrap { max-height: 520px; overflow: auto; }
-.mongkol-indy-name-table { width: max-content; min-width: 1450px; table-layout: fixed; }
+.mongkol-indy-name-table { width: 100%; min-width: 1180px; table-layout: fixed; }
 .mongkol-indy-name-table th { position: sticky; top: 0; z-index: 1; color: #624400; background: #fff1c7; text-align: left; }
 .mongkol-indy-name-table td,.mongkol-indy-name-table th { padding: 8px 10px; white-space: nowrap; }
-.mongkol-indy-name-table td:nth-child(5),.mongkol-indy-name-table th:nth-child(5) { width: 260px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
-.mongkol-indy-name-table td:nth-child(3),.mongkol-indy-name-table th:nth-child(3) { width: 115px; }
-.mongkol-indy-name-table td:nth-child(n+7),.mongkol-indy-name-table th:nth-child(n+7) { min-width: 68px; text-align: right; }
+.mongkol-indy-name-table td:nth-child(1),.mongkol-indy-name-table th:nth-child(1) { width: 78px; }
+.mongkol-indy-name-table td:nth-child(2),.mongkol-indy-name-table th:nth-child(2) { width: 100px; }
+.mongkol-indy-name-table td:nth-child(3),.mongkol-indy-name-table th:nth-child(3) { width: 100px; }
+.mongkol-indy-name-table td:nth-child(4),.mongkol-indy-name-table th:nth-child(4) { width: 84px; }
+.mongkol-indy-name-table td:nth-child(5),.mongkol-indy-name-table th:nth-child(5) { width: 210px; max-width: 210px; overflow: hidden; text-overflow: ellipsis; }
+.mongkol-indy-name-table td:nth-child(6),.mongkol-indy-name-table th:nth-child(6) { width: 92px; }
+.mongkol-indy-name-table td:nth-child(7),.mongkol-indy-name-table th:nth-child(7) { width: 62px; text-align: right; }
+.mongkol-indy-name-table td:nth-child(n+8):nth-child(-n+13),.mongkol-indy-name-table th:nth-child(n+8):nth-child(-n+13) { width: 44px; text-align: right; }
+.mongkol-indy-name-table td:nth-child(14),.mongkol-indy-name-table th:nth-child(14) { width: 76px; text-align: right; }
+.mongkol-indy-name-table td:nth-child(15),.mongkol-indy-name-table th:nth-child(15) { width: 58px; text-align: right; }
 .mongkol-indy-name-table tbody tr:nth-child(even) { background: #fffdf8; }
 
 @media (max-width: 1150px) {
