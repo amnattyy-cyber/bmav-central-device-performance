@@ -171,6 +171,11 @@ footer { display: flex; justify-content: space-between; gap: 18px; padding: 22px
 .mongkol-indy-summary .indy-risk { border-color: #f3d3b0; background: #fffaf2; }.mongkol-indy-summary .indy-risk strong { color: #bb6b0b; }
 .mongkol-indy-summary .indy-track { border-color: #c5e8d4; background: #f7fff9; }.mongkol-indy-summary .indy-track strong { color: #16834b; }
 .mongkol-indy-summary .mongkol-privacy-note { grid-column: 1 / -1; }
+.mongkol-capture-toggle { margin-left: auto; }
+.mongkol-capture-mode .mongkol-table-wrap { max-height: none; overflow: visible; }
+.mongkol-capture-mode .mongkol-table td,.mongkol-capture-mode .mongkol-table th { padding: 6px 9px; }
+.mongkol-capture-mode .mongkol-table tfoot th,.mongkol-capture-mode .mongkol-table tfoot td { position: static; }
+.mongkol-capture-mode .mongkol-privacy-note { display: none; }
 
 @media (max-width: 1150px) {
   .control-deck { grid-template-columns: 1fr 1fr; }.product-switch { grid-column: 1 / -1; }.download-options { right: auto; left: 0; }.kpi-grid { grid-template-columns: repeat(2,1fr); }.executive-grid,.two-col { grid-template-columns: 1fr; }.branch-analysis-grid,.people-kpis,.analysis-grid,.focus-device-kpis { grid-template-columns: repeat(2,1fr); }.people-insight-row { grid-template-columns: 1fr; }.no-sales-groups { grid-template-columns: repeat(2,minmax(0,1fr)); }.management-actions { grid-template-columns: 1fr; }.hero-focus { display: none; }.trend-panel { width: 100%; }.focus-device-head { align-items: flex-start; }.focus-device-actions { align-items: flex-end; flex-direction: column; }.mongkol-kpis { grid-template-columns: repeat(3,minmax(0,1fr)); }.mongkol-indy-summary { grid-template-columns: repeat(3,minmax(0,1fr)); }
