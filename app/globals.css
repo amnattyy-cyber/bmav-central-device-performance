@@ -31,11 +31,12 @@ main { --product: #2563eb; --product-soft: #dbeafe; width: min(1480px, calc(100%
 .hero-focus span,.hero-focus small { display: block; color: #cbd7e8; font-size: 10px; font-weight: 700; letter-spacing: 1.2px; }.hero-focus strong { display: block; margin: 4px 0; color: #fff; font-size: 34px; }.hero-focus small { color: #ffb8b4; letter-spacing: 0; }
 
 .control-deck { position: relative; z-index: 3; display: grid; grid-template-columns: 1.7fr .65fr .78fr 1fr .72fr .72fr auto auto; gap: 10px; align-items: end; margin: -18px 24px 14px; padding: 16px; border: 1px solid rgba(214,224,237,.9); border-radius: 20px; background: rgba(255,255,255,.97); box-shadow: 0 14px 36px rgba(36,59,87,.12); }
-.product-switch { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 7px; }
-.product-switch button { display: flex; gap: 8px; align-items: center; padding: 7px; border: 1px solid var(--line); border-radius: 12px; color: #4c586a; font-weight: 700; background: #fff; cursor: pointer; transition: .2s ease; }
-.product-switch button { font-size: 12px; }.product-switch button i { width: 36px; height: 32px; display: grid; place-items: center; border-radius: 8px; color: white; font-size: 10px; font-style: normal; letter-spacing: .4px; }
+.product-switch { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 7px; min-width: 0; }
+.product-switch button { display: flex; min-width: 0; gap: 6px; align-items: center; padding: 7px; border: 1px solid var(--line); border-radius: 12px; color: #4c586a; font-weight: 700; background: #fff; cursor: pointer; transition: .2s ease; }
+.product-switch button { font-size: 12px; }.product-switch button i { width: 36px; height: 32px; display: grid; place-items: center; border-radius: 8px; color: white; font-size: 10px; font-style: normal; letter-spacing: .4px; flex: 0 0 36px; }
+.product-switch button span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .product-switch button.active { color: var(--product); border-color: var(--product); background: var(--product-soft); box-shadow: 0 0 0 3px color-mix(in srgb, var(--product) 12%, transparent); }
-.product-switch .mongkol-nav-link { display: flex; align-items: center; justify-content: center; min-width: 0; padding: 7px 1px; border: 1px solid #ead8ad; border-radius: 12px; color: #765000; background: #fff6df; font-size: 9px; font-weight: 850; letter-spacing: -.35px; text-align: center; text-decoration: none; white-space: nowrap; }
+.product-switch .mongkol-nav-link { display: flex; align-items: center; justify-content: center; min-width: 0; padding: 7px 4px; border: 1px solid #ead8ad; border-radius: 12px; color: #765000; background: #fff6df; font-size: 10px; font-weight: 850; letter-spacing: -.25px; text-align: center; text-decoration: none; white-space: nowrap; }
 .product-switch .mongkol-nav-link:hover,.product-switch .mongkol-nav-link:focus-visible { border-color: #c38b22; background: #ffedbd; outline: none; }
 .control-deck label > span { display: block; margin: 0 0 5px 2px; color: var(--muted); font-size: 12px; font-weight: 700; }
 .control-label { display: block; margin: 0 0 5px 2px; color: var(--muted); font-size: 12px; font-weight: 700; }
@@ -70,6 +71,18 @@ main { --product: #2563eb; --product-soft: #dbeafe; width: min(1480px, calc(100%
 select { width: 100%; height: 46px; padding: 0 35px 0 12px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: #fff; outline: none; font-size: 13px; }
 select:focus { border-color: var(--product); box-shadow: 0 0 0 3px color-mix(in srgb, var(--product) 12%, transparent); }
 .reset { height: 44px; padding: 0 17px; border: 1px solid #ffd0cd; border-radius: 12px; color: #b42318; font-weight: 700; background: #fff1f0; cursor: pointer; }
+
+@media (max-width: 1450px) and (min-width: 1151px) {
+  .control-deck { grid-template-columns: repeat(12,minmax(0,1fr)); gap: 10px; }
+  .product-switch { grid-column: span 6; }
+  .control-deck > label:nth-of-type(1) { grid-column: span 2; }
+  .control-deck > label:nth-of-type(2) { grid-column: span 2; }
+  .control-deck > .branch-multiselect { grid-column: span 2; }
+  .control-deck > label:nth-of-type(3),.control-deck > label:nth-of-type(4),.control-deck > .download-menu,.control-deck > .reset { grid-column: span 3; }
+  .control-deck > label,.branch-multiselect,.download-menu { min-width: 0; }
+  .control-deck select { min-width: 0; }
+  .download-menu { min-width: 0; }
+}
 .scope-strip { display: grid; grid-template-columns: 1.2fr .8fr 1fr; gap: 1px; overflow: hidden; margin-bottom: 16px; border: 1px solid var(--line); border-radius: 15px; background: var(--line); }
 .scope-strip div { padding: 12px 16px; background: #fff; }.scope-strip span,.scope-strip strong { display: block; }.scope-strip span { color: var(--muted); font-size: 11px; }.scope-strip strong { margin-top: 3px; font-size: 14px; }
 
