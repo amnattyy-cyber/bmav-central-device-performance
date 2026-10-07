@@ -11,7 +11,7 @@ export type MongkolArea = {
 };
 
 export type MongkolData = {
-  meta: { area: string; month: string; asOf: string; source: string };
+  meta: { area: string; month: string; asOf: string; source: string; actualLabel?: string };
   areas: MongkolArea[];
   indySummary: { count: number; noSale: number; atRisk: number; watch: number; onTrack: number };
   indies: MongkolIndy[];

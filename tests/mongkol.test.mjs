@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { mongkolDataFromCsv } from "../app/mongkol-google-sheet.ts";
 
 const root = new URL("../", import.meta.url);
 
@@ -24,4 +25,22 @@ test("auspicious-number snapshot reconciles area and detailed Indy performance",
   assert.ok(data.indies.every((indy) => Math.abs(indy.achievement - indy.actual / indy.target) < 1e-9));
   assert.ok(data.indies.every((indy) => !("empId" in indy) && !("employeeId" in indy)));
   assert.equal("people" in data, false);
+});
+
+test("Mongkol Google Sheet CSV maps Indy rows and recalculates area totals", async () => {
+  const data = JSON.parse(await readFile(new URL("app/mongkol-data.json", root), "utf8"));
+  const csv = [
+    "name_eng,sname_eng,emp_type_2,shop_code,Shop Name,Shop Type,Target,D1,D2,D3,D4,D5,D6,Actual 1-2 Oct,%ACH",
+    'A,B,RR_Multi,80100001,"True Shop, Sample",COCO,15,1,0,0,0,0,0,1,6.7%',
+    'C,D,RR_Multi,80100001,"True Shop, Sample",COCO,15,0,0,0,0,0,0,0,0%',
+    'E,F,RR_Multi,80100002,Other Shop,COCO,15,0,2,0,0,0,0,2,13.3%',
+  ].join("\n");
+  const live = mongkolDataFromCsv(csv, data);
+  assert.equal(live.indies.length, 3);
+  assert.equal(live.areas.length, 2);
+  assert.equal(live.areas.find((area) => area.branch === "True Shop, Sample")?.actual, 1);
+  assert.equal(live.areas.find((area) => area.branch === "True Shop, Sample")?.noSaleCount, 1);
+  assert.equal(live.indySummary.count, 3);
+  assert.equal(live.indySummary.noSale, 1);
+  assert.equal(live.meta.actualLabel, "1–2 Oct");
 });

@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import mongkolFallback from "./mongkol-data.json";
 import type { MongkolData } from "./mongkol-data";
+import { loadMongkolGoogleSheetData } from "./mongkol-google-sheet";
 
-const data = mongkolFallback as MongkolData;
+const fallbackData = mongkolFallback as MongkolData;
 const money = (value: number) => new Intl.NumberFormat("th-TH", { maximumFractionDigits: 0 }).format(value);
 const percent = (value: number) => `${(value * 100).toFixed(1)}%`;
 const indyPercent = (value: number) => value === 0 ? "0%" : percent(value);
@@ -15,9 +16,39 @@ const shortShop = (name: string) => name
   .replace("True Kiosk ", "Kiosk ");
 
 export default function MongkolDashboard() {
+  const [data, setData] = useState<MongkolData>(fallbackData);
+  const [syncSource, setSyncSource] = useState<"sheet" | "fallback">("fallback");
   const [mode, setMode] = useState<"area" | "indy">("area");
   const [captureMode, setCaptureMode] = useState(false);
   const [nameQuery, setNameQuery] = useState("");
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+    const sync = async () => {
+      try {
+        const nextData = await loadMongkolGoogleSheetData(fallbackData, controller.signal);
+        if (active) {
+          setData(nextData);
+          setSyncSource("sheet");
+        }
+      } catch (error) {
+        if (active && !(error instanceof DOMException && error.name === "AbortError")) {
+          console.warn("Mongkol Google Sheet sync unavailable; using bundled data.", error);
+          setSyncSource("fallback");
+        }
+      }
+    };
+    void sync();
+    const interval = window.setInterval(sync, 5 * 60 * 1000);
+    const onVisibility = () => { if (document.visibilityState === "visible") void sync(); };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      active = false;
+      controller.abort();
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, []);
   const filteredIndies = useMemo(() => {
     const query = nameQuery.trim().toLocaleLowerCase();
     return data.indies.filter((indy) => [indy.firstName, indy.lastName, indy.employeeType, indy.shopCode, indy.shopName, indy.shopType]
@@ -39,7 +70,7 @@ export default function MongkolDashboard() {
   return <main className={`mongkol-page${captureMode ? " mongkol-capture-mode" : ""}`}>
     <section className="panel mongkol-panel" aria-label="Dashboard เบอร์มงคล">
       <div className="section-head mongkol-heading">
-        <div><span>OCTOBER 2026 • SPECIAL NUMBER PERFORMANCE</span><h1>Dashboard เบอร์มงคล</h1><p>{data.meta.area} • ข้อมูล ณ {asOfDisplay} • Snapshot จากไฟล์ต้นทาง</p></div>
+        <div><span>OCTOBER 2026 • SPECIAL NUMBER PERFORMANCE</span><h1>Dashboard เบอร์มงคล</h1><p>{data.meta.area} • ข้อมูล ณ {asOfDisplay} • {syncSource === "sheet" ? "Google Sheet Live • อัปเดตทุก 5 นาที" : "ข้อมูลสำรอง • Google Sheet ยังไม่พร้อมใช้งาน"}</p></div>
         <div className="mongkol-actions">
           <a href="https://docs.google.com/spreadsheets/d/1HnloV7TpFMWDrHgcCEUTaJKKDz2Zgb8WjQPCSvfn-Ns/edit">Google Sheet</a>
           <a href={backHref}>กลับ Dashboard หลัก</a>
@@ -75,7 +106,7 @@ export default function MongkolDashboard() {
         <div className="table-wrap mongkol-indy-name-wrap"><table className="mongkol-indy-name-table"><thead><tr>
           <th>name_eng</th><th>sname_eng</th><th>emp_type_2</th><th>shop_code</th><th>Shop Name</th><th>Shop Type</th><th>Target</th>
           {Array.from({ length: 6 }, (_, index) => <th key={`d${index + 1}`}>D{index + 1}</th>)}
-          <th>Actual<br />1–6 Oct</th><th>%ACH</th>
+          <th>Actual<br />{data.meta.actualLabel || "1–6 Oct"}</th><th>%ACH</th>
         </tr></thead><tbody>
           {filteredIndies.map((indy, index) => <tr key={`${indy.firstName}-${indy.lastName}-${indy.shopCode}-${index}`}>
             <td>{indy.firstName}</td><td>{indy.lastName}</td><td>{indy.employeeType}</td><td>{indy.shopCode}</td><td>{indy.shopName}</td><td>{indy.shopType}</td><td>{money(indy.target)}</td>
