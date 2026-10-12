@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import Home from "../app/page";
 import MongkolDashboard from "../app/mongkol-dashboard";
+import BmavPerformance from "../app/bmav-performance";
 import "../app/globals.css";
 
 const root = document.getElementById("root");
@@ -17,7 +18,9 @@ function DashboardRouter() {
     window.addEventListener("hashchange", syncRoute);
     return () => window.removeEventListener("hashchange", syncRoute);
   }, []);
-  return route === "#/mongkol" ? <MongkolDashboard /> : <Home />;
+  if (route === "#/mongkol") return <MongkolDashboard />;
+  if (route === "#/performance") return <BmavPerformance />;
+  return <Home />;
 }
 
 createRoot(root).render(<React.StrictMode><DashboardRouter /></React.StrictMode>);
