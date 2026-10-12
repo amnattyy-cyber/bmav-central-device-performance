@@ -29,6 +29,7 @@ const ratio = (value: number) => `${(value * 100).toFixed(1)}%`;
 type Summary = {
   product: ProductName;
   metric: MetricName;
+  available: boolean;
   target: number;
   actual: number;
   runrate: number;
@@ -51,6 +52,7 @@ function summarize(dataset: DashboardDataset, monthKey: string, product: Product
   return {
     product,
     metric,
+    available: itemAvailable,
     target: itemAvailable ? target : 0,
     actual: itemAvailable ? actual : 0,
     runrate: itemAvailable ? runrate : 0,
@@ -67,10 +69,10 @@ function MetricCard({ summary }: { summary: Summary }) {
   return <article className="bmav-product-card" style={{ "--product-color": productColors[product] } as React.CSSProperties}>
     <div className="bmav-card-title"><span>{titles[product]}</span><small>{metricNames[metric]} • {units[metric]}</small></div>
     <div className="bmav-card-grid">
-      <div><span>Target</span><strong>{summary.target ? fmt(summary.target) : "—"}</strong></div>
+      <div><span>Target</span><strong>{summary.available && summary.target ? fmt(summary.target) : "—"}</strong></div>
       <div><span>Achieve</span><strong>{pct(summary.achievement)}</strong></div>
-      <div><span>Actual MTD</span><strong>{fmt(summary.actual)}</strong></div>
-      <div><span>Run Rate</span><strong>{fmt(summary.runrate)}</strong></div>
+      <div><span>Actual MTD</span><strong>{summary.available ? fmt(summary.actual) : "—"}</strong></div>
+      <div><span>Run Rate</span><strong>{summary.available ? fmt(summary.runrate) : "—"}</strong></div>
       <div className={summary.mom === null ? "neutral" : summary.mom >= 0 ? "positive" : "negative"}><span>MoM</span><strong>{pct(summary.mom)}</strong></div>
       <div className={summary.wow === null ? "neutral" : summary.wow >= 0 ? "positive" : "negative"}><span>WoW</span><strong>{pct(summary.wow)}</strong></div>
     </div>
@@ -93,7 +95,7 @@ function CompareChart({ title, metric, summaries }: { title: string; metric: Met
             <span className={`bmav-mom-label ${mom >= 0 ? "positive" : "negative"}`}>{pct(summary.mom)}</span>
           </div>
           <strong>{titles[summary.product]}</strong>
-          <small>{fmt(summary.runrate)} {units[metric]}</small>
+          <small>{summary.available ? `${fmt(summary.runrate)} ${units[metric]}` : "ไม่มีข้อมูล"}</small>
         </div>;
       })}
     </div>
@@ -163,7 +165,7 @@ export default function BmavPerformance() {
         <tbody>{products.map((product, index) => {
           const net = netSummaries[index];
           const qty = qtySummaries[index];
-          return <tr key={product}><th><i style={{ background: productColors[product] }} />{titles[product]}</th><td>{month.meta.asOf}</td><td>{net.target ? fmt(net.target) : "—"}</td><td>{fmt(net.actual)}</td><td>{fmt(net.runrate)}</td><td>{pct(net.achievement)}</td><td className={net.mom === null ? "neutral" : net.mom >= 0 ? "positive" : "negative"}>{pct(net.mom)}</td><td className={net.wow === null ? "neutral" : net.wow >= 0 ? "positive" : "negative"}>{pct(net.wow)}</td><td>{qty.target ? fmt(qty.target) : "—"}</td><td>{fmt(qty.actual)}</td><td>{fmt(qty.runrate)}</td><td>{pct(qty.achievement)}</td><td className={qty.mom === null ? "neutral" : qty.mom >= 0 ? "positive" : "negative"}>{pct(qty.mom)}</td><td className={qty.wow === null ? "neutral" : qty.wow >= 0 ? "positive" : "negative"}>{pct(qty.wow)}</td></tr>;
+          return <tr key={product}><th><i style={{ background: productColors[product] }} />{titles[product]}</th><td>{month.meta.asOf}</td><td>{net.available && net.target ? fmt(net.target) : "—"}</td><td>{net.available ? fmt(net.actual) : "—"}</td><td>{net.available ? fmt(net.runrate) : "—"}</td><td>{pct(net.achievement)}</td><td className={net.mom === null ? "neutral" : net.mom >= 0 ? "positive" : "negative"}>{pct(net.mom)}</td><td className={net.wow === null ? "neutral" : net.wow >= 0 ? "positive" : "negative"}>{pct(net.wow)}</td><td>{qty.available && qty.target ? fmt(qty.target) : "—"}</td><td>{qty.available ? fmt(qty.actual) : "—"}</td><td>{qty.available ? fmt(qty.runrate) : "—"}</td><td>{pct(qty.achievement)}</td><td className={qty.mom === null ? "neutral" : qty.mom >= 0 ? "positive" : "negative"}>{pct(qty.mom)}</td><td className={qty.wow === null ? "neutral" : qty.wow >= 0 ? "positive" : "negative"}>{pct(qty.wow)}</td></tr>;
         })}</tbody>
       </table></div>
       <p className="bmav-table-note">MoM = Run Rate เทียบ Actual เดือนก่อน • WoW = ยอด Week ที่เลือกเทียบสัปดาห์ก่อนในจำนวนวันเท่ากัน • หน่วย Net เป็นบาท และ QTY เป็นจำนวน</p>
