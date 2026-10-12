@@ -23,6 +23,15 @@ export const WOW_WEEKS: WowWeek[] = [
   { id: "W42", label: "Week 42", start: "2026-10-12", end: "2026-10-18", baseStart: "2026-10-05", baseEnd: "2026-10-11" },
   { id: "W43", label: "Week 43", start: "2026-10-19", end: "2026-10-25", baseStart: "2026-10-12", baseEnd: "2026-10-18" },
   { id: "W44", label: "Week 44", start: "2026-10-26", end: "2026-11-01", baseStart: "2026-10-19", baseEnd: "2026-10-25" },
+  { id: "W45", label: "Week 45", start: "2026-11-02", end: "2026-11-08", baseStart: "2026-10-26", baseEnd: "2026-11-01" },
+  { id: "W46", label: "Week 46", start: "2026-11-09", end: "2026-11-15", baseStart: "2026-11-02", baseEnd: "2026-11-08" },
+  { id: "W47", label: "Week 47", start: "2026-11-16", end: "2026-11-22", baseStart: "2026-11-09", baseEnd: "2026-11-15" },
+  { id: "W48", label: "Week 48", start: "2026-11-23", end: "2026-11-29", baseStart: "2026-11-16", baseEnd: "2026-11-22" },
+  { id: "W49", label: "Week 49", start: "2026-11-30", end: "2026-12-06", baseStart: "2026-11-23", baseEnd: "2026-11-29" },
+  { id: "W50", label: "Week 50", start: "2026-12-07", end: "2026-12-13", baseStart: "2026-11-30", baseEnd: "2026-12-06" },
+  { id: "W51", label: "Week 51", start: "2026-12-14", end: "2026-12-20", baseStart: "2026-12-07", baseEnd: "2026-12-13" },
+  { id: "W52", label: "Week 52", start: "2026-12-21", end: "2026-12-27", baseStart: "2026-12-14", baseEnd: "2026-12-20" },
+  { id: "W53", label: "Week 53", start: "2026-12-28", end: "2027-01-03", baseStart: "2026-12-21", baseEnd: "2026-12-27" },
 ];
 
 const THAI_MONTHS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
