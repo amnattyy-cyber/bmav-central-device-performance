@@ -658,6 +658,7 @@ export default function Home() {
           {productNames.map((name) => <button key={name} className={product === name ? "active" : ""} onClick={() => changeProduct(name)}>
             <i style={{ background: productMeta[name].color }}>{productMeta[name].short}</i><span>{name}</span>
           </button>)}
+          <a className="mongkol-nav-link bmav-performance-link" href="#/performance" aria-label="BMAV Performance">BMAV Performance</a>
           <a className="mongkol-nav-link" href="#/mongkol" aria-label="เปิดหน้า Dashboard เบอร์มงคล">เบอร์มงคล</a>
         </div>
         <label><span>เลือกเดือน</span><select value={monthKey} onChange={(event) => changeMonth(event.target.value)}>
