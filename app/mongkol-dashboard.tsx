@@ -64,6 +64,7 @@ export default function MongkolDashboard() {
   const dayCount = data.indies[0]?.daily.length ?? 6;
   const asOfDate = new Date(`${data.meta.asOf}T00:00:00+07:00`);
   const asOfDisplay = Number.isNaN(asOfDate.valueOf()) ? "—" : asOfDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  const dataAsOfLabel = data.meta.actualLabel?.match(/(\d{1,2}\s+[A-Za-z]{3,})$/)?.[1] ?? asOfDisplay;
   const backHref = typeof window !== "undefined" && window.location.pathname.includes("bmav-central-device-performance")
     ? "/bmav-central-device-performance/#/"
     : "/";
@@ -71,7 +72,7 @@ export default function MongkolDashboard() {
   return <main className={`mongkol-page${captureMode ? " mongkol-capture-mode" : ""}`}>
     <section className="panel mongkol-panel" aria-label="Dashboard เบอร์มงคล">
       <div className="section-head mongkol-heading">
-        <div><span>OCTOBER 2026 • SPECIAL NUMBER PERFORMANCE</span><h1>Dashboard เบอร์มงคล</h1><p>{data.meta.area} • ข้อมูล ณ {asOfDisplay} • {syncSource === "sheet" ? "Google Sheet Live • อัปเดตทุก 5 นาที" : "ข้อมูลสำรอง • Google Sheet ยังไม่พร้อมใช้งาน"}</p></div>
+        <div><span>OCTOBER 2026 • SPECIAL NUMBER PERFORMANCE</span><h1>Dashboard เบอร์มงคล</h1><p>{data.meta.area} • Data as of {dataAsOfLabel} • {syncSource === "sheet" ? "Google Sheet Live • อัปเดตทุก 5 นาที" : "ข้อมูลสำรอง • Google Sheet ยังไม่พร้อมใช้งาน"}</p></div>
         <div className="mongkol-actions">
           <a href="https://docs.google.com/spreadsheets/d/1HnloV7TpFMWDrHgcCEUTaJKKDz2Zgb8WjQPCSvfn-Ns/edit">Google Sheet</a>
           <a href={backHref}>กลับ Dashboard หลัก</a>
