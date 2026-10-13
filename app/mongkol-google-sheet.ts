@@ -45,16 +45,24 @@ export function mongkolDataFromCsv(csv: string, fallback: MongkolData): MongkolD
   const headers = rows[0]?.map((value) => value.replace(/^\uFEFF/, "").trim());
   if (!headers?.length) throw new Error("Google Sheet returned no Indy headers");
   const column = new Map(headers.map((header, index) => [header, index]));
-  const required = ["name_eng", "sname_eng", "emp_type_2", "shop_code", "Shop Name", "Shop Type", "Target", ...Array.from({ length: 6 }, (_, i) => `D${i + 1}`)];
+  const required = ["name_eng", "sname_eng", "emp_type_2", "shop_code", "Shop Name", "Shop Type", "Target", "D1"];
   const actualIndex = headers.findIndex((header) => /^Actual\b/i.test(header));
   const missing = required.filter((header) => !column.has(header));
   if (missing.length || actualIndex < 0) throw new Error(`Google Sheet is missing Indy columns: ${[...missing, ...(actualIndex < 0 ? ["Actual"] : [])].join(", ")}`);
+  const dayColumns = headers
+    .map((header, index) => ({ day: Number(header.match(/^D(\d+)$/i)?.[1]), index }))
+    .filter(({ day }) => Number.isInteger(day) && day > 0)
+    .sort((a, b) => a.day - b.day);
+  const dayCount = dayColumns.length;
+  if (!dayCount || dayColumns.some(({ day }, index) => day !== index + 1)) {
+    throw new Error("Google Sheet Indy daily columns must be consecutive from D1");
+  }
 
   const indies = rows.slice(1).map((row): MongkolIndy => {
     const get = (header: string) => (row[column.get(header) ?? -1] ?? "").trim();
     const target = number(get("Target"));
     const actual = number(row[actualIndex] ?? "");
-    const daily = Array.from({ length: 6 }, (_, i) => number(get(`D${i + 1}`)));
+    const daily = dayColumns.map(({ index }) => number(row[index] ?? ""));
     return {
       firstName: get("name_eng"),
       lastName: get("sname_eng"),
@@ -70,13 +78,13 @@ export function mongkolDataFromCsv(csv: string, fallback: MongkolData): MongkolD
   }).filter((indy) => indy.firstName && indy.lastName && indy.shopCode && indy.shopName);
 
   if (!indies.length) throw new Error("Google Sheet returned no Indy performance rows");
-  if (indies.some((indy) => indy.daily.length !== 6 || Math.abs(indy.actual - indy.daily.reduce((sum, qty) => sum + qty, 0)) > 0.001)) {
-    throw new Error("Google Sheet Indy Actual does not match D1–D6");
+  if (indies.some((indy) => indy.daily.length !== dayCount || Math.abs(indy.actual - indy.daily.reduce((sum, qty) => sum + qty, 0)) > 0.001)) {
+    throw new Error(`Google Sheet Indy Actual does not match D1–D${dayCount}`);
   }
 
   const actualLabel = (headers[actualIndex].replace(/^Actual\s*/i, "").trim() || fallback.meta.actualLabel || "").replace(/-/g, "–");
   const dayMatch = actualLabel.match(/1\s*[–-]\s*(\d{1,2})/);
-  const dayCount = Math.max(1, Math.min(31, Number(dayMatch?.[1] ?? 6)));
+  const actualDayCount = Math.max(1, Math.min(31, Number(dayMatch?.[1] ?? dayCount)));
   const grouped = new Map<string, MongkolIndy[]>();
   for (const indy of indies) {
     const shop = grouped.get(indy.shopCode) ?? [];
@@ -87,7 +95,7 @@ export function mongkolDataFromCsv(csv: string, fallback: MongkolData): MongkolD
   const areas: MongkolArea[] = [...grouped.values()].map((shopIndies) => {
     const target = shopIndies.reduce((sum, indy) => sum + indy.target, 0);
     const actual = shopIndies.reduce((sum, indy) => sum + indy.actual, 0);
-    const daily = Array.from({ length: 31 }, (_, day) => day < 6 ? shopIndies.reduce((sum, indy) => sum + indy.daily[day], 0) : null);
+    const daily = Array.from({ length: 31 }, (_, day) => day < dayCount ? shopIndies.reduce((sum, indy) => sum + indy.daily[day], 0) : null);
     return {
       area: fallback.meta.area,
       branch: shopIndies[0].shopName,
@@ -95,7 +103,7 @@ export function mongkolDataFromCsv(csv: string, fallback: MongkolData): MongkolD
       daily,
       actual,
       achievement: target > 0 ? actual / target : 0,
-      rrEndMonth: dayCount > 0 ? actual / dayCount * 31 : 0,
+      rrEndMonth: actualDayCount > 0 ? actual / actualDayCount * 31 : 0,
       noSaleCount: shopIndies.filter((indy) => indy.actual === 0).length,
       indyCount: shopIndies.length,
     };
@@ -103,7 +111,7 @@ export function mongkolDataFromCsv(csv: string, fallback: MongkolData): MongkolD
 
   const totalActual = indies.reduce((sum, indy) => sum + indy.actual, 0);
   const noSale = indies.filter((indy) => indy.actual === 0).length;
-  const forecastRate = (indy: MongkolIndy) => indy.target > 0 ? indy.actual / dayCount * 31 / indy.target : 0;
+  const forecastRate = (indy: MongkolIndy) => indy.target > 0 ? indy.actual / actualDayCount * 31 / indy.target : 0;
   const hasSales = indies.filter((indy) => indy.actual > 0);
   const atRisk = hasSales.filter((indy) => forecastRate(indy) < 0.85).length;
   const watch = hasSales.filter((indy) => forecastRate(indy) >= 0.85 && forecastRate(indy) < 1).length;
