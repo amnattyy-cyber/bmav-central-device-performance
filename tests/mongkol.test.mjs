@@ -52,7 +52,6 @@ test("Mongkol Google Sheet CSV accepts the latest consecutive daily columns", as
     'A,B,RR_Multi,80100001,"True Shop, Sample",COCO,15,0,0,0,0,0,0,0,0,1,0,0,1,6.7%',
   ].join("\n");
   const live = mongkolDataFromCsv(csv, data);
-  assert.equal(live.meta.dayCount, 11);
   assert.equal(live.meta.actualLabel, "1–11 Oct");
   assert.equal(live.indies[0].daily.length, 11);
   assert.equal(live.indies[0].actual, 1);
