@@ -44,3 +44,18 @@ test("Mongkol Google Sheet CSV maps Indy rows and recalculates area totals", asy
   assert.equal(live.indySummary.noSale, 1);
   assert.equal(live.meta.actualLabel, "1–2 Oct");
 });
+
+test("Mongkol Google Sheet CSV accepts the latest consecutive daily columns", async () => {
+  const data = JSON.parse(await readFile(new URL("app/mongkol-data.json", root), "utf8"));
+  const csv = [
+    "name_eng,sname_eng,emp_type_2,shop_code,Shop Name,Shop Type,Target,D1,D2,D3,D4,D5,D6,D7,D8,D9,D10,D11,Actual 1-11 Oct,%ACH",
+    'A,B,RR_Multi,80100001,"True Shop, Sample",COCO,15,0,0,0,0,0,0,0,0,1,0,0,1,6.7%',
+  ].join("\n");
+  const live = mongkolDataFromCsv(csv, data);
+  assert.equal(live.meta.dayCount, 11);
+  assert.equal(live.meta.actualLabel, "1–11 Oct");
+  assert.equal(live.indies[0].daily.length, 11);
+  assert.equal(live.indies[0].actual, 1);
+  assert.equal(live.areas[0].daily[10], 0);
+  assert.equal(live.areas[0].daily[11], null);
+});
