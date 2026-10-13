@@ -1,7 +1,6 @@
 import type { MongkolArea, MongkolData, MongkolIndy } from "./mongkol-data";
 
-export const MONGKOL_SHEET_ID = "1HnloV7TpFMWDrHgcCEUTaJKKDz2Zgb8WjQPCSvfn-Ns";
-export const MONGKOL_SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${MONGKOL_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Indy%20Update`;
+export const MONGKOL_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSJmhlzZgh0CmEclwSWmigb_Xc3mQ3BC2SIJPa2nMqYrkiC8lfT4wGxL8JdubMPteJMGayM3yMLXPtJ/pub?gid=1992762098&single=true&output=csv";
 
 function parseCsv(text: string) {
   const rows: string[][] = [];
