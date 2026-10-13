@@ -61,6 +61,7 @@ export default function MongkolDashboard() {
     noSale: total.noSale + area.noSaleCount,
     indyCount: total.indyCount + area.indyCount,
   }), { target: 0, actual: 0, forecast: 0, noSale: 0, indyCount: 0 });
+  const dayCount = data.indies[0]?.daily.length ?? 6;
   const asOfDate = new Date(`${data.meta.asOf}T00:00:00+07:00`);
   const asOfDisplay = Number.isNaN(asOfDate.valueOf()) ? "—" : asOfDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
   const backHref = typeof window !== "undefined" && window.location.pathname.includes("bmav-central-device-performance")
@@ -78,7 +79,7 @@ export default function MongkolDashboard() {
       </div>
       <div className="mongkol-kpis">
         <article><span>Target เดือน</span><strong>{money(totals.target)} QTY</strong></article>
-        <article><span>Actual ถึง 6 ต.ค.</span><strong>{money(totals.actual)} QTY</strong></article>
+        <article><span>Actual ถึง {dayCount} ต.ค.</span><strong>{money(totals.actual)} QTY</strong></article>
         <article><span>%ACH</span><strong>{percent(totals.target ? totals.actual / totals.target : 0)}</strong></article>
         <article><span>Forecast สิ้นเดือน</span><strong>{money(totals.forecast)} QTY</strong></article>
         <article><span>No Sale</span><strong>{money(totals.noSale)} / {money(totals.indyCount)}</strong><small>Indy</small></article>
@@ -102,10 +103,10 @@ export default function MongkolDashboard() {
         <article className="indy-track"><span>On Track</span><strong>{data.indySummary.onTrack}</strong><small>Forecast ถึง Target</small></article>
       </div>
       <div className="mongkol-indy-directory">
-        <div className="mongkol-indy-directory-head"><h2>ราย Indy • ข้อมูล 1–6 Oct</h2><label><span className="sr-only">ค้นหา Indy</span><input aria-label="ค้นหา Indy" placeholder="ค้นหาชื่อหรือสาขา" value={nameQuery} onChange={(event) => setNameQuery(event.target.value)} /></label></div>
+        <div className="mongkol-indy-directory-head"><h2>ราย Indy • ข้อมูล 1–{dayCount} Oct</h2><label><span className="sr-only">ค้นหา Indy</span><input aria-label="ค้นหา Indy" placeholder="ค้นหาชื่อหรือสาขา" value={nameQuery} onChange={(event) => setNameQuery(event.target.value)} /></label></div>
         <div className="table-wrap mongkol-indy-name-wrap"><table className="mongkol-indy-name-table"><thead><tr>
           <th>name_eng</th><th>sname_eng</th><th>emp_type_2</th><th>shop_code</th><th>Shop Name</th><th>Shop Type</th><th>Target</th>
-          {Array.from({ length: 6 }, (_, index) => <th key={`d${index + 1}`}>D{index + 1}</th>)}
+          {Array.from({ length: dayCount }, (_, index) => <th key={`d${index + 1}`}>D{index + 1}</th>)}
           <th>Actual<br />{data.meta.actualLabel || "1–6 Oct"}</th><th>%ACH</th>
         </tr></thead><tbody>
           {filteredIndies.map((indy, index) => <tr key={`${indy.firstName}-${indy.lastName}-${indy.shopCode}-${index}`}>
