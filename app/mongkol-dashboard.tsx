@@ -53,7 +53,7 @@ export default function MongkolDashboard() {
     const query = nameQuery.trim().toLocaleLowerCase();
     return data.indies.filter((indy) => [indy.firstName, indy.lastName, indy.employeeType, indy.shopCode, indy.shopName, indy.shopType]
       .some((value) => value.toLocaleLowerCase().includes(query)));
-  }, [nameQuery]);
+  }, [data.indies, nameQuery]);
   const totals = data.areas.reduce((total, area) => ({
     target: total.target + area.target,
     actual: total.actual + area.actual,
