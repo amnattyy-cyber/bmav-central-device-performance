@@ -107,12 +107,10 @@ export default function MongkolDashboard() {
         <div className="mongkol-indy-directory-head"><h2>ราย Indy • ข้อมูล 1–{dayCount} Oct</h2><label><span className="sr-only">ค้นหา Indy</span><input aria-label="ค้นหา Indy" placeholder="ค้นหาชื่อหรือสาขา" value={nameQuery} onChange={(event) => setNameQuery(event.target.value)} /></label></div>
         <div className="table-wrap mongkol-indy-name-wrap"><table className="mongkol-indy-name-table"><thead><tr>
           <th>name_eng</th><th>sname_eng</th><th>emp_type_2</th><th>shop_code</th><th>Shop Name</th><th>Shop Type</th><th>Target</th>
-          {Array.from({ length: dayCount }, (_, index) => <th key={`d${index + 1}`}>D{index + 1}</th>)}
           <th>Actual<br />{data.meta.actualLabel || "1–6 Oct"}</th><th>%ACH</th>
         </tr></thead><tbody>
           {filteredIndies.map((indy, index) => <tr key={`${indy.firstName}-${indy.lastName}-${indy.shopCode}-${index}`}>
             <td>{indy.firstName}</td><td>{indy.lastName}</td><td>{indy.employeeType}</td><td>{indy.shopCode}</td><td>{indy.shopName}</td><td>{indy.shopType}</td><td>{money(indy.target)}</td>
-            {indy.daily.map((qty, dayIndex) => <td key={`${indy.shopCode}-d${dayIndex + 1}`}>{qty ? money(qty) : "–"}</td>)}
             <td>{indy.actual ? money(indy.actual) : "–"}</td><td><strong>{indyPercent(indy.achievement)}</strong></td>
           </tr>)}
         </tbody></table></div>
