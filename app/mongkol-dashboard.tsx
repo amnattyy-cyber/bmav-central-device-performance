@@ -21,6 +21,7 @@ export default function MongkolDashboard() {
   const [mode, setMode] = useState<"area" | "indy">("area");
   const [captureMode, setCaptureMode] = useState(false);
   const [nameQuery, setNameQuery] = useState("");
+  const [shopFilter, setShopFilter] = useState("all");
   useEffect(() => {
     let active = true;
     const controller = new AbortController();
@@ -49,11 +50,15 @@ export default function MongkolDashboard() {
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
+  const indyShops = useMemo(() => Array.from(new Map(data.indies.map((indy) => [indy.shopCode, indy.shopName] as const)).entries())
+    .map(([shopCode, shopName]) => ({ shopCode, shopName }))
+    .sort((a, b) => a.shopName.localeCompare(b.shopName, "th")), [data.indies]);
   const filteredIndies = useMemo(() => {
     const query = nameQuery.trim().toLocaleLowerCase();
-    return data.indies.filter((indy) => [indy.firstName, indy.lastName, indy.employeeType, indy.shopCode, indy.shopName, indy.shopType]
-      .some((value) => value.toLocaleLowerCase().includes(query)));
-  }, [data.indies, nameQuery]);
+    return data.indies.filter((indy) => (shopFilter === "all" || indy.shopCode === shopFilter)
+      && [indy.firstName, indy.lastName, indy.employeeType, indy.shopCode, indy.shopName, indy.shopType]
+        .some((value) => value.toLocaleLowerCase().includes(query)));
+  }, [data.indies, nameQuery, shopFilter]);
   const totals = data.areas.reduce((total, area) => ({
     target: total.target + area.target,
     actual: total.actual + area.actual,
@@ -90,7 +95,7 @@ export default function MongkolDashboard() {
           <button type="button" className={mode === "area" ? "active" : ""} onClick={() => setMode("area")}>มุม AREA</button>
           <button type="button" className={mode === "indy" ? "active" : ""} onClick={() => setMode("indy")}>ราย Indy</button>
         </div>
-        <small>{mode === "area" ? `${data.areas.length} สาขา • สรุปยอดรายสาขา` : `${data.indies.length} รายชื่อ`}</small>
+        <small>{mode === "area" ? `${data.areas.length} สาขา • สรุปยอดรายสาขา` : `${filteredIndies.length} รายชื่อ`}</small>
         {mode === "area" && <button type="button" className="capture-toggle mongkol-capture-toggle" aria-pressed={captureMode} onClick={() => setCaptureMode((value) => !value)}>{captureMode ? "กลับหน้าปกติ" : "Capture ครบทุกสาขา"}</button>}
       </div>
       {mode === "area" ? <div className="table-wrap mongkol-table-wrap"><table className="mongkol-table"><thead><tr><th>Rank</th><th>สาขา</th><th>Target</th><th>Actual MTD</th><th>%ACH</th><th>RR สิ้นเดือน</th><th>Indy</th><th>No Sale</th></tr></thead><tbody>
@@ -104,7 +109,7 @@ export default function MongkolDashboard() {
         <article className="indy-track"><span>On Track</span><strong>{data.indySummary.onTrack}</strong><small>Forecast ถึง Target</small></article>
       </div>
       <div className="mongkol-indy-directory">
-        <div className="mongkol-indy-directory-head"><h2>ราย Indy • ข้อมูล 1–{dayCount} Oct</h2><label><span className="sr-only">ค้นหา Indy</span><input aria-label="ค้นหา Indy" placeholder="ค้นหาชื่อหรือสาขา" value={nameQuery} onChange={(event) => setNameQuery(event.target.value)} /></label></div>
+        <div className="mongkol-indy-directory-head"><h2>ราย Indy • ข้อมูล 1–{dayCount} Oct</h2><div className="mongkol-indy-directory-controls"><label><span>เลือกสาขา</span><select aria-label="เลือกสาขา" value={shopFilter} onChange={(event) => setShopFilter(event.target.value)}><option value="all">ทุกสาขา</option>{indyShops.map((shop) => <option key={shop.shopCode} value={shop.shopCode}>{shop.shopName}</option>)}</select></label><label><span className="sr-only">ค้นหา Indy</span><input aria-label="ค้นหา Indy" placeholder="ค้นหาชื่อหรือสาขา" value={nameQuery} onChange={(event) => setNameQuery(event.target.value)} /></label></div></div>
         <div className="table-wrap mongkol-indy-name-wrap"><table className="mongkol-indy-name-table"><thead><tr>
           <th>name_eng</th><th>sname_eng</th><th>emp_type_2</th><th>shop_code</th><th>Shop Name</th><th>Shop Type</th><th>Target</th>
           <th>Actual<br />{data.meta.actualLabel || "1–6 Oct"}</th><th>%ACH</th>
