@@ -211,6 +211,8 @@ test("dashboard exposes product, branch, and optional date filters", async () =>
   assert.match(page, /excel-export/);
   assert.match(css, /\.download-menu/);
   assert.match(css, /\.download-options/);
+  assert.match(css, /\.mongkol-nav-link/);
+  assert.match(css, /\.mongkol-kpis/);
   assert.match(page, /<th>Target<\/th><th>%ACH<\/th>/);
   assert.match(page, /"Target MTD"/);
   assert.match(page, /"ACH MTD"/);
