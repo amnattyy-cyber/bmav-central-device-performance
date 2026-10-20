@@ -34,6 +34,26 @@ export const GOOGLE_SHEET_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE
 export const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRL3jDKCZEI0VJuYlPlRZCkTqH4tBwEQoSkcfQGmXzMs0SgbDCqrkdukhk2Gko9DoW9zwyE7hUs-h0w/pub?gid=54305357&single=true&output=csv";
 
 const PRODUCT_NAMES: ProductName[] = ["Device", "GIA", "Postpay", "TrueOnline"];
+const PRODUCT_UNITS: Record<ProductName, "THB" | "QTY"> = {
+  Device: "THB",
+  GIA: "THB",
+  Postpay: "THB",
+  TrueOnline: "QTY",
+};
+const MONTH_NUMBERS: Record<string, string> = {
+  january: "01",
+  february: "02",
+  march: "03",
+  april: "04",
+  may: "05",
+  june: "06",
+  july: "07",
+  august: "08",
+  september: "09",
+  october: "10",
+  november: "11",
+  december: "12",
+};
 
 function parseCsv(text: string) {
   const rows: string[][] = [];
@@ -91,6 +111,14 @@ function toIsoDate(value: string) {
   return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
 }
 
+function toMonthPrefix(value: string) {
+  const match = value.trim().match(/^([A-Za-z]+)\s+(\d{4})$/);
+  if (!match) throw new Error(`Invalid reporting month from Google Sheet: ${value}`);
+  const month = MONTH_NUMBERS[match[1].toLowerCase()];
+  if (!month) throw new Error(`Invalid reporting month from Google Sheet: ${value}`);
+  return `${match[2]}-${month}`;
+}
+
 export function dashboardDataFromCsv(csv: string): DashboardData {
   const [headers, ...values] = parseCsv(csv);
   if (!headers || values.length === 0) throw new Error("Google Sheet returned no dashboard rows");
@@ -102,19 +130,53 @@ export function dashboardDataFromCsv(csv: string): DashboardData {
   }
 
   const read = (row: string[], header: string) => row[column.get(header) ?? -1] ?? "";
-  const first = values[0];
+  const canonicalRows = values.filter((row) => {
+    const product = read(row, "Product").trim() as ProductName;
+    if (!PRODUCT_NAMES.includes(product) || !read(row, "BranchName").trim()) return false;
+    return !column.has("Unit") || read(row, "Unit").trim().toUpperCase() === PRODUCT_UNITS[product];
+  });
+  if (canonicalRows.length === 0) throw new Error("Google Sheet has no rows in the expected Product units");
+
+  const latestAsOf = canonicalRows.reduce((latest, row) => {
+    const rowAsOf = toIsoDate(read(row, "AsOf"));
+    return rowAsOf > latest ? rowAsOf : latest;
+  }, "");
+  const eligibleMonthPrefixes = canonicalRows
+    .map((row) => toMonthPrefix(read(row, "Month")))
+    .filter((month) => month <= latestAsOf.slice(0, 7));
+  const reportingMonthPrefix = eligibleMonthPrefixes.sort().at(-1)
+    ?? toMonthPrefix(read(canonicalRows[0], "Month"));
+  const reportingRows = canonicalRows.filter((row) => toMonthPrefix(read(row, "Month")) === reportingMonthPrefix);
+  const first = reportingRows[0];
   const daysInMonth = Math.max(1, Math.min(31, Math.round(toNumber(read(first, "DaysInMonth")))));
-  const asOf = toIsoDate(read(first, "AsOf"));
+  const asOf = latestAsOf;
   const datedColumns = headers.flatMap((header, index) => {
     const match = header.trim().match(/^(?:Date[_-]?)?(\d{4}-\d{2}-\d{2})$/i);
     return match ? [{ date: match[1], index }] : [];
   });
-  const branches = new Map<string, Branch>();
-
-  for (const row of values) {
+  const historyByBranchProduct = new Map<string, Record<string, number>>();
+  for (const row of canonicalRows) {
     const product = read(row, "Product").trim() as ProductName;
     const branchName = read(row, "BranchName").trim();
-    if (!PRODUCT_NAMES.includes(product) || !branchName) continue;
+    const rowMonthPrefix = toMonthPrefix(read(row, "Month"));
+    const key = `${branchName}\u0000${product}`;
+    const history = historyByBranchProduct.get(key) ?? {};
+    const rowDays = Math.max(1, Math.min(31, Math.round(toNumber(read(row, "DaysInMonth")))));
+    for (let index = 0; index < rowDays; index += 1) {
+      const raw = read(row, `Day${String(index + 1).padStart(2, "0")}`).trim();
+      if (raw !== "") history[`${rowMonthPrefix}-${String(index + 1).padStart(2, "0")}`] = toNumber(raw);
+    }
+    for (const { date, index } of datedColumns) {
+      const raw = (row[index] ?? "").trim();
+      if (raw !== "") history[date] = toNumber(raw);
+    }
+    historyByBranchProduct.set(key, history);
+  }
+  const branches = new Map<string, Branch>();
+
+  for (const row of reportingRows) {
+    const product = read(row, "Product").trim() as ProductName;
+    const branchName = read(row, "BranchName").trim();
 
     let branch = branches.get(branchName);
     if (!branch) {
@@ -129,17 +191,14 @@ export function dashboardDataFromCsv(csv: string): DashboardData {
 
     const daily = Array.from({ length: daysInMonth }, (_, index) =>
       toNumber(read(row, `Day${String(index + 1).padStart(2, "0")}`)));
-    const dailyByDate: Record<string, number> = Object.fromEntries(
-      datedColumns.map(({ date, index }) => [date, toNumber(row[index] ?? "")]),
-    );
-    for (let index = 0; index < daily.length; index += 1) {
-      dailyByDate[`${asOf.slice(0, 8)}${String(index + 1).padStart(2, "0")}`] = daily[index];
-    }
+    const dailyByDate = historyByBranchProduct.get(`${branchName}\u0000${product}`) ?? {};
 
     branch.products[product] = {
       target: toNumber(read(row, "Target")),
       runrate: toNumber(read(row, "Runrate")),
-      julyActual: column.has("JulyActual") ? toNumber(read(row, "JulyActual")) : 0,
+      julyActual: column.has("PreviousActual")
+        ? toNumber(read(row, "PreviousActual"))
+        : column.has("JulyActual") ? toNumber(read(row, "JulyActual")) : 0,
       daily,
       dailyByDate,
     };

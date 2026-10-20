@@ -12,6 +12,7 @@
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
     "test": "npm run build && node --experimental-strip-types --test tests/product-monitor.test.mjs tests/person-performance.test.mjs tests/wow.test.mjs tests/mongkol.test.mjs",
     "test:logic": "node --experimental-strip-types --test tests/product-monitor.test.mjs tests/person-performance.test.mjs tests/wow.test.mjs tests/mongkol.test.mjs",
+    "sync:sales": "node --experimental-strip-types scripts/sync-sales-fallback.mjs",
     "sync:people": "node --experimental-strip-types scripts/sync-person-fallbacks.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"

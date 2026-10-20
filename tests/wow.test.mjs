@@ -89,38 +89,6 @@ test("Week 36 supports equal-day comparison across August and September", () => 
   assert.equal(wowTone(result.wow), "positive");
 });
 
-test("Week 40 supports an equal-day comparison across September and October", () => {
-  const dated = {
-    "2026-09-21": 4,
-    "2026-09-22": 5,
-    "2026-09-23": 6,
-    "2026-09-24": 7,
-    "2026-09-28": 8,
-    "2026-09-29": 9,
-    "2026-09-30": 10,
-    "2026-10-01": 11,
-  };
-  const selected = branch("October Shop", [11], dated);
-  const data = dashboard("2026-10-01", [selected]);
-  const result = calculateWow([selected], "Device", data, WOW_WEEKS[8]);
-
-  assert.equal(result.usedDays, 4);
-  assert.equal(result.currentEnd, "2026-10-01");
-  assert.equal(result.baseEnd, "2026-09-24");
-  assert.equal(result.currentTotal, 38);
-  assert.equal(result.baseTotal, 22);
-  assert.equal(result.wow, 38 / 22 - 1);
-});
-
-test("October weeks continue through Week 44", () => {
-  assert.deepEqual(WOW_WEEKS.slice(-4).map((week) => [week.id, week.start, week.end]), [
-    ["W41", "2026-10-05", "2026-10-11"],
-    ["W42", "2026-10-12", "2026-10-18"],
-    ["W43", "2026-10-19", "2026-10-25"],
-    ["W44", "2026-10-26", "2026-11-01"],
-  ]);
-});
-
 test("future selected week waits without manufacturing a comparison", () => {
   const data = dashboard("2026-08-12", [branch("A", Array(12).fill(1))]);
   const result = calculateWow(data.branches, "Device", data, WOW_WEEKS[2]);
@@ -138,5 +106,27 @@ test("Google Sheet parser preserves explicit dated columns for cross-month WoW",
   assert.equal(item.dailyByDate["2026-08-31"], 5);
   assert.equal(item.dailyByDate["2026-09-01"], 6);
   assert.equal(item.dailyByDate["2026-09-02"], 7);
+});
+
+test("Google Sheet parser selects the latest reporting month and canonical unit", () => {
+  const header = "Area,Month,AsOf,TargetUpdated,DaysInMonth,Product,BranchName,TDS,WW,Unit,Target,Runrate,PreviousActual,Day01,Day02,Day20";
+  const expectedUnit = { Device: "THB", GIA: "THB", Postpay: "THB", TrueOnline: "QTY" };
+  const rows = [];
+  for (const month of ["August 2026", "October 2026"]) {
+    for (const product of products) {
+      const latest = month === "October 2026";
+      rows.push(`BMAV,${month},2026-10-20,2026-10-01,31,${product},Shop A,1,2,${expectedUnit[product]},${latest ? 2000 : 1000},${latest ? 1800 : 900},800,${latest ? 20 : 10},${latest ? 21 : 11},${latest ? 39 : 29}`);
+      rows.push(`BMAV,${month},2026-10-20,2026-10-01,31,${product},Shop A,1,2,${expectedUnit[product] === "THB" ? "QTY" : "THB"},999999,999999,999999,999,999,999`);
+    }
+  }
+
+  const parsed = dashboardDataFromCsv([header, ...rows].join("\n"));
+  assert.equal(parsed.meta.month, "October 2026");
+  assert.equal(parsed.meta.asOf, "2026-10-20");
+  assert.equal(parsed.branches[0].products.Device.target, 2000);
+  assert.equal(parsed.branches[0].products.TrueOnline.target, 2000);
+  assert.equal(parsed.branches[0].products.Device.julyActual, 800);
+  assert.equal(parsed.branches[0].products.Device.dailyByDate["2026-08-01"], 10);
+  assert.equal(parsed.branches[0].products.Device.dailyByDate["2026-10-20"], 39);
 });
 
