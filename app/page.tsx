@@ -531,7 +531,9 @@ export default function Home() {
           {productNames.map((name) => <button key={name} className={product === name ? "active" : ""} onClick={() => setProduct(name)}>
             <i style={{ background: productMeta[name].color }}>{productMeta[name].short}</i><span>{name}{name === "TrueOnline" ? " (QTY)" : ""}</span>
           </button>)}
-          <a className="mongkol-nav-link" href="#/mongkol" aria-label="เปิดหน้า Performance เบอร์มงคล">Performance เบอร์มงคล</a>
+          <a className="mongkol-nav-link" href="#/mongkol" aria-label="เปิดหน้า Performance เบอร์มงคล">
+            <i>MNG</i><span>Performance เบอร์มงคล</span><b>เปิดหน้า</b>
+          </a>
         </div>
         <div className="branch-multiselect">
           <span className="control-label">สาขา</span>
